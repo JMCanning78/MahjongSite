@@ -12,8 +12,19 @@
 		<script src="{{ static_url("js/script.js") }}"></script>
 	</head>
 	<body>
-		<a href="/leaderboard">Leaderboard</a><br />
-		<a href="/seating">Mahjong Seater</a><br />
-		<a href="/pointcalculator">Point Calculator</a>
+		<table id="people">
+			<tr>
+				<th>Name</th>
+				<th>Average Score</th>
+				<th>Game Count</th>
+			</tr>
+			{% for person in leaderboard %}
+				<tr>
+					<td>{{ person[0] }}</td>
+					<td>{{ person[1] }}</td>
+					<td>{{ person[2] }}</td>
+				</tr>
+			{% end %}
+		</div>
 	</body>
 </html>
