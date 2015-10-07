@@ -1,0 +1,10 @@
+#controls{
+	padding:1em;
+}
+#controls > * {
+	margin:0.5em;
+}
+
+#people button {
+	margin:1em;
+}

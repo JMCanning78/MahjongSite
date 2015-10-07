@@ -6,4 +6,30 @@ html, body {
 	font-size:100%;
 	vertical-align:baseline;
 	font: 12px DejaVu Sans, Helvetica, Arial, Droid Sans, sans-serif;
+	background:black;
+	color:white;
+}
+
+a {
+	text-decoration:none;
+	font-weight:bold;
+	color:white;
+	cursor:pointer;
+}
+
+button {
+	padding:0.5em;
+	background:white;
+	color:black;
+	border:none;
+	border-radius:5px;
+	cursor:pointer;
+}
+
+button:hover {
+	text-decoration:underline;
+}
+
+a:hover {
+	text-decoration:underline;
 }

@@ -40,19 +40,18 @@ body {
 }
 
 .clickable {
-	text-align: center;
 	font-size: 2em;
 	display: inline-block;
-	border: 1px solid;
 	border-radius: 10px;
 	padding: 3px;
 	margin: 5px;
 	cursor: pointer;
 	vertical-align: middle;
 	line-height: 1em;
-	border: 1px solid;
 	width: 1em;
 	height: 1em;
+	background:white;
+	color:black;
 }
 
 .label {

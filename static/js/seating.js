@@ -28,15 +28,13 @@
 					if(data.status !== 0)
 						console.log(data);
 					else {
-						tables.innerHTML="";
-						people.innerHTML="";
+						refresh();
 					}
 				}, 'json').fail(xhrError);
 			}
 		});
 		window.setInterval(function() {
-			getCurrentPlayers();
-			getCurrentTables();
+			refresh();
 		}, 5000);
 		$("#regentables").click(regenTables);
 
@@ -53,7 +51,7 @@
 			}, 'json').fail(xhrError);
 		}
 
-		function getPlayers() {
+		function getPlayers(callback) {
 			$.getJSON('/seating/players.json', function(data) {
 				players=[];
 				selector.innerHTML = 0;
@@ -65,6 +63,8 @@
 
 					players[player.id] = player.name;
 				});
+				if(typeof callback === 'function')
+					callback();
 			}).fail(xhrError);
 		}
 
@@ -132,10 +132,14 @@
 			}).fail(xhrError);
 		}
 
-		function refreshAll() {
-			getPlayers();
+		function refresh() {
 			getCurrentPlayers();
 			getCurrentTables();
+		}
+		function refreshAll() {
+			getPlayers(function () {
+				refresh();
+			});
 		}
 		refreshAll();
 

@@ -1,0 +1,13 @@
+body {
+	text-align:center;
+}
+
+a {
+	display:inline-block;
+	border-radius:3px;
+	color:black;
+	background:white;
+	margin:1em;
+	padding:1em;
+	width:200px;
+}
