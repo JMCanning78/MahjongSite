@@ -27,7 +27,13 @@ class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             cur.execute("SELECT Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
-            self.render("leaderboard.html", leaderboard=cur.fetchall())
+            rows = cur.fetchall()
+            place=1
+            leaderboard = []
+            for row in rows:
+                leaderboard += [[place, row[0], row[1], row[2]]]
+                place += 1
+            self.render("leaderboard.html", leaderboard=leaderboard)
 
 class PlayerStats(tornado.web.RequestHandler):
     def get(self, player):

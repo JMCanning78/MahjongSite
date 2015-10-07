@@ -4,6 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
 		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
+		<link href="{{ static_url("css/leaderboard.css") }}" type="text/css" rel="stylesheet" />
 		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
 		<title>Mahjong Site</title>
 
@@ -15,15 +16,17 @@
 		<p>Click any player to see their stats</p>
 		<table id="people">
 			<tr>
+				<th>Place</th>
 				<th>Name</th>
-				<th>Average Score</th>
+				<th>Avg Score</th>
 				<th>Game Count</th>
 			</tr>
 			{% for person in leaderboard %}
 				<tr>
-					<td><a href="/playerstats/{{ person[0] }}">{{ person[0] }}</a></td>
-					<td>{{ person[1] }}</td>
+					<td>{{ person[0] }}</td>
+					<td><a href="/playerstats/{{ person[1] }}">{{ person[1] }}</a></td>
 					<td>{{ person[2] }}</td>
+					<td>{{ person[3] }}</td>
 				</tr>
 			{% end %}
 		</div>
