@@ -17,13 +17,27 @@
 			}, 'json');
 		});
 		$("#clearplayers").click(function () {
-			$.post('/seating/clearcurrentplayers', function(data) {
-				tables.innerHTML="";
-				people.innerHTML="";
-			}, 'json').fail(xhrError);
+			var clearplayers = $("#clearplayers");
+			if(!clearplayers.hasClass("confirm")) {
+				clearplayers[0].innerText = "Really?";
+				clearplayers.addClass("confirm");
+			}
+			else {
+				clearplayers[0].innerText = "Clear";
+				$.post('/seating/clearcurrentplayers', function(data) {
+					if(data.status !== 0)
+						console.log(data);
+					else {
+						tables.innerHTML="";
+						people.innerHTML="";
+					}
+				}, 'json').fail(xhrError);
+			}
 		});
-		$("#refreshplayers").click(getPlayers);
-		$("#refreshcurrentplayers").click(getCurrentPlayers);
+		window.setInterval(function() {
+			getCurrentPlayers();
+			getCurrentTables();
+		}, 5000);
 		$("#regentables").click(regenTables);
 
 		function removePlayer(player) {
@@ -70,7 +84,6 @@
 				});
 			}).fail(xhrError);
 		}
-
 
 		function getCurrentTables() {
 			$.getJSON('/seating/currenttables.json', function(data) {
@@ -119,12 +132,12 @@
 			}).fail(xhrError);
 		}
 
-		function init() {
+		function refreshAll() {
 			getPlayers();
 			getCurrentPlayers();
 			getCurrentTables();
 		}
-		init();
+		refreshAll();
 
 		function xhrError(xhr, status, error) {
 			console.log(status + ": " + error);
