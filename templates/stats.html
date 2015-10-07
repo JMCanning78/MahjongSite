@@ -12,20 +12,17 @@
 		<script src="{{ static_url("js/script.js") }}"></script>
 	</head>
 	<body>
-		<p>Click any player to see their stats</p>
-		<table id="people">
-			<tr>
-				<th>Name</th>
-				<th>Average Score</th>
-				<th>Game Count</th>
-			</tr>
-			{% for person in leaderboard %}
-				<tr>
-					<td><a href="/playerstats/{{ person[0] }}">{{ person[0] }}</a></td>
-					<td>{{ person[1] }}</td>
-					<td>{{ person[2] }}</td>
-				</tr>
-			{% end %}
-		</div>
+		{% if error is None %}
+			<h1>{{ name }}</h1>
+			Games played: {{ numgames }}<br />
+			Max score: {{ maxscore }}<br />
+			Min score: {{ minscore }}<br />
+			Average score: {{ avgscore }}<br />
+			Average rank: {{ avgrank }}<br />
+			Average score last 5 games: {{ avgscore5 }}<br />
+			Average rank last 5 games: {{ avgrank5 }}<br />
+		{% else %}
+			<h1>{{ error }}</h1>
+		{% end %}
 	</body>
 </html>

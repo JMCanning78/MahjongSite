@@ -29,6 +29,39 @@ class LeaderboardHandler(tornado.web.RequestHandler):
             cur.execute("SELECT Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
             self.render("leaderboard.html", leaderboard=cur.fetchall())
 
+class PlayerStats(tornado.web.RequestHandler):
+    def get(self, player):
+        with db.getCur() as cur:
+            cur.execute("SELECT Id,Name FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            player = cur.fetchone()
+            if len(player) == 0:
+                self.render("stats.html", error="Couldn't find that player")
+                return
+            name = player[1]
+            player = player[0]
+            cur.execute("SELECT Max(Score),MIN(Score),COUNT(*),ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100 FROM Scores WHERE PlayerId = ?", (player,))
+            row = cur.fetchone()
+            maxscore = row[0]
+            minscore = row[1]
+            numgames = row[2]
+            avgscore = row[3]
+            avgrank = row[4]
+            cur.execute("SELECT ROUND(Sum(Score) * 1.0 / COUNT(*) * 100) / 100, ROUND(Sum(Rank) * 1.0 / COUNT(*) * 100) / 100 FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date LIMIT 5)", (player,))
+            row = cur.fetchone()
+            avgscore5 = row[0]
+            avgrank5 = row[1]
+            self.render("stats.html",
+                    error = None,
+                    name = name,
+                    maxscore = maxscore,
+                    minscore = minscore,
+                    numgames = numgames,
+                    avgscore = avgscore,
+                    avgrank  = avgrank,
+                    avgscore5 = avgscore5,
+                    avgrank5 = avgrank5
+                )
+
 class PointCalculator(tornado.web.RequestHandler):
     def get(self):
         self.render("pointcalculator.html")
@@ -40,6 +73,7 @@ class Application(tornado.web.Application):
         handlers = [
                 (r"/", MainHandler),
                 (r"/leaderboard", LeaderboardHandler),
+                (r"/playerstats/(.*)", PlayerStats),
                 (r"/seating", seating.SeatingHandler),
                 (r"/seating/regentables", seating.RegenTables),
                 (r"/seating/clearcurrentplayers", seating.ClearCurrentPlayers),
