@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
+		<link href="{{ static_url("css/pointcalculator.css") }}" type="text/css" rel="stylesheet" />
+		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+		<script type="text/javascript" src="{{ static_url("js/pointcalculator.js") }}"></script>
+
+		<title>Mahjong Point Calculator</title>
+	</head>
+	<body>
+		<h1 id="title">Mahjong Point Calculator</h1>
+		<div id="calculator">
+			<span id="scores">
+				<span id="total" class="scores"><br/></span>
+				<span id="parent" class="scores"><br/></span>
+				<span id="child" class="scores"><br/></span>
+			</span><br/>
+			<span class="input">
+				<span class="label">Han</span><br/>
+				<span id="han" class="value">1</span><br/>
+				<a id="hanUp" class="arrow clickable noselect">▲</a><br/>
+				<a id="hanDown" class="arrow clickable noselect">▼</a>
+			</span>
+
+			<span class="input">
+				<span class="label">Fu</span><br />
+				<span id="fu" class="value">20</span><br/>
+				<a id="fuUp" class="arrow clickable noselect">▲</a><br/>
+				<a id="fuDown" class="arrow clickable noselect">▼</a>
+			</span>
+
+			<span class="input">
+				<span class="label">Honba</span><br />
+				<span id="honba" class="value clickable noselect">0</span>
+			</span>
+
+			<span class="input">
+				<span class="label">Dealer</span><br/>
+				<span id="dealer" class="value clickable noselect"></span>
+			</span>
+		</div>
+	</body>
+</html>

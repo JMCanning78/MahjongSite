@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
+		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
+		<link href="{{ static_url("css/seating.css") }}" type="text/css" rel="stylesheet" />
+		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
+		<title>Mahjong Site</title>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+
+		<script src="{{ static_url("js/script.js") }}"></script>
+		<script src="{{ static_url("js/seating.js") }}"></script>
+	</head>
+	<body>
+		<select id="personselector"></select>
+		<button id="addperson">Add</button>
+		<button id="clearplayers">Clear</button>
+		<button id="refreshplayers">Refresh Players</button>
+		<button id="refreshcurrentplayers">Refresh Current Players</button>
+		<button id="regentables">Regenerate Tables</button>
+
+
+		<div id="people">
+		</div>
+		<div id="tables">
+		</div>
+	</body>
+</html>
