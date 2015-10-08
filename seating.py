@@ -30,14 +30,14 @@ class CurrentPlayers(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
-            cur.execute("SELECT PlayerId FROM CurrentPlayers INNER JOIN Players ON PlayerId = Players.Id ORDER BY Players.Name")
+            cur.execute("SELECT Name FROM CurrentPlayers INNER JOIN Players ON PlayerId = Players.Id ORDER BY Players.Name")
             self.write("[")
             comma = False
             for row in cur.fetchall():
                 if comma:
                     self.write(",")
                 comma = True
-                self.write(str(row[0]))
+                self.write('"' + str(row[0]) + '"')
             self.write("]")
 
 
@@ -50,7 +50,7 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("SELECT COUNT(*) FROM CurrentPlayers WHERE PlayerId = ?", (player,))
+            cur.execute("SELECT COUNT(*) FROM CurrentPlayers INNER JOIN Players ON CurrentPlayers.PlayerId = Players.Id WHERE Players.Id = ? OR Players.Name = ?", (player, player))
             if cur.fetchone()[0] == 0:
                 cur.execute("INSERT INTO CurrentPlayers(PlayerId) VALUES(?)", (player,))
             self.write('{"status":0}')
@@ -64,7 +64,7 @@ class RemovePlayer(tornado.web.RequestHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId = ?", (player,))
+            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN (SELECT Id FROM Players WHERE CurrentPlayers.PlayerId = Players.Id AND (Players.Id = ? OR Players.Name = ?))", (player, player))
             self.write('{"status":0}')
 
 class ClearCurrentPlayers(tornado.web.RequestHandler):
@@ -79,14 +79,14 @@ class CurrentTables(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
         with db.getCur() as cur:
-            cur.execute("SELECT PlayerId FROM CurrentTables")
+            cur.execute("SELECT Players.Name FROM CurrentTables INNER JOIN Players ON Players.Id = CurrentTables.PlayerId")
             self.write("[")
             comma = False
             for player in cur.fetchall():
                 if comma:
                     self.write(",")
                 comma = True
-                self.write(str(player[0]))
+                self.write('"' + str(player[0]) + '"')
             self.write("]")
 
 
@@ -101,7 +101,7 @@ class PlayersList(tornado.web.RequestHandler):
                 if comma:
                     self.write(",")
                 comma = True
-                self.write('{"id":"' + str(row[0]) + '","name":"' + row[1] + '"}')
+                self.write('"'+ row[1] + '"')
             self.write("]")
 
 POPULATION = 256

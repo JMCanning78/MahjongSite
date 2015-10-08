@@ -4,8 +4,6 @@
 		var people = document.getElementById("people");
 		var tables = document.getElementById("tables");
 
-		var players = [];
-
 		$("#addperson").click(function() {
 			$.post("/seating/addcurrentplayer", {player:selector.value}, function(data) {
 				if(data.status !== 0)
@@ -51,29 +49,12 @@
 			}, 'json').fail(xhrError);
 		}
 
-		function getPlayers(callback) {
-			$.getJSON('/seating/players.json', function(data) {
-				players=[];
-				selector.innerHTML = 0;
-				data.forEach(function(player) {
-					var option = document.createElement("option");
-					option.value = player.id;
-					option.innerText = player.name;
-					selector.add(option);
-
-					players[player.id] = player.name;
-				});
-				if(typeof callback === 'function')
-					callback();
-			}).fail(xhrError);
-		}
-
 		function getCurrentPlayers() {
 			$.getJSON('/seating/currentplayers.json', function(data) {
 				people.innerHTML="";
 				data.forEach(function(player) {
 					var newplayer = document.createElement("div");
-					newplayer.innerText = players[player];
+					newplayer.innerText = player;
 					var deleteButton = document.createElement("button");
 					deleteButton.innerText = "X";
 					$(deleteButton).click(function() {
@@ -122,9 +103,11 @@
 					if(i >= tables_4p * 4)
 						endtable = i + 5;
 
+					var place = 0;
+					var places = "東南西北５";
 					for(; i < endtable; ++i) {
 						var player = document.createElement("div");
-						player.innerText = players[data[i]];
+						player.innerText = places[place++] + " " + data[i];
 						table.appendChild(player);
 					}
 					tables.appendChild(table);
@@ -137,9 +120,8 @@
 			getCurrentTables();
 		}
 		function refreshAll() {
-			getPlayers(function () {
-				refresh();
-			});
+			window.getPlayers();
+			refresh();
 		}
 		refreshAll();
 

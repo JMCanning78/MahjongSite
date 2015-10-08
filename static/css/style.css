@@ -17,13 +17,20 @@ a {
 	cursor:pointer;
 }
 
-button {
-	padding:0.5em;
+button, input, select {
 	background:white;
 	color:black;
-	border:none;
 	border-radius:5px;
 	cursor:pointer;
+}
+
+button, input, input {
+	border:none;
+	padding:0.5em;
+}
+
+button[disabled] {
+	display:none;
 }
 
 button:hover {
