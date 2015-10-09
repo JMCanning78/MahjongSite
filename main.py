@@ -3,6 +3,7 @@
 import sys
 import os.path
 import os
+import math
 import tornado.httpserver
 from tornado.httpclient import AsyncHTTPClient
 import tornado.ioloop
@@ -34,7 +35,6 @@ class AddGameHandler(tornado.web.RequestHandler):
             self.write('{"status":1, "error":"Please enter some scores"}')
             return
 
-        print scores
         scores = json.loads(scores)
 
         if len(scores) != 4 and len(scores) != 5:
@@ -51,9 +51,9 @@ class AddGameHandler(tornado.web.RequestHandler):
         adjscores = [0] * len(scores)
         currentscore = 0
         for i in range(0, len(scores)):
-            s = getScore(scores[i]['score'], len(scores), i)
+            s = getScore(scores[i]['score'], len(scores), i + 1)
             currentscore += s
-            if i == len(scores):
+            if i == len(scores) - 1:
                 if currentscore < 0:
                     adjscores[0] -= currentscore
                 elif currentscore > 0:
@@ -64,17 +64,21 @@ class AddGameHandler(tornado.web.RequestHandler):
         with db.getCur() as cur:
             gameid = None
             for i in range(0, len(scores)):
+                score = scores[i]
                 if gameid == None:
                     cur.execute("SELECT GameId FROM Scores ORDER BY GameId DESC LIMIT 1")
                     gameid = cur.fetchone()[0] + 1
 
+                if score['player'] == "":
+                    self.write('{"status":1, "error":"Please enter all player names"}')
+
                 cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (score['player'], score['player']))
                 player = cur.fetchone()
-                if len(player) == 0:
-                    self.write('{"status":1, "error":"Player ' + score['player'] + 'not found"}')
-                    return
+                if player is None or len(player) == 0:
+                    cur.execute("INSERT INTO Players(Name) VALUES(?)", (score['player'],))
+                    cur.execute("SELECT Id FROM Players WHERE Name = ?", (score['player'],))
+                    player = cur.fetchone()
                 player = player[0]
-                print player
 
                 cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now'))", (gameid, player, i + 1, len(scores), score['score'], adjscores[i]))
             self.write('{"status":0}')
@@ -89,13 +93,36 @@ class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             cur.execute("SELECT Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
+
+class HistoryHandler(tornado.web.RequestHandler):
+    def get(self, page):
+        if page is None:
+            page = 0
+        else:
+            page = int(page[1:]) - 1
+        PERPAGE = 5
+        with db.getCur() as cur:
+            cur.execute("SELECT DISTINCT Date FROM Scores ORDER BY Date DESC")
+            dates = cur.fetchall()
+            gamecount = len(dates)
+            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore, Scores.Score FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
             rows = cur.fetchall()
-            place=1
-            leaderboard = []
+            games = {}
             for row in rows:
-                leaderboard += [[place, row[0], row[1], row[2]]]
-                place += 1
-            self.render("leaderboard.html", leaderboard=leaderboard)
+                if row[0] not in games:
+                    games[row[0]] = {'date':row[1], 'scores':{}}
+                games[row[0]]['scores'][row[2]] = (row[3], row[4], row[5])
+            pages = range(max(1, page + 1 - 10), min(int(math.ceil(gamecount * 1.0 / PERPAGE) + 1), page + 1 + 10))
+            games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
+            if page != 0:
+                prev = page
+            else:
+                prev = None
+            if page + 1 < gamecount / PERPAGE + 1:
+                nex = page + 2
+            else:
+                nex = None
+            self.render("history.html", games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
 
 class PlayerStats(tornado.web.RequestHandler):
     def get(self, player):
@@ -142,6 +169,7 @@ class Application(tornado.web.Application):
                 (r"/", MainHandler),
                 (r"/addgame", AddGameHandler),
                 (r"/leaderboard", LeaderboardHandler),
+                (r"/history(/[0-9]+)?", HistoryHandler),
                 (r"/playerstats/(.*)", PlayerStats),
                 (r"/seating", seating.SeatingHandler),
                 (r"/seating/regentables", seating.RegenTables),
