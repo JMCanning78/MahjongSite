@@ -5,13 +5,16 @@
 		window.getPlayers();
 		function getTotalPoints() {
 			var total = 0;
+			var full = true;
 			$(".playerpoints").each(function (index, elem) {
 				var val = $(this).val();
 				if(val !== "")
 					total += parseInt(val);
+				else
+					full = false;
 
 			});
-			if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
+			if(full && total > 25000 * 4 && $("#players .playerpoints").length == 4) {
 				var select = document.createElement("select");
 				select.className="playerselect";
 				window.populatePlayersSelect($(select));
@@ -19,14 +22,14 @@
 				var input = document.createElement("input");
 				input.className="playerpoints";
 				input.placeholder = "Score";
-				$(input).change(playerPointsChange);
+				$(input).keypress(playerPointsChange);
 				$("#players").append(input);
 			}
 			else if(total <= 25000 * 4 && $("#players .playerpoints").length == 5){
 				$("#players .playerpoints:last-child").last().remove();
 				$("#players .playerselect:last-child").last().remove();
 			}
-			if(total === 25000 * 4 || total === 25000 * 5)
+			if(full && (total === 25000 * 4 || total === 25000 * 5))
 				$("#submit").prop("disabled", false);
 			else
 				$("#submit").prop("disabled", true);
@@ -35,7 +38,7 @@
 		function playerPointsChange() {
 			getTotalPoints();
 		}
-		$(".playerpoints").change(playerPointsChange);
+		$(".playerpoints").keypress(playerPointsChange);
 		$("#submit").click(function () {
 			var scores = [];
 			var points = $(".playerpoints").map(function() {
