@@ -2,12 +2,12 @@ body {
 	text-align:center;
 }
 
-a {
+#content > a {
 	display:inline-block;
-	border-radius:3px;
 	color:black;
 	background:white;
-	margin:1em;
-	padding:1em;
-	width:200px;
+	margin-top:0.5em;
+	padding-bottom:1em;
+	padding-top:1em;
+	width:100%;
 }
