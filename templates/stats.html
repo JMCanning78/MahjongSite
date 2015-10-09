@@ -12,17 +12,19 @@
 		<script src="{{ static_url("js/script.js") }}"></script>
 	</head>
 	<body>
-		{% if error is None %}
-			<h1>{{ name }}</h1>
-			Games played: {{ numgames }}<br />
-			Max score: {{ maxscore }}<br />
-			Min score: {{ minscore }}<br />
-			Average score: {{ avgscore }}<br />
-			Average rank: {{ avgrank }}<br />
-			Average score last 5 games: {{ avgscore5 }}<br />
-			Average rank last 5 games: {{ avgrank5 }}<br />
-		{% else %}
-			<h1>{{ error }}</h1>
-		{% end %}
+		<div id="content">
+			{% if error is None %}
+				<h1 id="message">{{ name }}</h1>
+				Games played: {{ numgames }}<br />
+				Max score: {{ maxscore }}<br />
+				Min score: {{ minscore }}<br />
+				Average score: {{ avgscore }}<br />
+				Average rank: {{ avgrank }}<br />
+				Average score last 5 games: {{ avgscore5 }}<br />
+				Average rank last 5 games: {{ avgrank5 }}<br />
+			{% else %}
+				<h1 id="message">{{ error }}</h1>
+			{% end %}
+		</div>
 	</body>
 </html>
