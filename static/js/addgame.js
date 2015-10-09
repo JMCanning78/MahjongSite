@@ -22,7 +22,7 @@
 				$(input).change(playerPointsChange);
 				$("#players").append(input);
 			}
-			else if(total < 25000 * 4 && $("#players .playerpoints").length == 5){
+			else if(total <= 25000 * 4 && $("#players .playerpoints").length == 5){
 				$("#players .playerpoints:last-child").last().remove();
 				$("#players .playerselect:last-child").last().remove();
 			}
@@ -42,7 +42,7 @@
 				return parseInt($(this).val());
 			});
 			var players = $(".playerselect").map(function() {
-				return $(this).val();
+				return window.playersSelectValue($(this));
 			});
 			for(var i = 0; i < points.length; ++i) {
 				scores.push({"player":players[i],"score":points[i]})
@@ -54,20 +54,28 @@
 			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
 				console.log(data);
 				if(data.status !== 0) {
-					message.style.display = "";
+					message.style.display = "block";
 					message.innerText = data.error;
 				}
 				else {
 					$("#players").remove();
 					$("#submit").remove();
-					message.style.display = "";
+					message.style.display = "block";
 					message.innerText = "Game added";
-					var link = document.createElement("a");
-					link.innerText = "View Leaderboard";
-					link.href = "/leaderboard";
+					var add = document.createElement("a");
+					add.innerText = "Add another";
+					add.href = "/addgame";
+					var leaderboard = document.createElement("a");
+					leaderboard.innerText = "View Leaderboard";
+					leaderboard.href = "/leaderboard";
+					var history = document.createElement("a");
+					history.innerText = "View Game History";
+					history.href = "/history";
 
-					$("body").append(message);
-					$("body").append(link);
+					$("#content").append(message);
+					$("#content").append(add);
+					$("#content").append(leaderboard);
+					$("#content").append(history);
 				}
 			}, 'json')
 		});

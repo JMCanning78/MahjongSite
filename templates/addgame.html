@@ -14,13 +14,19 @@
 		<script src="{{ static_url("js/addgame.js") }}"></script>
 	</head>
 	<body>
-		<h1 id="message"></h1>
-		<div id="players">
-			<select class="playerselect"></select><input type="text" placeholder="Score" class="playerpoints"></input><br />
-			<select class="playerselect"></select><input type="text" placeholder="Score" class="playerpoints"></input><br />
-			<select class="playerselect"></select><input type="text" placeholder="Score" class="playerpoints"></input><br />
-			<select class="playerselect"></select><input type="text" placeholder="Score" class="playerpoints"></input><br />
+		<div id="content">
+			<h3 id="message"></h3>
+			<div id="players">
+				<select class="playerselect"></select>
+				<input type="text" placeholder="Score" class="playerpoints"></input><br />
+				<select class="playerselect"></select>
+				<input type="text" placeholder="Score" class="playerpoints"></input><br />
+				<select class="playerselect"></select>
+				<input type="text" placeholder="Score" class="playerpoints"></input><br />
+				<select class="playerselect"></select>
+				<input type="text" placeholder="Score" class="playerpoints"></input><br />
+			</div>
+			<button id="submit" disabled>Add</button>
 		</div>
-		<button id="submit" disabled>Add</button>
 	</body>
 </html>

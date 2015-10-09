@@ -1,3 +1,28 @@
 #message {
 	display:none;
 }
+
+#players {
+	padding-top:2em;
+}
+
+#players > select, #players > input, #submit {
+	text-align:center;
+	width:100%;
+}
+
+#players > input {
+	margin-top:0.25em;
+	margin-bottom:1em;
+}
+
+#content > a {
+	width:100%;
+	display:block;
+	text-align:center;
+	background:white;
+	color:black;
+	border:none;
+	padding:0.5em;
+	margin-top:1em;
+}
