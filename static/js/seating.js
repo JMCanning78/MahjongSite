@@ -5,7 +5,8 @@
 		var tables = document.getElementById("tables");
 
 		$("#addperson").click(function() {
-			$.post("/seating/addcurrentplayer", {player:selector.value}, function(data) {
+			var val = window.playersSelectValue($(selector));
+			$.post("/seating/addcurrentplayer", {player:val}, function(data) {
 				if(data.status !== 0)
 					console.log(data);
 				else {
@@ -16,12 +17,7 @@
 		});
 		$("#clearplayers").click(function () {
 			var clearplayers = $("#clearplayers");
-			if(!clearplayers.hasClass("confirm")) {
-				clearplayers[0].innerText = "Really?";
-				clearplayers.addClass("confirm");
-			}
-			else {
-				clearplayers[0].innerText = "Clear";
+			if(confirm("Really clear current players?")) {
 				$.post('/seating/clearcurrentplayers', function(data) {
 					if(data.status !== 0)
 						console.log(data);
@@ -95,6 +91,7 @@
 				var table_id = 1;
 				for(var i = 0; i < total_players;) {
 					var table = document.createElement("div");
+					table.className = "table";
 					var title = document.createElement("h3");
 					title.innerText = "Table " + table_id++;
 					table.appendChild(title);
@@ -107,7 +104,7 @@
 					var places = "東南西北５";
 					for(; i < endtable; ++i) {
 						var player = document.createElement("div");
-						player.innerText = places[place++] + " " + data[i];
+						player.innerHTML = "<span class=\"windicator\">" + places[place++] + "</span> " + data[i];
 						table.appendChild(player);
 					}
 					tables.appendChild(table);

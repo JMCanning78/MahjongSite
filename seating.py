@@ -45,12 +45,21 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
     def post(self):
         player = self.get_argument('player', None)
 
-        if player is None:
+        if player is None or player == "":
             self.write('{"status":1,"error":"Please enter a player"}')
             return
 
         with db.getCur() as cur:
-            cur.execute("SELECT COUNT(*) FROM CurrentPlayers INNER JOIN Players ON CurrentPlayers.PlayerId = Players.Id WHERE Players.Id = ? OR Players.Name = ?", (player, player))
+            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            row = cur.fetchone()
+            if row is None or len(row) == 0:
+                cur.execute("INSERT INTO Players(Name) VALUES(?)", (player,))
+                cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
+                row = cur.fetchone()
+                return
+            player = row[0]
+
+            cur.execute("SELECT COUNT(*) FROM CurrentPlayers WHERE PlayerId = ?", (player,))
             if cur.fetchone()[0] == 0:
                 cur.execute("INSERT INTO CurrentPlayers(PlayerId) VALUES(?)", (player,))
             self.write('{"status":0}')
