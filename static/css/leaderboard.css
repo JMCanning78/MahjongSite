@@ -3,17 +3,13 @@ body {
 }
 
 table {
-	border-collapse:collapse;
-	margin-left:auto;
-	margin-right:auto;
+	width:100%;
 }
 
-
-th {
-	background:white;
-	color:black;
+.leaderboard {
+	margin-top:1em;
 }
 
-th, td {
-	border:1px solid white;
+.leaderboard > h2 {
+	margin-bottom:0.5em;
 }

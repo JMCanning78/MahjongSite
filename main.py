@@ -92,7 +92,18 @@ def getScore(score, numplayers, rank):
 class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
-            cur.execute("SELECT Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
+            leaderboards = {}
+            cur.execute("SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date),Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
+            rows = cur.fetchall()
+            places={}
+            for row in rows:
+                if row[0] not in leaderboards:
+                    leaderboards[row[0]] = []
+                    places[row[0]] = 1
+                leaderboard = leaderboards[row[0]]
+                leaderboard += [[places[row[0]], row[1], row[2], row[3]]]
+                places[row[0]] += 1
+            self.render("leaderboard.html", leaderboards=sorted(leaderboards.iteritems(), reverse=True))
 
 class HistoryHandler(tornado.web.RequestHandler):
     def get(self, page):

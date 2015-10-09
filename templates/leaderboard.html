@@ -13,21 +13,28 @@
 		<script src="{{ static_url("js/script.js") }}"></script>
 	</head>
 	<body>
-		<p>Click any player to see their stats</p>
-		<table id="people">
-			<tr>
-				<th>Place</th>
-				<th>Name</th>
-				<th>Avg Score</th>
-				<th>Game Count</th>
-			</tr>
-			{% for person in leaderboard %}
-				<tr>
-					<td>{{ person[0] }}</td>
-					<td><a href="/playerstats/{{ person[1] }}">{{ person[1] }}</a></td>
-					<td>{{ person[2] }}</td>
-					<td>{{ person[3] }}</td>
-				</tr>
+		<div id="content">
+			<p>Click any player to see his or her stats</p>
+			{% for leadername, leaderboard in leaderboards %}
+				<div class="leaderboard">
+					<h2>Leaderboard {{ leadername }}</h2>
+					<table>
+						<tr>
+							<th>Place</th>
+							<th>Name</th>
+							<th>Avg Score</th>
+							<th>Game Count</th>
+						</tr>
+						{% for person in leaderboard %}
+							<tr>
+								<td>{{ person[0] }}</td>
+								<td><a href="/playerstats/{{ person[1] }}">{{ person[1] }}</a></td>
+								<td>{{ person[2] }}</td>
+								<td>{{ person[3] }}</td>
+							</tr>
+						{% end %}
+					</table>
+				</div>
 			{% end %}
 		</div>
 	</body>
