@@ -1,52 +1,39 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
-		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
+{% extends "template.html" %}
+{% block head %}
 		<link href="{{ static_url("css/history.css") }}" type="text/css" rel="stylesheet" />
-		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
-		<title>Mahjong Site</title>
-
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
-
-		<script src="{{ static_url("js/script.js") }}"></script>
-	</head>
-	<body>
-		<div id="content">
-			<p>Click any player to see his or her stats</p>
-			{% set lastdate = None %}
-			{% for game in games %}
-			{% if lastdate != game['date'] %}
-				<h2 class="date">{{ game['date'] }}</h2>
-				{% set lastdate = game['date'] %}
+{% end %}
+{% block content %}
+	<p>Click any player to see his or her stats</p>
+	{% set lastdate = None %}
+	{% for game in games %}
+		{% if lastdate != game['date'] %}
+			<h2 class="date">{{ game['date'] }}</h2>
+			{% set lastdate = game['date'] %}
+		{% end %}
+	<table class="game">
+		<tbody>
+			{% for score in game['scores'].iteritems() %}
+			<tr>
+				<td>{{ score [0] }}</td>
+				<td><a href="/playerstats/{{ score [1][0] }}">{{ score [1][0] }}</a></td>
+				<td>{{ score[1][1] }}</td>
+				<td>{{ score[1][2] }}</td>
+			</tr>
 			{% end %}
-			<table class="game">
-				<tbody>
-					{% for score in game['scores'].iteritems() %}
-					<tr>
-						<td>{{ score [0] }}</td>
-						<td><a href="/playerstats/{{ score [1][0] }}">{{ score [1][0] }}</a></td>
-						<td>{{ score[1][1] }}</td>
-						<td>{{ score[1][2] }}</td>
-					</tr>
-					{% end %}
-				</tbody>
-			</table>
-			{% end %}
-			{% if prev is not None %}
-				<a href="/history/{{ prev }}">«</a>
-			{% end %}
-			{% for page in pages %}
-				{% if curpage == page %}
-					{{ page }}
-				{% else %}
-					<a href="/history/{{ page }}">{{ page }}</a>
-				{% end %}
-			{% end %}
-			{% if nex is not None %}
-				<a href="/history/{{ nex }}">»</a>
-			{% end %}
-		</div>
-	</body>
-</html>
+		</tbody>
+	</table>
+	{% end %}
+	{% if prev is not None %}
+		<a href="/history/{{ prev }}">«</a>
+	{% end %}
+	{% for page in pages %}
+		{% if curpage == page %}
+			{{ page }}
+		{% else %}
+			<a href="/history/{{ page }}">{{ page }}</a>
+		{% end %}
+	{% end %}
+	{% if nex is not None %}
+		<a href="/history/{{ nex }}">»</a>
+	{% end %}
+{% end %}

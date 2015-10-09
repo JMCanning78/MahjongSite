@@ -1,49 +1,36 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+{% extends "template.html" %}
+{% block head %}
+	<link href="{{ static_url("css/pointcalculator.css") }}" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src="{{ static_url("js/pointcalculator.js") }}"></script>
+{% end %}
+{% block content %}
+	<h1 id="title">Point Calculator</h1>
+	<div id="scores">
+		<div id="total" class="scores"></div>
+		<div id="parent" class="scores"></div>
+		<div id="child" class="scores"></div>
+	</div>
+	<div class="input">
+		<div class="label">Han</div>
+		<div id="han" class="value">1</div>
+		<a id="hanUp" class="arrow clickable noselect">▲</a><br/>
+		<a id="hanDown" class="arrow clickable noselect">▼</a>
+	</div>
 
-		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
-		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
-		<link href="{{ static_url("css/pointcalculator.css") }}" type="text/css" rel="stylesheet" />
-		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
+	<div class="input">
+		<div class="label">Fu</div>
+		<div id="fu" class="value">20</div>
+		<a id="fuUp" class="arrow clickable noselect">▲</a><br/>
+		<a id="fuDown" class="arrow clickable noselect">▼</a>
+	</div>
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
-		<script type="text/javascript" src="{{ static_url("js/pointcalculator.js") }}"></script>
+	<div class="input">
+		<div class="label">Honba</div>
+		<div id="honba" class="value clickable noselect">0</div>
+	</div>
 
-		<title>Point Calculator</title>
-	</head>
-	<body>
-		<div id="content">
-			<h1 id="title">Point Calculator</h1>
-			<div id="scores">
-				<div id="total" class="scores"></div>
-				<div id="parent" class="scores"></div>
-				<div id="child" class="scores"></div>
-			</div>
-			<div class="input">
-				<div class="label">Han</div>
-				<div id="han" class="value">1</div>
-				<a id="hanUp" class="arrow clickable noselect">▲</a><br/>
-				<a id="hanDown" class="arrow clickable noselect">▼</a>
-			</div>
-
-			<div class="input">
-				<div class="label">Fu</div>
-				<div id="fu" class="value">20</div>
-				<a id="fuUp" class="arrow clickable noselect">▲</a><br/>
-				<a id="fuDown" class="arrow clickable noselect">▼</a>
-			</div>
-
-			<div class="input">
-				<div class="label">Honba</div>
-				<div id="honba" class="value clickable noselect">0</div>
-			</div>
-
-			<div class="input">
-				<div class="label">Dealer</div>
-				<div id="dealer" class="value clickable noselect"></div>
-			</div>
-		</div>
-	</body>
-</html>
+	<div class="input">
+		<div class="label">Dealer</div>
+		<div id="dealer" class="value clickable noselect"></div>
+	</div>
+{% end %}

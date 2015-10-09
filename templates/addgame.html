@@ -1,32 +1,20 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
-		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
+{% extends "template.html" %}
+{% block head %}
 		<link href="{{ static_url("css/addgame.css") }}" type="text/css" rel="stylesheet" />
-		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
-		<title>Mahjong Site</title>
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
-
-		<script src="{{ static_url("js/script.js") }}"></script>
 		<script src="{{ static_url("js/addgame.js") }}"></script>
-	</head>
-	<body>
-		<div id="content">
-			<h3 id="message"></h3>
-			<div id="players">
-				<select class="playerselect"></select>
-				<input type="text" placeholder="Score" class="playerpoints"></input><br />
-				<select class="playerselect"></select>
-				<input type="text" placeholder="Score" class="playerpoints"></input><br />
-				<select class="playerselect"></select>
-				<input type="text" placeholder="Score" class="playerpoints"></input><br />
-				<select class="playerselect"></select>
-				<input type="text" placeholder="Score" class="playerpoints"></input><br />
-			</div>
-			<button id="submit" disabled>Add</button>
-		</div>
-	</body>
-</html>
+{% end %}
+{% block content %}
+	<h3 id="message"></h3>
+	<div id="players">
+		<select class="playerselect"></select>
+		<input type="text" placeholder="Score" class="playerpoints"></input><br />
+		<select class="playerselect"></select>
+		<input type="text" placeholder="Score" class="playerpoints"></input><br />
+		<select class="playerselect"></select>
+		<input type="text" placeholder="Score" class="playerpoints"></input><br />
+		<select class="playerselect"></select>
+		<input type="text" placeholder="Score" class="playerpoints"></input><br />
+	</div>
+	<button id="submit" disabled>Add</button>
+{% end %}

@@ -93,7 +93,7 @@ class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             leaderboards = {}
-            cur.execute("SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date),Players.Id HAVING GameCount > 4 ORDER BY AvgScore DESC;")
+            cur.execute("SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;")
             rows = cur.fetchall()
             places={}
             for row in rows:

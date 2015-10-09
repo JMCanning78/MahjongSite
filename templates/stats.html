@@ -1,30 +1,15 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
-		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
-		<link rel="icon" type="image/png" href="{{ static_url("images/favicon.png") }}" />
-		<title>Mahjong Site</title>
-
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
-
-		<script src="{{ static_url("js/script.js") }}"></script>
-	</head>
-	<body>
-		<div id="content">
-			{% if error is None %}
-				<h1 id="message">{{ name }}</h1>
-				Games played: {{ numgames }}<br />
-				Max score: {{ maxscore }}<br />
-				Min score: {{ minscore }}<br />
-				Average score: {{ avgscore }}<br />
-				Average rank: {{ avgrank }}<br />
-				Average score last 5 games: {{ avgscore5 }}<br />
-				Average rank last 5 games: {{ avgrank5 }}<br />
-			{% else %}
-				<h1 id="message">{{ error }}</h1>
-			{% end %}
-		</div>
-	</body>
-</html>
+{% extends "template.html" %}
+{% block content %}
+	{% if error is None %}
+		<h1 id="message">{{ name }}</h1>
+		Games played: {{ numgames }}<br />
+		Max score: {{ maxscore }}<br />
+		Min score: {{ minscore }}<br />
+		Average score: {{ avgscore }}<br />
+		Average rank: {{ avgrank }}<br />
+		Average score last 5 games: {{ avgscore5 }}<br />
+		Average rank last 5 games: {{ avgrank5 }}<br />
+	{% else %}
+		<h1 id="message">{{ error }}</h1>
+	{% end %}
+{% end %}
