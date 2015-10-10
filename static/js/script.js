@@ -1,5 +1,9 @@
 (function($) {
 	$(function() {
+		var OTHERSTRING = "OTHER (PLEASE SPECIFY)";
+		var SELECTSTRING = "PLEASE SELECT A PLAYER";
+		var NEWPLAYERSTRING = "NEW PLAYER";
+
 		window.getPlayers = function(callback) {
 			$.getJSON('/seating/players.json', function(data) {
 				window.players = data;
@@ -12,30 +16,37 @@
 			}).fail(window.xhrError);
 		}
 		window.populatePlayersSelect = function(elem) {
+			var select = document.createElement("option");
+			select.value = "";
+			select.innerText = SELECTSTRING;
+			elem.append(select);
+
+			var option = document.createElement("option");
+			option.value = OTHERSTRING;
+			option.innerText = OTHERSTRING;
+			elem.append(option);
+
 			window.players.forEach(function(player) {
 				var option = document.createElement("option");
 				option.value = player;
 				option.innerText = player;
 				elem.append(option);
 			});
-			var option = document.createElement("option");
-			option.value = "Other (Please Specify)";
-			option.innerText = "Other (Please Specify)";
-			elem.append(option);
+
 			elem.change(function () {
-				if($(this).val() === "Other (Please Specify)" && $(this).next(".playerbox").length === 0) {
+				if($(this).val() === OTHERSTRING && $(this).next(".playerbox").length === 0) {
 					var playerbox = document.createElement("input");
 					playerbox.className = "playerbox";
-					playerbox.placeholder = "New Player";
+					playerbox.placeholder = NEWPLAYERSTRING;
 					$(this).after(playerbox)
 				}
-				else if($(this).val() !== "Other (Please Specify)" && $(this).next(".playerbox").length !== 0)
+				else if($(this).val() !== OTHERSTRING && $(this).next(".playerbox").length !== 0)
 					$(this).next(".playerbox").remove();
 			});
 		}
 		window.playersSelectValue = function(elem) {
 			var val = elem.val()
-			if(val === "Other (Please Specify)")
+			if(val === OTHERSTRING)
 				val = elem.next(".playerbox").val();
 			return val;
 		}

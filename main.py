@@ -71,6 +71,7 @@ class AddGameHandler(tornado.web.RequestHandler):
 
                 if score['player'] == "":
                     self.write('{"status":1, "error":"Please enter all player names"}')
+                    return
 
                 cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (score['player'], score['player']))
                 player = cur.fetchone()

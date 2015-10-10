@@ -1,5 +1,8 @@
 .scores {
-	font-size: 24pt;
+	font-size: 1.5em;
+	height:1.5em;
+	line-height:1.5em;
+	vertical-align:middle;
 }
 
 #content {
@@ -19,13 +22,13 @@ a:hover {
 	text-decoration: none;
 }
 
-@media (min-width:300px) {
+@media (min-width:275px) {
 	.input {
 		width: 45%;
 	}
 }
 
-@media (max-width:300px) {
+@media (max-width:275px) {
 	.input {
 		width:100%;
 	}
@@ -33,12 +36,12 @@ a:hover {
 
 .value {
 	text-align: center;
-	font-size: 2em;
+	font-size: 1.5em;
 }
 
 .clickable {
 	box-sizing:content-box;
-	font-size: 2em;
+	font-size: 1.5em;
 	display: inline-block;
 	border-radius: 10px;
 	padding: 3px;
@@ -53,15 +56,6 @@ a:hover {
 }
 
 .label {
-	font-size: 2em;
-	margin: 10px;
-}
-
-.noselect {
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
+	font-size: 1.5em;
+	margin-bottom: 10px;
 }

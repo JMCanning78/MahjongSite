@@ -11,8 +11,11 @@
 	width:100%;
 }
 
-#players > input {
+#players > * {
 	margin-top:0.25em;
+}
+
+#players > input.playerpoints {
 	margin-bottom:1em;
 }
 

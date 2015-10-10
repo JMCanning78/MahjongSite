@@ -51,8 +51,9 @@
 				data.forEach(function(player) {
 					var newplayer = document.createElement("div");
 					newplayer.innerText = player;
-					var deleteButton = document.createElement("button");
-					deleteButton.innerText = "X";
+					var deleteButton = document.createElement("a");
+					deleteButton.innerText = "✖";
+					deleteButton.className = "deletebutton noselect"
 					$(deleteButton).click(function() {
 						removePlayer(player);
 					});
@@ -93,7 +94,7 @@
 					var table = document.createElement("div");
 					table.className = "table";
 					var title = document.createElement("h3");
-					title.innerText = "Table " + table_id++;
+					title.innerText = "TABLE " + table_id++;
 					table.appendChild(title);
 					var endtable = i + 4;
 

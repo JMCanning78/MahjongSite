@@ -55,9 +55,9 @@ function updateScore() {
 	var fu = parseInt($("#fu").text(), 10);
 
 	if(fu === 20 && han === 1) {
-		$("#total").html("<br />");
-		$("#parent").html("<br />");
-		$("#child").html("<br />");
+		$("#total").html("");
+		$("#parent").html("");
+		$("#child").html("");
 		return;
 	}
 
@@ -88,19 +88,19 @@ function updateScore() {
 	total += parseInt($("#honba").text(), 10) * 300;
 
 
-	$("#total").html("Total: " + total + "<br />");
+	$("#total").html("Total: " + total);
 
 	if(dealer) {
 		var child = Math.ceil(total / 3 / 100) * 100;
-		$("#parent").html("Child: " + child + "<br />");
-		$("#child").html("<br />");
+		$("#parent").html("Child: " + child);
+		$("#child").html("");
 	}
 	else {
 		var parent = Math.ceil(total / 2 / 100) * 100;
 		var child = Math.ceil(parent / 2 / 100) * 100;
 
-		$("#parent").html("Parent: " + parent + "<br />");
-		$("#child").html("Child: " + child + "<br />");
+		$("#parent").html("Parent: " + parent);
+		$("#child").html("Child: " + child);
 	}
 }
 

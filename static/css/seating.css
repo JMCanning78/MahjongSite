@@ -17,10 +17,13 @@
 	vertical-align:middle;
 	margin-bottom:0.2em;
 }
-#people > div > button {
+#people > div > .deletebutton {
 	position:relative;
 	float:right;
 	height:100%;
+	width:2em;
+	background:white;
+	color:black;
 }
 .table{
 	display:inline-block;

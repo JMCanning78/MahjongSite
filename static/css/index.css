@@ -2,12 +2,19 @@ body {
 	text-align:center;
 }
 
-#content > a {
-	display:inline-block;
+a {
+	display:block;
 	color:black;
 	background:white;
-	margin-top:0.5em;
+	margin-bottom:0.5em;
 	padding-bottom:1em;
 	padding-top:1em;
-	width:100%;
+}
+
+#content {
+	padding-top:0;
+}
+
+h1 {
+	margin:1em;
 }
