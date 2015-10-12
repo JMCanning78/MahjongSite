@@ -13,6 +13,7 @@ import tornado.template
 import signal
 import json
 import datetime
+import decimal
 
 import db
 
@@ -54,10 +55,8 @@ class AddGameHandler(tornado.web.RequestHandler):
             s = getScore(scores[i]['score'], len(scores), i + 1)
             currentscore += s
             if i == len(scores) - 1:
-                if currentscore < 0:
+                if currentscore != 0:
                     adjscores[0] -= currentscore
-                elif currentscore > 0:
-                    s -= currentscore
             adjscores[i] = s
 
 
@@ -88,7 +87,8 @@ def getScore(score, numplayers, rank):
     uma = (3 - rank) * 10
     if numplayers == 5:
         uma += 5
-    return round(score, -3) / 1000 - 30 + uma
+    score = int(decimal.Decimal(score / 1000).quantize(decimal.Decimal(1), rounding=decimal.ROUND_HALF_DOWN))
+    return score - 30 + uma
 
 class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
