@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 import sys
 import os.path
@@ -104,7 +104,7 @@ class LeaderboardHandler(tornado.web.RequestHandler):
                 leaderboard = leaderboards[row[0]]
                 leaderboard += [[places[row[0]], row[1], row[2], row[3]]]
                 places[row[0]] += 1
-            self.render("leaderboard.html", leaderboards=sorted(leaderboards.iteritems(), reverse=True))
+            self.render("leaderboard.html", leaderboards=sorted(list(leaderboards.items()), reverse=True))
 
 class HistoryHandler(tornado.web.RequestHandler):
     def get(self, page):

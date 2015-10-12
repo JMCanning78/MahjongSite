@@ -13,7 +13,7 @@
 		{% end %}
 	<table class="game">
 		<tbody>
-			{% for score in game['scores'].iteritems() %}
+			{% for score in game['scores'].items() %}
 			<tr>
 				<td>{{ score [0] }}</td>
 				<td><a href="/playerstats/{{ score [1][0] }}">{{ score [1][0] }}</a></td>
