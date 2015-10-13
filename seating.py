@@ -3,6 +3,7 @@
 import tornado.web
 import db
 import random
+import datetime
 from operator import itemgetter
 
 class SeatingHandler(tornado.web.RequestHandler):
@@ -196,7 +197,7 @@ def playerGames(players, c):
 
     for i in range(numplayers):
         for j in range(i + 1, numplayers):
-            games = c.execute("SELECT COUNT(*) FROM Scores WHERE PlayerId = ? AND GameId IN (SELECT GameId FROM Scores WHERE PlayerId = ?)", (players[i], players[j])).fetchone()[0]
+            games = c.execute("SELECT COUNT(*) FROM Scores WHERE PlayerId = ? AND GameId IN (SELECT GameId FROM Scores WHERE PlayerId = ?) AND strftime('%Y', Date) = ?", (players[i], players[j], datetime.datetime.now().strftime('%Y'))).fetchone()[0]
             if games != 0:
                 playergames[(players[i], players[j])] = games
 
