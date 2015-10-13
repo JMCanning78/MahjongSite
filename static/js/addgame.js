@@ -64,7 +64,7 @@
 			for(var i = 0; i < points.length; ++i) {
 				scores.push({"player":players[i],"score":points[i]})
 			}
-			points.sort(function(a, b) {
+			scores.sort(function(a, b) {
 				return a.score > b.score ? 1 : a.score < b.score ? -1 : 0;
 			});
 			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
