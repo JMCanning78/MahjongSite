@@ -153,7 +153,7 @@ class PlayerStats(tornado.web.RequestHandler):
             numgames = row[2]
             avgscore = row[3]
             avgrank = row[4]
-            cur.execute("SELECT ROUND(Sum(Score) * 1.0 / COUNT(*) * 100) / 100, ROUND(Sum(Rank) * 1.0 / COUNT(*) * 100) / 100 FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date LIMIT 5)", (player,))
+            cur.execute("SELECT ROUND(Sum(Score) * 1.0 / COUNT(*) * 100) / 100, ROUND(Sum(Rank) * 1.0 / COUNT(*) * 100) / 100 FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date DESC LIMIT 5)", (player,))
             row = cur.fetchone()
             avgscore5 = row[0]
             avgrank5 = row[1]
