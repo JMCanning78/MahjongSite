@@ -111,14 +111,15 @@ class HistoryHandler(tornado.web.RequestHandler):
             for row in rows:
                 if row[0] not in games:
                     games[row[0]] = {'date':row[1], 'scores':{}}
-                games[row[0]]['scores'][row[2]] = (row[3], row[4], row[5])
-            pages = range(max(1, page + 1 - 10), min(int(math.ceil(gamecount * 1.0 / PERPAGE) + 1), page + 1 + 10))
+                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2))
+            maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
+            pages = range(max(1, page + 1 - 10), min(maxpage, page + 1 + 10) + 1)
             games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
             if page != 0:
                 prev = page
             else:
                 prev = None
-            if page + 1 < gamecount / PERPAGE + 1:
+            if page + 1 < maxpage:
                 nex = page + 2
             else:
                 nex = None
