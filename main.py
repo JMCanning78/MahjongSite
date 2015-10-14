@@ -13,7 +13,6 @@ import tornado.template
 import signal
 import json
 import datetime
-import decimal
 
 import db
 
@@ -49,17 +48,6 @@ class AddGameHandler(tornado.web.RequestHandler):
             self.write('{"status":1, "error":' + "Scores do not add up to " + len(scores) * 25000 + '}')
             return
 
-        adjscores = [0] * len(scores)
-        currentscore = 0
-        for i in range(0, len(scores)):
-            s = getScore(scores[i]['score'], len(scores), i + 1)
-            currentscore += s
-            if i == len(scores) - 1:
-                if currentscore != 0:
-                    adjscores[0] -= currentscore
-            adjscores[i] = s
-
-
         with db.getCur() as cur:
             gameid = None
             for i in range(0, len(scores)):
@@ -80,15 +68,15 @@ class AddGameHandler(tornado.web.RequestHandler):
                     player = cur.fetchone()
                 player = player[0]
 
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now'))", (gameid, player, i + 1, len(scores), score['score'], adjscores[i]))
+                adjscore = getScore(score['score'], len(scores), i + 1)
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now'))", (gameid, player, i + 1, len(scores), score['score'], adjscore))
             self.write('{"status":0}')
 
 def getScore(score, numplayers, rank):
     uma = (3 - rank) * 10
     if numplayers == 5:
         uma += 5
-    score = int(decimal.Decimal(score / 1000).quantize(decimal.Decimal(1), rounding=decimal.ROUND_HALF_DOWN))
-    return score - 30 + uma
+    return score / 1000.0 - 30 + uma
 
 class LeaderboardHandler(tornado.web.RequestHandler):
     def get(self):
