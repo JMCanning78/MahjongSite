@@ -71,21 +71,21 @@
 				console.log(data);
 				if(data.status !== 0) {
 					message.style.display = "block";
-					window.setInnerText(message, data.error);
+					$(message).text(data.error);
 				}
 				else {
 					$("#players").remove();
 					$("#submit").remove();
 					message.style.display = "block";
-					window.setInnerText(message, "Game added");
+					$(message).text("GAME ADDED");
 					var add = document.createElement("a");
-					window.setInnerText(add, "Add another");
+					$(add).text("ADD ANOTHER");
 					add.href = "/addgame";
 					var leaderboard = document.createElement("a");
-					window.setInnerText(leaderboard, "View Leaderboard");
+					$(leaderboard).text("VIEW LEADERBOARD");
 					leaderboard.href = "/leaderboard";
 					var history = document.createElement("a");
-					window.setInnerText(history, "View Game History");
+					$(history).text("VIEW GAME HISTORY")
 					history.href = "/history";
 
 					$("#content").append(message);

@@ -47,12 +47,12 @@
 
 		function getCurrentPlayers() {
 			$.getJSON('/seating/currentplayers.json', function(data) {
-				people.innerHTML="";
+				$(people).html("");
 				data.forEach(function(player) {
 					var newplayer = document.createElement("div");
-					window.setInnerText(newplayer, player);
+					$(newplayer).text(player);
 					var deleteButton = document.createElement("a");
-					window.setInnerText(deleteButton, "✖");
+					$(deleteButton).text("✖"):
 					deleteButton.className = "deletebutton noselect"
 					$(deleteButton).click(function() {
 						removePlayer(player);
@@ -70,7 +70,7 @@
 				var tables_5p = 0;
 				var tables_4p = 0;
 				if(numplayers < 4 || numplayers === 11 || numplayers === 7 || numplayers === 6 || numplayers === 0) {
-					tables.innerHTML="<h1>Invalid number of players: " + numplayers + "</h1>"
+					$(tables).html("<h1>Invalid number of players: " + numplayers + "</h1>");
 					return;
 				}
 				else if(numplayers >= 8) {
@@ -87,14 +87,14 @@
 					tables_4p = total_tables - tables_5p;
 				}
 
-				tables.innerHTML = "";
+				$(tables).html("");
 				var total_players = tables_4p * 4 + tables_5p * 5;
 				var table_id = 1;
 				for(var i = 0; i < total_players;) {
 					var table = document.createElement("div");
 					table.className = "table";
 					var title = document.createElement("h3");
-					window.setInnerText(title, "TABLE " + table_id++);
+					$(title).text(title, "TABLE " + table_id++);
 					table.appendChild(title);
 					var endtable = i + 4;
 
@@ -105,7 +105,7 @@
 					var places = "東南西北５";
 					for(; i < endtable; ++i) {
 						var player = document.createElement("div");
-						player.innerHTML = "<span class=\"windicator\">" + places[place++] + "</span> " + data[i];
+						$(player).html("<span class=\"windicator\">" + places[place++] + "</span> " + data[i]);
 						table.appendChild(player);
 					}
 					tables.appendChild(table);

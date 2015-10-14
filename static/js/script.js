@@ -18,18 +18,18 @@
 		window.populatePlayersSelect = function(elem) {
 			var select = document.createElement("option");
 			select.value = "";
-			window.setInnerText(select, SELECTSTRING);
+			$(select).text(SELECTSTRING);
 			elem.append(select);
 
 			var option = document.createElement("option");
 			option.value = OTHERSTRING;
-			window.setInnerText(option, OTHERSTRING);
+			$(option).text(OTHERSTRING);
 			elem.append(option);
 
 			window.players.forEach(function(player) {
 				var option = document.createElement("option");
 				option.value = player;
-				window.setInnerText(option, player);
+				$(option).text(player);
 				elem.append(option);
 			});
 
@@ -49,13 +49,6 @@
 			if(val === OTHERSTRING)
 				val = elem.next(".playerbox").val();
 			return val;
-		}
-
-		window.setInnerText = function(elem, text) {
-			if(document.all)
-				elem.innerText = text;
-			else
-				elem.textContent = text;
 		}
 
 		window.xhrError = function(xhr, status, error) {
