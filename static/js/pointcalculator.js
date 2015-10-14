@@ -43,9 +43,10 @@ function dealer() {
 	updateScore();
 }
 
-function honba() {
-	var honba = parseInt($("#honba").text(), 10);
-	$("#honba").text((honba + 1) % 7);
+
+function tsumo() {
+	var tsumo = $("#tsumo").text() === "";
+	$("#tsumo").text(tsumo?"✓":"");
 
 	updateScore();
 }
@@ -55,13 +56,12 @@ function updateScore() {
 	var fu = parseInt($("#fu").text(), 10);
 
 	if(fu === 20 && han === 1) {
-		$("#total").html("");
-		$("#parent").html("");
-		$("#child").html("");
+		$("#scores").html("");
 		return;
 	}
 
 	var dealer = $("#dealer").text() !== "";
+	var tsumo = $("#tsumo").text() !== "";
 
 	if(han < 3 || (han === 4 && fu < 40) || (han === 3 && fu < 70)) {
 		var basicPoints = fu * Math.pow(2, 2 + han);
@@ -85,23 +85,35 @@ function updateScore() {
 		var total = dealer?48000:36000;
 	}
 
-	total += parseInt($("#honba").text(), 10) * 300;
 
-
-	$("#total").html("Total: " + total);
+	var scores = "";
 
 	if(dealer) {
-		var child = Math.ceil(total / 3 / 100) * 100;
-		$("#parent").html("Child: " + child);
-		$("#child").html("");
+		if(tsumo) {
+			var child = Math.ceil(total / 3 / 100) * 100;
+			scores += "Total: " + child * 3 + "<br />";
+			scores += "Payment: " + child;
+		}
+		else {
+			scores += "<br />Total: " + total;
+		}
 	}
 	else {
-		var parent = Math.ceil(total / 2 / 100) * 100;
-		var child = Math.ceil(parent / 2 / 100) * 100;
+		if(tsumo) {
+			var parent = Math.ceil(total / 2 / 100) * 100;
+			var child = Math.ceil(parent / 2 / 100) * 100;
 
-		$("#parent").html("Parent: " + parent);
-		$("#child").html("Child: " + child);
+			scores += "Total: " + (parent + child * 2) + "<br />";
+			scores += "Parent: " + parent + "<br />";
+			scores += "Child: " + child + "<br />";
+		}
+		else {
+			scores += "<br />Total: " + total;
+		}
+
 	}
+
+	$("#scores").html(scores);
 }
 
 $(document).ready(function() {
@@ -113,7 +125,7 @@ $(document).ready(function() {
 
 	$("#dealer").click(dealer);
 
-	$("#honba").click(honba);
+	$("#tsumo").click(tsumo);
 
 	updateScore();
 });
