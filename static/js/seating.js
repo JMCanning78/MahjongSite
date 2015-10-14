@@ -52,7 +52,7 @@
 					var newplayer = document.createElement("div");
 					$(newplayer).text(player);
 					var deleteButton = document.createElement("a");
-					$(deleteButton).text("✖"):
+					$(deleteButton).text("✖");
 					deleteButton.className = "deletebutton noselect"
 					$(deleteButton).click(function() {
 						removePlayer(player);
@@ -94,7 +94,7 @@
 					var table = document.createElement("div");
 					table.className = "table";
 					var title = document.createElement("h3");
-					$(title).text(title, "TABLE " + table_id++);
+					$(title).text("TABLE " + table_id++);
 					table.appendChild(title);
 					var endtable = i + 4;
 
