@@ -58,8 +58,8 @@
 			var points = $(".playerpoints").map(function() {
 				return parseInt($(this).val());
 			});
-			var players = $(".playerselect").map(function() {
-				return window.playersSelectValue($(this));
+			var players = $(".playercomplete").map(function() {
+				return $(this).val();
 			});
 			for(var i = 0; i < points.length; ++i) {
 				scores.push({"player":players[i],"score":points[i]})

@@ -10,10 +10,17 @@
 				$("select.playerselect").html("");
 
 				populatePlayersSelect($("select.playerselect"))
+				populatePlayerComplete($("input.playercomplete"));
 
 				if(typeof callback === 'function')
 					callback();
 			}).fail(window.xhrError);
+		}
+		window.populatePlayerComplete = function(elem) {
+			elem.autocomplete({
+				source:window.players,
+				minLength:2
+			});
 		}
 		window.populatePlayersSelect = function(elem) {
 			var select = document.createElement("option");

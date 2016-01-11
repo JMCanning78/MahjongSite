@@ -1,4 +1,4 @@
-#clearplayers, #regentables, #personselector, #personselector + .playerbox, #addperson {
+#clearplayers, #regentables, #person, #addperson {
 	display:inline-block;
 	width:100%;
 	margin-bottom:0.5em;

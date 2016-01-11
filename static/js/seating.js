@@ -1,11 +1,11 @@
 (function($) {
 	$(function () {
-		var selector = document.getElementById("personselector");
+		var selector = document.getElementById("person");
 		var people = document.getElementById("people");
 		var tables = document.getElementById("tables");
 
 		$("#addperson").click(function() {
-			var val = window.playersSelectValue($(selector));
+			var val = $(selector).val();
 			$.post("/seating/addcurrentplayer", {player:val}, function(data) {
 				if(data.status !== 0)
 					console.log(data);

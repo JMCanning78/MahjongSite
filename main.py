@@ -38,7 +38,7 @@ class AddGameHandler(tornado.web.RequestHandler):
         scores = json.loads(scores)
 
         if len(scores) != 4 and len(scores) != 5:
-            self.write('{"status":1, "error":"Please enter same scores"}')
+            self.write('{"status":1, "error":"Please enter some scores"}')
             return
 
         total = 0
