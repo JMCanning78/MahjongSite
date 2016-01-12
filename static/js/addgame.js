@@ -4,8 +4,9 @@
 
 		function checkSubmit(total) {
 			var playersSelected = true;
-			$(".playerselect").each(function (index, elem) {
-				playersSelected = playersSelected && window.playersSelectValue($(this)) !== "";
+			$(".playercomplete").each(function (index, elem) {
+
+				playersSelected = playersSelected && $(this).val() !== "";
 			});
 
 			if(playersSelected && (total === 25000 * 4 || total === 25000 * 5))
@@ -13,7 +14,7 @@
 			else
 				$("#submit").prop("disabled", true);
 		}
-		function selectChange(e) {
+		function completeChange(e) {
 			checkSubmit(getTotalPoints());
 		}
 		var pointsChange;
@@ -21,11 +22,12 @@
 			var total = getTotalPoints();
 
 			if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
-				var select = document.createElement("select");
-				select.className="playerselect";
-				window.populatePlayersSelect($(select));
-				$(select).change(selectChange);
-				$("#players").append(select);
+				var complete = document.createElement("input");
+				complete.className="playercomplete";
+				complete.placeholder = "PLAYER";
+				window.populatePlayerComplete($(complete));
+				$(complete).change(completeChange);
+				$("#players").append(complete);
 
 				var input = document.createElement("input");
 				input.className="playerpoints";
@@ -36,7 +38,7 @@
 			}
 			else if(total === 25000 * 4 && $("#players .playerpoints").length == 5){
 				$("#players .playerpoints:last-child").last().remove();
-				$("#players .playerselect:last-child").last().remove();
+				$("#players .playercomplete:last-child").last().remove();
 			}
 
 			if(e.keyCode === 13)
@@ -97,7 +99,7 @@
 		}
 		window.getPlayers(function () {
 			$(".playerpoints").keyup(pointsChange);
-			$(".playerselect").change(selectChange);
+			$(".playercomplete").keyup(completeChange);
 			$("#submit").click(submit);
 		});
 	});
