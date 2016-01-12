@@ -69,7 +69,7 @@ class AddGameHandler(tornado.web.RequestHandler):
                 player = player[0]
 
                 adjscore = getScore(score['score'], len(scores), i + 1)
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now'))", (gameid, player, i + 1, len(scores), score['score'], adjscore))
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], adjscore))
             self.write('{"status":0}')
 
 def getScore(score, numplayers, rank):
@@ -91,7 +91,7 @@ class LeaderDataHandler(tornado.web.RequestHandler):
             queries = {
                     "annual":"SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;",
                     "biannual":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 6) when 0 then '1st' when 1 then '2nd' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;",
-                    "quarter":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;"
+                    "quarter":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id ORDER BY AvgScore DESC;"
             }
             if period not in queries:
                 period = "annual"
