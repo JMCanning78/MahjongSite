@@ -94,7 +94,7 @@ class LeaderDataHandler(tornado.web.RequestHandler):
                     "quarter":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id ORDER BY AvgScore DESC;"
             }
             if period not in queries:
-                period = "annual"
+                period = "quarter"
             cur.execute(queries[period])
             rows = cur.fetchall()
             places={}

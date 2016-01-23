@@ -12,7 +12,7 @@ $(function () {
 	});
 	function getData(period) {
 		if(periods.indexOf(period) === -1)
-			period = "annual";
+			period = "quarter";
 		$.getJSON("/leaderdata/" + period, function(data) {
 			$("#leaderboards").html(Mustache.render(leaderboard, data));
 		});
