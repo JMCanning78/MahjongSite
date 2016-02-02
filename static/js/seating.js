@@ -12,6 +12,7 @@
 				else {
 					getCurrentPlayers();
 					regenTables();
+					$(selector).val("");
 				}
 			}, 'json');
 		});
