@@ -104,3 +104,13 @@ table td {
 	color:black;
 	border:none;
 }
+
+button.clearplayercomplete {
+	display: inline-block;
+	position: absolute;
+	width: 2em;
+	height: 2em;
+	right: 1em;
+	background: none;
+	margin-right: 0;
+}

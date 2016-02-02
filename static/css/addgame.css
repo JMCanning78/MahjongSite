@@ -6,12 +6,8 @@
 	padding-top:2em;
 }
 
-#players > input, #submit {
+#players > input, #players > #submit {
 	text-align:center;
-	width:100%;
-}
-
-#players > * {
 	width:100%;
 	margin-top:0.25em;
 }
