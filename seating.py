@@ -199,7 +199,7 @@ def playerGames(players, c):
 
     for i in range(numplayers):
         for j in range(i + 1, numplayers):
-            games = c.execute("SELECT COUNT(*) FROM Scores WHERE PlayerId = ? AND GameId IN (SELECT GameId FROM Scores WHERE PlayerId = ?) AND strftime('%Y', Date) || ' ' || (strftime('%m', Date) - 1) / 3 = ?", (players[i], players[j], now)).fetchone()[0]
+            games = c.execute("SELECT COUNT(*) FROM Scores WHERE PlayerId = ? AND GameId IN (SELECT GameId FROM Scores WHERE PlayerId = ?) AND strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3) = ?", (players[i], players[j], now)).fetchone()[0]
             if games != 0:
                 playergames[(players[i], players[j])] = games
 
