@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 
-{% block title %} - Invite{% end %}
+{% block title %}{% try %}{% if title %} - {{ title }}{% end %}{% except %}{% end %}{% end %}
 
 {% block content %}
 	{% try %}

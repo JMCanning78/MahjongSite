@@ -25,6 +25,9 @@
 			{% if not current_user %}
 				<a href="/login">Login</a>
 			{% else %}
+				{% if is_admin %}
+					<a href="/admin">Admin</a>
+				{% end %}
 				<a href="/invite">Invite</a>
 				<a href="/logout">Logout</a>
 			{% end %}

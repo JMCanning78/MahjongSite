@@ -1,0 +1,12 @@
+{% extends "template.html" %}
+
+{% block title %} - Demote User{% end %}
+
+{% block content %}
+	<h1 id="page-title">Demote User</h1>
+
+	<p>Are you sure you want to demote {{ email }}?</p>
+	<form action="/admin/demote/{{ q }}" method="post">
+		<input type="submit" value="Demote"/>
+	</form>
+{% end %}

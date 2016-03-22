@@ -22,6 +22,7 @@ import settings
 
 import seating
 import login
+import admin
 
 # import and define tornado-y things
 from tornado.options import define, options
@@ -216,6 +217,10 @@ class Application(tornado.web.Application):
                 (r"/seating/currenttables.json", seating.CurrentTables),
                 (r"/seating/players.json", seating.PlayersList),
                 (r"/pointcalculator", PointCalculator),
+                (r"/admin", admin.AdminPanelHandler),
+                (r"/admin/users", admin.ManageUsersHandler),
+                (r"/admin/promote/([0-9]*)", admin.PromoteUserHandler),
+                (r"/admin/demote/([0-9]*)", admin.DemoteUserHandler),
         ]
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "templates"),
