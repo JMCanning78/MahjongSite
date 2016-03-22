@@ -16,6 +16,7 @@ import db
 import util
 
 class InviteHandler(handler.BaseHandler):
+    @tornado.web.authenticated
     def get(self):
         self.render("invite.html")
         return
@@ -23,6 +24,7 @@ class InviteHandler(handler.BaseHandler):
             self.render("invite.html")
         self.render("login.html")
 
+    @tornado.web.authenticated
     def post(self):
         email = self.get_argument('email', None)
         if not re.match("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]+$", email, flags = re.IGNORECASE):
