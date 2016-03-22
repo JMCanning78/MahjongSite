@@ -7,7 +7,7 @@ from quemail import QueMail, Email
 import settings
 
 def randString(length):
-	return ''.join(random.SystemRandom().choice(string.letters + string.digits) for x in range(length))
+	return ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for x in range(length))
 
 def sendEmail(toaddr, subject, body):
 	fromaddr = settings.EMAILFROM
