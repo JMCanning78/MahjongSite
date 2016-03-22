@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 Simple implementation of mailer based on thread and queues. Early version.
@@ -25,7 +26,7 @@ from email.mime.text import MIMEText
 from email.utils import make_msgid, formatdate
 
 from time import sleep
-from queue import Queue
+from multiprocessing import Queue
 from threading import Thread
 
 
