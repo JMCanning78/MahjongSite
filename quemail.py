@@ -25,7 +25,7 @@ from email.mime.text import MIMEText
 from email.utils import make_msgid, formatdate
 
 from time import sleep
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 
 
