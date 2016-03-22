@@ -2,10 +2,6 @@
 
 import random
 import string
-import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from multiprocessing.pool import ThreadPool
 from quemail import QueMail, Email
 
 import settings
