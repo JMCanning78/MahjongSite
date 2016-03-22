@@ -52,4 +52,7 @@ def init():
         cur.execute("CREATE TABLE IF NOT EXISTS Admins(Id INTEGER PRIMARY KEY NOT NULL,\
             FOREIGN KEY(Id) REFERENCES Users(Id) ON DELETE CASCADE);")
 
+        cur.execute("CREATE TABLE IF NOT EXISTS ResetLinks(Id CHAR(32) PRIMARY KEY NOT NULL, User INTEGER, Expires DATETIME,\
+            FOREIGN KEY(User) REFERENCES Users(Id))")
+
         cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME)")

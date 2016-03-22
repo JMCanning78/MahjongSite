@@ -40,38 +40,91 @@ class InviteHandler(handler.BaseHandler):
                     "<p>If you believe you received this email in error, it can be safely ignored. It is likely a user simply entered your email by mistake.</p>")
 
             self.render("message.html", message = "Invite sent. It will expire in 7 days.", title = "Invite")
+
 class VerifyHandler(handler.BaseHandler):
 	def get(self, q):
-		with db.getCur() as cur:
-			cur.execute("SELECT Email FROM VerifyLinks WHERE Id = ? AND Expires > datetime('now')", (q,))
+            with db.getCur() as cur:
+                cur.execute("SELECT Email FROM VerifyLinks WHERE Id = ? AND Expires > datetime('now')", (q,))
 
-			if cur.rowcount == 0:
-				self.redirect("/")
-				return
+                if cur.rowcount == 0:
+                        self.redirect("/")
+                        return
 
-			email = cur.fetchone()[0]
+                email = cur.fetchone()[0]
 
-		self.render("verify.html", email = email, id = q)
+            self.render("verify.html", email = email, id = q)
 	def post(self, q):
-		email = self.get_argument('email', None)
-		password = self.get_argument('password', None)
-		vpassword = self.get_argument('vpassword', None)
+            email = self.get_argument('email', None)
+            password = self.get_argument('password', None)
+            vpassword = self.get_argument('vpassword', None)
 
-                if email is None or password is None or vpassword is None:
-                    self.render("verify.html", email = email, id = q, message = "You must enter an email, pasword, and repeat your password")
+            if email is None or password is None or vpassword is None or email == "" or password == "" or vpassword == "":
+                self.render("verify.html", email = email, id = q, message = "You must enter an email, pasword, and repeat your password")
+                return
+            if password != vpassword:
+                self.render("verify.html", email = email, id = q, message = "Your passwords didn't match")
+                return
+
+            with db.getCur() as cur:
+                passhash = pbkdf2_sha256.encrypt(password)
+
+                cur.execute("INSERT INTO Users (Email, Password) VALUES (?, ?)", (email, passhash))
+                self.set_secure_cookie("user", str(cur.lastrowid))
+                cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
+
+            self.redirect("/")
+
+class ResetPasswordHandler(handler.BaseHandler):
+    def get(self):
+        self.render("forgotpassword.html")
+    def post(self):
+        with db.getCur() as cur:
+            email = self.get_argument("email", None)
+            cur.execute("SELECT Id FROM Users WHERE Email = ?", (email,))
+            row = cur.fetchone()
+            if row is not None:
+                code = util.randString(32)
+                cur.execute("INSERT INTO ResetLinks(Id, User, Expires) VALUES (?, ?, ?)", (code, row[0], (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+
+                util.sendEmail(email, "Your SeattleMahjong Account",
+                    "<p>Here's the link to reset your SeattleMahjong account password\n<br />\
+                    Click <a href=\"http://" +  self.request.host + "/reset/" + code + "\">this</a> link to reset your password or copy and paste the following into your URL bar:<br />http://" +  self.request.host + "/reset/" + code + "</p>\n")
+                self.render("message.html", message = "Your password reset link has been sent")
+            else:
+                self.render("message.html", message = "No accounts found associated with this email", email = email)
+
+class ResetPasswordLinkHandler(handler.BaseHandler):
+    def get(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Email FROM Users JOIN ResetLinks ON ResetLinks.User = Users.Id WHERE ResetLinks.Id = ?", (q,))
+            row = cur.fetchone()
+            if row is None:
+                self.render("message.html", message = "Link is either invalid or has expired. Please request a new one")
+            else:
+                self.render("resetpassword.html", email = row[0], id = q)
+    def post(self, q):
+        password = self.get_argument('password', None)
+        vpassword = self.get_argument('vpassword', None)
+
+        with db.getCur() as cur:
+            cur.execute("SELECT Users.Id, Email FROM Users JOIN ResetLinks ON ResetLinks.User = Users.Id WHERE ResetLinks.Id = ?", (q,))
+            row = cur.fetchone()
+            if row is None:
+                self.render("message.html", message = "Link is either invalid or has expired. Please request a new one")
+            else:
+                id = row[0]
+                email = row[1]
+                if password is None or vpassword is None or password == "" or vpassword == "":
+                    self.render("resetpassword.html", email = email, id = q, message = "You must enter a pasword and repeat that password")
                     return
                 if password != vpassword:
-                    self.render("verify.html", email = email, id = q, message = "Your passwords didn't match")
+                    self.render("resetpassword.html", email = email, id = q, message = "Your passwords didn't match")
                     return
+                passhash = pbkdf2_sha256.encrypt(password)
 
-		with db.getCur() as cur:
-                        passhash = pbkdf2_sha256.encrypt(password)
-
-                        cur.execute("INSERT INTO Users (Email, Password) VALUES (?, ?)", (email, passhash))
-                        self.set_secure_cookie("user", str(cur.lastrowid))
-                        cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
-
-		self.redirect("/")
+                cur.execute("UPDATE Users SET Password = ? WHERE Id = ?", (passhash, id))
+                cur.execute("DELETE FROM ResetLinks WHERE Id = ?", (q,))
+                self.render("message.html", message = "Your password has been reset. You may now <a href=\"/login\">Login</a>")
 
 class LoginHandler(handler.BaseHandler):
     def get(self):
@@ -86,7 +139,7 @@ class LoginHandler(handler.BaseHandler):
         password = self.get_argument('password', None)
         next = self.get_argument("next", "/")
 
-        if not email or not password:
+        if not email or not password or email == "" or password == "":
             self.render("login.html", message = "Please enter an email and password")
             return
 
@@ -104,9 +157,9 @@ class LoginHandler(handler.BaseHandler):
                     if cur.fetchone()[0] == 1:
                         self.set_secure_cookie("admin", "1")
 
-                if result != None:
-                    self.redirect(next)
-                    return
+                    if result != None:
+                        self.redirect(next)
+                        return
         self.render("login.html", message = "Incorrect email and password")
 
 class LogoutHandler(handler.BaseHandler):
