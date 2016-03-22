@@ -4,7 +4,9 @@
 {% end %}
 {% block content %}
 	<h1>Seattle Mahjong</h1>
-	<a href="/addgame">ADD GAME</a>
+	{% if current_user %}
+		<a href="/addgame">ADD GAME</a>
+	{% end %}
 	<a href="/leaderboard">LEADERBOARD</a>
 	<a href="/history">GAME HISTORY</a>
 	<a href="/seating">SEATER</a>

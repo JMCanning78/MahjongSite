@@ -20,6 +20,15 @@
 		{% block head %}{% end %}
 	</head>
 	<body>
+		<div id="navbar">
+			<a href="/">Home</a>
+			{% if not current_user %}
+				<a href="/login">Login</a>
+			{% else %}
+				<a href="/invite">Invite</a>
+				<a href="/logout">Logout</a>
+			{% end %}
+		</div>
 		<div id="content">
 			{% block content %}{% end %}
 		</div>

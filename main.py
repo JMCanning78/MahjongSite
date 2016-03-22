@@ -14,21 +14,30 @@ import signal
 import json
 import datetime
 
+from quemail import QueMail
+import handler
+import util
 import db
+import settings
 
 import seating
+import login
 
 # import and define tornado-y things
 from tornado.options import define, options
 define("port", default=5000, type=int)
+cookie_secret = util.randString(32)
 
-class MainHandler(tornado.web.RequestHandler):
+class MainHandler(handler.BaseHandler):
     def get(self):
-        self.render("index.html")
+        admin = self.get_secure_cookie("admin")
+        self.render("index.html", admin = admin)
 
-class AddGameHandler(tornado.web.RequestHandler):
+class AddGameHandler(handler.BaseHandler):
+    @tornado.web.authenticated
     def get(self):
         self.render("addgame.html")
+    @tornado.web.authenticated
     def post(self):
         scores = self.get_argument('scores', None)
         if scores is None:
@@ -78,11 +87,11 @@ def getScore(score, numplayers, rank):
         uma += 5
     return score / 1000.0 - 30 + uma
 
-class LeaderboardHandler(tornado.web.RequestHandler):
+class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
         self.render("leaderboard.html")
 
-class LeaderDataHandler(tornado.web.RequestHandler):
+class LeaderDataHandler(handler.BaseHandler):
     def get(self, period):
         if len(period) > 0:
             period = period[1:]
@@ -115,7 +124,7 @@ class LeaderDataHandler(tornado.web.RequestHandler):
             leaderboards={'leaderboards':leaderboards}
             self.write(json.dumps(leaderboards))
 
-class HistoryHandler(tornado.web.RequestHandler):
+class HistoryHandler(handler.BaseHandler):
     def get(self, page):
         if page is None:
             page = 0
@@ -146,7 +155,7 @@ class HistoryHandler(tornado.web.RequestHandler):
                 nex = None
             self.render("history.html", games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
 
-class PlayerStats(tornado.web.RequestHandler):
+class PlayerStats(handler.BaseHandler):
     def get(self, player):
         with db.getCur() as cur:
             cur.execute("SELECT Id,Name FROM Players WHERE Id = ? OR Name = ?", (player, player))
@@ -179,7 +188,7 @@ class PlayerStats(tornado.web.RequestHandler):
                     avgrank5 = avgrank5
                 )
 
-class PointCalculator(tornado.web.RequestHandler):
+class PointCalculator(handler.BaseHandler):
     def get(self):
         self.render("pointcalculator.html")
 
@@ -189,6 +198,10 @@ class Application(tornado.web.Application):
 
         handlers = [
                 (r"/", MainHandler),
+                (r"/login", login.LoginHandler),
+                (r"/logout", login.LogoutHandler),
+                (r"/invite", login.InviteHandler),
+                (r"/verify/([^/]*)", login.VerifyHandler),
                 (r"/addgame", AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", LeaderDataHandler),
@@ -208,8 +221,14 @@ class Application(tornado.web.Application):
                 template_path = os.path.join(os.path.dirname(__file__), "templates"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),
                 debug = True,
+                cookie_secret = cookie_secret,
+                login_url = "/login"
         )
         tornado.web.Application.__init__(self, handlers, **settings)
+
+def periodicCleanup():
+    with db.getCur() as cur:
+        cur.execute("DELETE FROM VerifyLinks WHERE Expires <= NOW()")
 
 def main():
     if len(sys.argv) > 1:
@@ -220,12 +239,17 @@ def main():
     else:
         port = 5000
 
+    qm = QueMail.get_instance()
+    qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
+    qm.start()
+
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)
     http_server.listen(os.environ.get("PORT", port))
 
     signal.signal(signal.SIGINT, sigint_handler)
 
+    tornado.ioloop.PeriodicCallback(periodicCleanup, 60 * 60 * 1000).start() # run periodicCleanup once an hour
     # start it up
     tornado.ioloop.IOLoop.instance().start()
     qm.end()

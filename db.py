@@ -45,3 +45,11 @@ def init():
 
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentTables(Id INTEGER PRIMARY KEY AUTOINCREMENT, PlayerId INTEGER,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE)")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS Users(Id INTEGER PRIMARY KEY AUTOINCREMENT, Email TEXT NOT NULL, Password TEXT NOT NULL,\
+            UNIQUE(Email));")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS Admins(Id INTEGER PRIMARY KEY NOT NULL,\
+            FOREIGN KEY(Id) REFERENCES Users(Id) ON DELETE CASCADE);")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME)")
