@@ -32,7 +32,7 @@ class InviteHandler(handler.BaseHandler):
         else:
             with db.getCur() as cur:
                 code = util.randString(32)
-                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) VALUES (?, ?, ?)", (code, email, (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) VALUES (?, LOWER(?), ?)", (code, email, (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
 
             util.sendEmail(email, "Your SeattleMahjong Account",
                     "<p>You've been invited to SeattleMahjong\n<br />\
@@ -68,7 +68,7 @@ class VerifyHandler(handler.BaseHandler):
             with db.getCur() as cur:
                 passhash = pbkdf2_sha256.encrypt(password)
 
-                cur.execute("INSERT INTO Users (Email, Password) VALUES (?, ?)", (email, passhash))
+                cur.execute("INSERT INTO Users (Email, Password) VALUES (LOWER(?), ?)", (email, passhash))
                 self.set_secure_cookie("user", str(cur.lastrowid))
                 cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
 
@@ -133,7 +133,6 @@ class LoginHandler(handler.BaseHandler):
             return
 
         self.render("login.html")
-
     def post(self):
         email = self.get_argument('email', None)
         password = self.get_argument('password', None)
@@ -144,7 +143,7 @@ class LoginHandler(handler.BaseHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("SELECT Id, Password FROM Users WHERE Email = ?", (email,))
+            cur.execute("SELECT Id, Password FROM Users WHERE Email = LOWER(?)", (email,))
 
             row = cur.fetchone()
             if row is not None:
