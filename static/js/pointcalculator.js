@@ -58,7 +58,7 @@ function updateScore() {
 	var dealer = $("#dealer").text() !== "";
 	var tsumo = $("#tsumo").text() !== "";
 
-	if((fu === 20 && han === 1) || (fu === 25 && (han < 2 + tsumo?1:0))) {
+	if((fu === 20 && (han === 1 || !tsumo)) || (fu === 25 && (han < 2 + tsumo?1:0))) {
 		$("#scores").html("");
 		return;
 	}
