@@ -1,0 +1,14 @@
+---
+
+- hosts: servers
+  user: blaise
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  tasks:
+    - name: Create nginx config
+      copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
+    - name: Reload nginx
+      service: name=nginx state=reloaded
