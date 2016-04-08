@@ -87,10 +87,9 @@ class AddGameHandler(handler.BaseHandler):
             self.write('{"status":0}')
 
 def getScore(score, numplayers, rank):
-    uma = (3 - rank) * 10
-    if numplayers == 5:
-        uma += 5
-    return score / 1000.0 - 30 + uma
+    umas = {4:[15,5,-5,-15],
+            5:[15,5,0,-5,-15]}
+    return score / 1000.0 - 25 + umas[numplayers][rank - 1]
 
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
