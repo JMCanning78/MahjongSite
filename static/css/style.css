@@ -22,6 +22,7 @@ body {
 	vertical-align:middle;
 	background:white;
 }
+
 #navbar > a {
 	display:inline;
 	height:100%;
@@ -32,12 +33,14 @@ body {
 	margin-right:0.5em;
 	color:black;
 }
+
 #content {
-	width:100%;
+	width:96%;
 	max-width:700px;
-	margin-left:auto;
-	margin-right:auto;
-	padding:1em;
+	position:relative;
+	display:inline-block;
+	margin-top:1em;
+	margin-bottom:1em;
 }
 
 h1 {
@@ -63,22 +66,28 @@ button, input, select {
 	background:white;
 	color:black;
 	border:none;
-	padding:0.5em;
 	width:100%;
-	margin-top:0.25em;
-	margin-bottom:0.25em;
+	height:2em;
+	margin-bottom:0.5em;
+}
+
+input {
+	padding-left:0.5em;
+	padding-right:0.5em;
 }
 
 button, input[type="submit"] {
 	cursor:pointer;
 }
 
-button[disabled] {
-	display:none;
-}
-
 button:hover, input[type="submit"]:hover, a:hover  {
 	text-decoration:underline;
+}
+
+button[disabled] {
+	color:grey;
+	text-decoration:none;
+	cursor:not-allowed;
 }
 
 table {
@@ -129,7 +138,9 @@ button.clearplayercomplete {
 	position: absolute;
 	width: 2em;
 	height: 2em;
-	right: 1em;
+	right:0;
+	margin: 0;
+	line-height:2em;
+	vertical-align:middle;
 	background: none;
-	margin-right: 0;
 }

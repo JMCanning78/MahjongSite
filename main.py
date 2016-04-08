@@ -68,7 +68,7 @@ class AddGameHandler(handler.BaseHandler):
                     if row is None:
                         gameid = 0
                     else:
-                        gameid = cur.fetchone()[0] + 1
+                        gameid = row[0] + 1
 
                 if score['player'] == "":
                     self.write('{"status":1, "error":"Please enter all player names"}')
@@ -82,8 +82,8 @@ class AddGameHandler(handler.BaseHandler):
                     player = cur.fetchone()
                 player = player[0]
 
-                adjscore = getScore(score['score'], len(scores), i + 1)
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], adjscore))
+                adjscore = getScore(score['newscore'], len(scores), i + 1)
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
             self.write('{"status":0}')
 
 def getScore(score, numplayers, rank):
@@ -139,13 +139,13 @@ class HistoryHandler(handler.BaseHandler):
             cur.execute("SELECT DISTINCT Date FROM Scores ORDER BY Date DESC")
             dates = cur.fetchall()
             gamecount = len(dates)
-            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore, Scores.Score FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
+            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
             rows = cur.fetchall()
             games = {}
             for row in rows:
                 if row[0] not in games:
                     games[row[0]] = {'date':row[1], 'scores':{}}
-                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2))
+                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
             maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
             pages = range(max(1, page + 1 - 10), min(maxpage, page + 1 + 10) + 1)
             games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
