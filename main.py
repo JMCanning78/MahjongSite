@@ -26,7 +26,6 @@ import admin
 
 # import and define tornado-y things
 from tornado.options import define, options
-define("port", default=5000, type=int)
 cookie_secret = util.randString(32)
 
 class MainHandler(handler.BaseHandler):
@@ -242,12 +241,9 @@ def periodicCleanup():
 
 def main():
     if len(sys.argv) > 1:
-        try:
-            port = int(sys.argv[1])
-        except:
-            port = 5000
+        socket = sys.argv[1]
     else:
-        port = 5000
+        socket = "/tmp/mahjong.sock"
 
     qm = QueMail.get_instance()
     qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
@@ -255,7 +251,7 @@ def main():
 
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)
-    http_server.listen(os.environ.get("PORT", port))
+    http_server.add_socket(tornado.netutil.bind_unix_socket(socket))
 
     signal.signal(signal.SIGINT, sigint_handler)
 
