@@ -64,7 +64,11 @@ class AddGameHandler(handler.BaseHandler):
                 score = scores[i]
                 if gameid == None:
                     cur.execute("SELECT GameId FROM Scores ORDER BY GameId DESC LIMIT 1")
-                    gameid = cur.fetchone()[0] + 1
+                    row = cur.fetchone()
+                    if row is None:
+                        gameid = 0
+                    else:
+                        gameid = cur.fetchone()[0] + 1
 
                 if score['player'] == "":
                     self.write('{"status":1, "error":"Please enter all player names"}')
