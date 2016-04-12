@@ -3,12 +3,13 @@
 import warnings
 import sqlite3
 import random
+import settings
 
 class getCur():
     con = None
     cur = None
     def __enter__(self):
-        self.con = sqlite3.connect("scores.db")
+        self.con = sqlite3.connect(settings.DBFILE)
         self.cur = self.con.cursor()
         return self.cur
     def __exit__(self, type, value, traceback):
@@ -18,18 +19,6 @@ class getCur():
             self.con.close()
 
         return False
-
-class getCon():
-    con = None
-    def __enter__(self):
-        self.con = sqlite3.connect("scores.db")
-        return self.con
-    def __exit__(self, type, value, traceback):
-        if self.con and not value:
-            self.con.commit()
-            self.con.close()
-
-            return False
 
 def init():
     warnings.filterwarnings('ignore', r'Table \'[^\']*\' already exists')

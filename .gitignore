@@ -1,1 +1,4 @@
 *.pyc
+*.retry
+settings.py
+*.db
