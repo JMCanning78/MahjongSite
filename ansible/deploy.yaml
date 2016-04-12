@@ -19,7 +19,9 @@
     - name: Copy settings file
       copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name}}/settings.py"
     - name: Fix permissions
-      file: path="{{ nginx_dir }}/{{ app_name}}" owner={{ user }} group={{ user }} state=directory recurse=yes
+      file: path="{{ nginx_dir }}/{{ app_name }}" owner={{ user }} group={{ user }} state=directory recurse=yes
+    - name: Install dependencies
+      pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt"
 
     - name: create supervisor program config
       template: src="{{ playbook_dir }}/supervisor.j2" dest="/etc/supervisor/conf.d/{{ app_name }}.conf"

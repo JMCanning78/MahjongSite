@@ -7,6 +7,14 @@
   become_method: sudo
 
   tasks:
+    - name: Install Software
+      apt:
+        update_cache: yes
+        name:
+          - nginx
+          - supervisor
+          - python3-pip
+
     - name: Create nginx config
       copy: src=nginx.conf dest=/etc/nginx/nginx.conf
 

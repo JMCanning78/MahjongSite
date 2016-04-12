@@ -1,3 +1,3 @@
 Tornado
-MySQL-python
+pysqlite
 passlib
