@@ -12,6 +12,9 @@
 		function addPlayers(num) {
 			for(var i = 0; i < (num || 1); ++i)
 				$("#players").append(Mustache.render(playerScoreTemplate));
+			populatePlayerComplete($("input.playercomplete"));
+			$(".playerpoints").keyup(pointsChange);
+			$(".playercomplete").keyup(completeChange);
 		}
 		function checkSubmit(total) {
 			var playersSelected = true;
@@ -19,10 +22,9 @@
 				playersSelected = playersSelected && $(this).val() !== "";
 			});
 
-
-			playerSelected = playersSelected && (total === 25000 * 4 || total === 25000 * 5);
-			$("#submit").prop("disabled", !playerSelected);
-			return playerSelected;
+			playersSelected = playersSelected && (total === 25000 * 4 || total === 25000 * 5);
+			$("#submit").prop("disabled", !playersSelected);
+			return playersSelected;
 		}
 		function completeChange(e) {
 			checkSubmit(getTotalPoints());
@@ -94,8 +96,6 @@
 			}, 'json')
 		}
 		window.getPlayers(function () {
-			$(".playerpoints").keyup(pointsChange);
-			$(".playercomplete").keyup(completeChange);
 			$("#submit").click(submit);
 		});
 	});
