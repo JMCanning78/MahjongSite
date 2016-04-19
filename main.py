@@ -241,7 +241,10 @@ def periodicCleanup():
 
 def main():
     if len(sys.argv) > 1:
-        socket = sys.argv[1]
+        try:
+            socket = int(sys.argv[1])
+        except:
+            socket = sys.argv[1]
     else:
         socket = "/tmp/mahjong.sock"
 
@@ -251,7 +254,10 @@ def main():
 
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)
-    http_server.add_socket(tornado.netutil.bind_unix_socket(socket))
+    if isinstance(socket, int):
+        http_server.add_sockets(tornado.netutil.bind_sockets(socket))
+    else:
+        http_server.add_socket(tornado.netutil.bind_unix_socket(socket))
 
     signal.signal(signal.SIGINT, sigint_handler)
 
