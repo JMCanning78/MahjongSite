@@ -26,7 +26,6 @@ import admin
 
 # import and define tornado-y things
 from tornado.options import define, options
-define("port", default=5000, type=int)
 cookie_secret = util.randString(32)
 
 class MainHandler(handler.BaseHandler):
@@ -82,15 +81,14 @@ class AddGameHandler(handler.BaseHandler):
                     player = cur.fetchone()
                 player = player[0]
 
-                adjscore = getScore(score['score'], len(scores), i + 1)
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Score, Date) VALUES(?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], adjscore))
+                adjscore = getScore(score['newscore'], len(scores), i + 1)
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
             self.write('{"status":0}')
 
 def getScore(score, numplayers, rank):
-    uma = (3 - rank) * 10
-    if numplayers == 5:
-        uma += 5
-    return score / 1000.0 - 30 + uma
+    umas = {4:[15,5,-5,-15],
+            5:[15,5,0,-5,-15]}
+    return score / 1000.0 - 25 + umas[numplayers][rank - 1]
 
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
@@ -178,13 +176,13 @@ class HistoryHandler(handler.BaseHandler):
             cur.execute("SELECT DISTINCT Date FROM Scores ORDER BY Date DESC")
             dates = cur.fetchall()
             gamecount = len(dates)
-            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore, Scores.Score FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
+            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
             rows = cur.fetchall()
             games = {}
             for row in rows:
                 if row[0] not in games:
                     games[row[0]] = {'date':row[1], 'scores':{}}
-                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2))
+                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
             maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
             pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
             games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
@@ -282,11 +280,11 @@ def periodicCleanup():
 def main():
     if len(sys.argv) > 1:
         try:
-            port = int(sys.argv[1])
+            socket = int(sys.argv[1])
         except:
-            port = 5000
+            socket = sys.argv[1]
     else:
-        port = 5000
+        socket = "/tmp/mahjong.sock"
 
     qm = QueMail.get_instance()
     qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
@@ -294,7 +292,10 @@ def main():
 
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)
-    http_server.listen(os.environ.get("PORT", port))
+    if isinstance(socket, int):
+        http_server.add_sockets(tornado.netutil.bind_sockets(socket))
+    else:
+        http_server.add_socket(tornado.netutil.bind_unix_socket(socket))
 
     signal.signal(signal.SIGINT, sigint_handler)
 

@@ -55,13 +55,14 @@ function updateScore() {
 	var han = parseInt($("#han").text(), 10);
 	var fu = parseInt($("#fu").text(), 10);
 
-	if(fu === 20 && han === 1) {
+	var dealer = $("#dealer").text() !== "";
+	var tsumo = $("#tsumo").text() !== "";
+
+	if((fu === 20 && (han === 1 || !tsumo)) || (fu === 25 && (han < 2 + tsumo?1:0))) {
 		$("#scores").html("");
 		return;
 	}
 
-	var dealer = $("#dealer").text() !== "";
-	var tsumo = $("#tsumo").text() !== "";
 
 	if(han < 3 || (han === 4 && fu < 40) || (han === 3 && fu < 70)) {
 		var basicPoints = fu * Math.pow(2, 2 + han);
@@ -82,7 +83,7 @@ function updateScore() {
 		var total = dealer?36000:24000;
 	}
 	else if(han >= 13) {
-		var total = dealer?48000:36000;
+		var total = dealer?48000:32000;
 	}
 
 

@@ -3,12 +3,13 @@
 import warnings
 import sqlite3
 import random
+import settings
 
 class getCur():
     con = None
     cur = None
     def __enter__(self):
-        self.con = sqlite3.connect("scores.db")
+        self.con = sqlite3.connect(settings.DBFILE)
         self.cur = self.con.cursor()
         return self.cur
     def __exit__(self, type, value, traceback):
@@ -19,25 +20,13 @@ class getCur():
 
         return False
 
-class getCon():
-    con = None
-    def __enter__(self):
-        self.con = sqlite3.connect("scores.db")
-        return self.con
-    def __exit__(self, type, value, traceback):
-        if self.con and not value:
-            self.con.commit()
-            self.con.close()
-
-            return False
-
 def init():
     warnings.filterwarnings('ignore', r'Table \'[^\']*\' already exists')
 
     with getCur() as cur:
         cur.execute("CREATE TABLE IF NOT EXISTS Players(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT);")
 
-        cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE,\
+        cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentPlayers(PlayerId INTEGER PRIMARY KEY,\

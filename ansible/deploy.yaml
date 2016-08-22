@@ -1,0 +1,49 @@
+---
+
+- hosts: servers
+  user: blaise
+  become: yes
+  become_user: root
+  become_method: sudo
+
+  vars:
+    app_name: MahjongSite
+    repo_url: https://github.com/BlaiseRitchie/MahjongSite.git
+    nginx_dir: /usr/share/nginx
+    file: main.py
+    user: www-data
+
+  tasks:
+    - name: deploy code from repository
+      git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}"
+    - name: Copy settings file
+      copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name }}/settings.py"
+    - name: Install dependency libraries
+      apt:
+        update_cache: yes
+        name:
+          - libsqlite3-dev
+    - name: Install dependencies
+      pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt"
+    - name: Fix permissions
+      file: path="{{ nginx_dir }}/{{ app_name }}" owner={{ user }} group={{ user }} state=directory recurse=yes
+
+    - name: create supervisor program config
+      template: src="{{ playbook_dir }}/supervisor.j2" dest="/etc/supervisor/conf.d/{{ app_name }}.conf"
+      notify:
+        - restart supervisor
+
+    - name: Ensure tornado_params file is in place
+      copy: src="{{ playbook_dir }}/tornado_params" dest=/etc/nginx/tornado_params
+
+    - name: create nginx site config
+      template: src="{{ playbook_dir }}/nginx.j2" dest="/etc/nginx/vhosts.d/{{ app_name }}.conf"
+      notify:
+        - reload nginx
+
+  handlers:
+    - name: restart supervisor
+      service: name=supervisor state=restart
+
+    - name: reload nginx
+      service: name=nginx state=reloaded

@@ -1,0 +1,10 @@
+[program:{{ app_name }}]
+command=python {{ nginx_dir }}/{{ app_name }}/{{ file }} /tmp/{{ app_name }}.sock
+user=www-data
+directory={{ nginx_dir }}/{{ app_name }}
+autostart=true
+autorestart=unexpected
+process_name=%(program_name)s_%(process_num)01d
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/{{ app_name }}.log
+numprocs=1

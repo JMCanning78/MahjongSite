@@ -1,0 +1,29 @@
+upstream {{ app_name }} {
+    server unix:/tmp/{{ app_name }}.sock;
+}
+
+server {
+    listen       80;
+    server_name  {{ inventory_hostname }} www.{{ inventory_hostname }};
+    root         {{ nginx_dir }}/{{ app_name }};
+
+		include tornado_params;
+
+    access_log  /var/log/nginx/{{ app_name }}.access.log;
+
+    location ~ ^/static {
+        try_files $uri @tornado;
+    }
+
+    location ~ ^/favicon\.ico$ {
+        try_files $uri /static$uri /static/images$uri @tornado;
+    }
+
+    location @tornado {
+        proxy_pass http://{{ app_name }};
+    }
+
+    location / {
+        proxy_pass http://{{ app_name }};
+    }
+}

@@ -1,0 +1,5 @@
+<div class="player">
+	<input type="text" class="playercomplete" placeholder="PLAYER"></input>
+	<input type="number" step="100" placeholder="SCORE" class="playerpoints"></input>
+	<input type="number" min="0" step="1" placeholder="CHOMBOS" class="chombos"></input>
+</div>

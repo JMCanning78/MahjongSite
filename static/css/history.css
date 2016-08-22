@@ -23,15 +23,18 @@ table {
 	width:100%;
 }
 
-table > tbody > tr > td:nth-of-type(1) {
+.game tr > *:nth-of-type(1) {
 	width:2em;
 }
-table > tbody > tr > td:nth-of-type(2) {
+.game tr > *:nth-of-type(2) {
 	width:15em;
 }
-table > tbody > tr > td:nth-of-type(3) {
+.game tr > *:nth-of-type(3) {
 	width:5em;
 }
-table > tbody > tr > td:nth-of-type(4) {
+.game tr > *:nth-of-type(4) {
 	width:3em;
+}
+.game tr > *:nth-of-type(5) {
+	width:2em;
 }

@@ -2,55 +2,49 @@
 	$(function () {
 		var message = document.getElementById("message");
 
+		var pointsChange;
+		var playerScoreTemplate;
+		$.get("/static/mustache/playerscore.mst", function(data) {
+			playerScoreTemplate = data;
+			Mustache.parse(playerScoreTemplate);
+			addPlayers(4);
+		});
+		function addPlayers(num) {
+			for(var i = 0; i < (num || 1); ++i)
+				$("#players").append(Mustache.render(playerScoreTemplate));
+			populatePlayerComplete($("input.playercomplete"));
+			$(".playerpoints").keyup(pointsChange);
+			$(".playercomplete").keyup(completeChange);
+		}
 		function checkSubmit(total) {
 			var playersSelected = true;
 			$(".playercomplete").each(function (index, elem) {
-
 				playersSelected = playersSelected && $(this).val() !== "";
 			});
 
-			if(playersSelected && (total === 25000 * 4 || total === 25000 * 5))
-				$("#submit").prop("disabled", false);
-			else
-				$("#submit").prop("disabled", true);
+			playersSelected = playersSelected && (total === 25000 * 4 || total === 25000 * 5);
+			$("#submit").prop("disabled", !playersSelected);
+			return playersSelected;
 		}
 		function completeChange(e) {
 			checkSubmit(getTotalPoints());
 		}
-		var pointsChange;
 		pointsChange = function(e) {
 			var total = getTotalPoints();
 
-			if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
-				var complete = document.createElement("input");
-				complete.className="playercomplete";
-				complete.placeholder = "PLAYER";
-				window.populatePlayerComplete($(complete));
-				$(complete).change(completeChange);
-				$("#players").append(complete);
+			if(total > 25000 * 4 && $("#players .playerpoints").length == 4)
+				addPlayers();
+			else if(total === 25000 * 4 && $("#players .playerpoints").length == 5)
+				$("#players .player:last-child").last().remove();
 
-				var input = document.createElement("input");
-				input.className="playerpoints";
-				input.placeholder = "SCORE";
-				$(input).keyup(pointsChange);
-				$("#players").append(input);
-				full = false;
-			}
-			else if(total === 25000 * 4 && $("#players .playerpoints").length == 5){
-				$("#players .playerpoints:last-child").last().remove();
-				$("#players .playercomplete:last-child").last().remove();
-			}
-
-			if(e.keyCode === 13)
+			if(checkSubmit(total) && e.keyCode === 13)
 				submit();
-			checkSubmit(total);
 		}
 		function getTotalPoints() {
 			var total = 0;
 			$(".playerpoints").each(function (index, elem) {
 				var val = $(this).val();
-				if(val !== "")
-					total += parseInt(val);
+				total += val === ""?0:parseInt(val);
 			});
 			return total;
 
@@ -60,14 +54,18 @@
 			var points = $(".playerpoints").map(function() {
 				return parseInt($(this).val());
 			});
+			var chombos = $(".chombos").map(function() {
+				var val = $(this).val();
+				return val===""?0:parseInt(val);
+			});
 			var players = $(".playercomplete").map(function() {
 				return $(this).val();
 			});
 			for(var i = 0; i < points.length; ++i) {
-				scores.push({"player":players[i],"score":points[i]})
+				scores.push({"player":players[i],"score":points[i],"chombos":chombos[i],"newscore":points[i]-chombos[i]*8000})
 			}
 			scores.sort(function(a, b) {
-				return a.score > b.score ? -1 : a.score < b.score ? 1 : 0;
+				return a.newscore > b.newscore ? -1 : a.newscore < b.newscore ? 1 : 0;
 			});
 			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
 				console.log(data);
@@ -98,8 +96,6 @@
 			}, 'json')
 		}
 		window.getPlayers(function () {
-			$(".playerpoints").keyup(pointsChange);
-			$(".playercomplete").keyup(completeChange);
 			$("#submit").click(submit);
 		});
 	});
