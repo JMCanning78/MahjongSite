@@ -64,7 +64,11 @@ class AddGameHandler(handler.BaseHandler):
                 score = scores[i]
                 if gameid == None:
                     cur.execute("SELECT GameId FROM Scores ORDER BY GameId DESC LIMIT 1")
-                    gameid = cur.fetchone()[0] + 1
+                    row = cur.fetchone()
+                    if row is not None:
+                        gameid = row[0] + 1
+                    else:
+                        gameid = 0
 
                 if score['player'] == "":
                     self.write('{"status":1, "error":"Please enter all player names"}')
@@ -99,15 +103,52 @@ class LeaderDataHandler(handler.BaseHandler):
         with db.getCur() as cur:
             leaderboards = {}
             queries = {
-                    "annual":"SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;",
-                    "biannual":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 6) when 0 then '1st' when 1 then '2nd' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id HAVING GameCount >= 4 ORDER BY AvgScore DESC;",
-                    "quarter":"SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end, Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id ORDER BY AvgScore DESC;"
+                    "annual":[
+                        """SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount, 0
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            GROUP BY strftime('%Y', Date),Players.Id
+                            HAVING GameCount >= 4 AND GameCount <= 8 ORDER BY AvgScore DESC;""",
+                        """SELECT strftime('%Y', Scores.Date), Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) + 1 AS GameCount, 1
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            WHERE Scores.Id NOT IN (SELECT Id FROM Scores GROUP BY PlayerId,strftime('%Y', Date) HAVING Score = MIN(Score))
+                            GROUP BY strftime('%Y', Date),Players.Id
+                            HAVING GameCount > 8 ORDER BY AvgScore DESC;"""
+                    ],
+                    "biannual":[
+                        """SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 6) when 0 then '1st' when 1 then '2nd' end,
+                                Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount, 0
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id
+                            HAVING GameCount >= 4 AND GameCount <= 8 ORDER BY AvgScore DESC;""",
+                        """SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 6) when 0 then '1st' when 1 then '2nd' end,
+                                Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) + 1 AS GameCount, 1
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            WHERE Scores.Id NOT IN (SELECT Id FROM Scores GROUP BY PlayerId,strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6) HAVING Score = MIN(Score))
+                            GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id
+                            HAVING GameCount > 8 ORDER BY AvgScore DESC;"""
+                    ],
+                    "quarter":[
+                        """SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end,
+                                Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) AS GameCount, 0
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id
+                            HAVING GameCount <= 8 ORDER BY AvgScore DESC;""",
+                        """SELECT strftime('%Y', Scores.Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end,
+                                Players.Name, ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore, COUNT(Scores.Score) + 1 AS GameCount, 1
+                            FROM Players LEFT JOIN Scores ON Players.Id = Scores.PlayerId
+                            WHERE Scores.Id NOT IN (SELECT Id FROM Scores GROUP BY PlayerId,strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3) HAVING Score = MIN(Score))
+                            GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 3),Players.Id
+                            HAVING GameCount > 8 ORDER BY AvgScore DESC;"""
+                    ]
             }
             if period not in queries:
                 period = "quarter"
-            cur.execute(queries[period])
+            cur.execute(queries[period][0])
             rows = cur.fetchall()
+            cur.execute(queries[period][1])
+            rows += cur.fetchall()
             places={}
+            rows.sort(key=lambda row: row[2], reverse=True) # sort by score
             for row in rows:
                 if row[0] not in leaderboards:
                     leaderboards[row[0]] = []
@@ -116,7 +157,8 @@ class LeaderDataHandler(handler.BaseHandler):
                 leaderboard += [{'place': places[row[0]],
                                 'name':row[1],
                                 'score':row[2],
-                                'count':row[3]}]
+                                'count':row[3],
+                                'dropped':row[4]}]
                 places[row[0]] += 1
             leaders = sorted(list(leaderboards.items()), reverse=True)
             leaderboards = []
@@ -144,7 +186,7 @@ class HistoryHandler(handler.BaseHandler):
                     games[row[0]] = {'date':row[1], 'scores':{}}
                 games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2))
             maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
-            pages = range(max(1, page + 1 - 10), min(maxpage, page + 1 + 10) + 1)
+            pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
             games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
             if page != 0:
                 prev = page
