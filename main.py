@@ -155,7 +155,7 @@ class LeaderDataHandler(handler.BaseHandler):
                 leaderboard += [{'place': places[row[0]],
                                 'name':row[1],
                                 'score':row[2],
-                                'count':row[3],
+                                'count':row[3] if row[4] == 0 else str(row[3] - 1) + " (+1)",
                                 'dropped':row[4]}]
                 places[row[0]] += 1
             leaders = sorted(list(leaderboards.items()), reverse=True)
