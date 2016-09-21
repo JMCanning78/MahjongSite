@@ -176,25 +176,28 @@ class HistoryHandler(handler.BaseHandler):
             cur.execute("SELECT DISTINCT Date FROM Scores ORDER BY Date DESC")
             dates = cur.fetchall()
             gamecount = len(dates)
-            cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
-            rows = cur.fetchall()
-            games = {}
-            for row in rows:
-                if row[0] not in games:
-                    games[row[0]] = {'date':row[1], 'scores':{}}
-                games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
-            maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
-            pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
-            games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
-            if page != 0:
-                prev = page
+            if gamecount > 0:
+                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
+                rows = cur.fetchall()
+                games = {}
+                for row in rows:
+                    if row[0] not in games:
+                        games[row[0]] = {'date':row[1], 'scores':{}}
+                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
+                pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
+                games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
+                if page != 0:
+                    prev = page
+                else:
+                    prev = None
+                if page + 1 < maxpage:
+                    nex = page + 2
+                else:
+                    nex = None
+                self.render("history.html", error=None, games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
             else:
-                prev = None
-            if page + 1 < maxpage:
-                nex = page + 2
-            else:
-                nex = None
-            self.render("history.html", games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
+                self.render("history.html", error="No games entered thusfar")
 
 class PlayerStats(handler.BaseHandler):
     def get(self, player):
