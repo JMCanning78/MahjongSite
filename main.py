@@ -306,7 +306,9 @@ def main():
     tornado.ioloop.PeriodicCallback(periodicCleanup, 60 * 60 * 1000).start() # run periodicCleanup once an hour
     # start it up
     tornado.ioloop.IOLoop.instance().start()
-    qm.end()
+
+    if qm is not None:
+        qm.end()
 
 
 def sigint_handler(signum, frame):
