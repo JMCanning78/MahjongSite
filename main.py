@@ -286,9 +286,10 @@ def main():
     else:
         socket = "/tmp/mahjong.sock"
 
-    qm = QueMail.get_instance()
-    qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
-    qm.start()
+    if hasattr(settings, 'EMAILSERVER'):
+        qm = QueMail.get_instance()
+        qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
+        qm.start()
 
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)

@@ -102,6 +102,8 @@ class QueMail(Thread):
             sleep(self.check_interval)
 
     def send(self, eml):
+        if self._queue is None:
+            return
         self._queue.put(eml, True, 5);
         log.debug(u'Accepted (qs=%i): %s' % (self._queue.qsize(), eml))
 
