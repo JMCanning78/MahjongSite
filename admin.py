@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import json
 import handler
 import db
+import util
 
 class AdminPanelHandler(handler.BaseHandler):
     @handler.is_admin
@@ -80,3 +82,65 @@ class DeleteGameHandler(handler.BaseHandler):
             else:
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
                 self.redirect("/history")
+
+class EditGameHandler(handler.BaseHandler):
+    @handler.is_admin
+    def get(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Rank, Players.Name, Scores.RawScore, Scores.Chombos, Scores.Date FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ? ORDER BY Rank", (q,))
+            rows = cur.fetchall()
+            if len(rows) == 0:
+                self.render("message.html", message = "Game not found", title = "Edit Game")
+            else:
+                self.render("editgame.html", id=q, scores=json.dumps(rows))
+    @handler.is_admin_ajax
+    def post(self, q):
+        scores = self.get_argument('scores', None)
+        gamedate = self.get_argument('gamedate', None)
+
+        if scores is None:
+            self.write('{"status":1, "error":"Please enter some scores"}')
+            return
+
+        scores = json.loads(scores)
+
+        if len(scores) != 4 and len(scores) != 5:
+            self.write('{"status":1, "error":"Please enter 4 or 5 scores"}')
+            return
+
+        total = 0
+        for score in scores:
+            total += score['score']
+        if total != len(scores) * 25000:
+            self.write('{"status":1, "error":' + "Scores do not add up to " + len(scores) * 25000 + '}')
+            return
+
+        with db.getCur() as cur:
+            cur.execute("SELECT GameId FROM Scores WHERE GameId = ?", (q,))
+            row = cur.fetchone()
+            if len(row) == 0:
+                self.write('{"status":1, "error":"Game not found"}')
+                return
+            gameid = row[0]
+            print(gameid)
+            print(gamedate)
+
+            for i in range(0, len(scores)):
+                score = scores[i]
+                if score['player'] == "":
+                    self.write('{"status":1, "error":"Please enter all player names"}')
+                    return
+            cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
+            for i in range(0, len(scores)):
+                score = scores[i]
+                cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (score['player'], score['player']))
+                player = cur.fetchone()
+                if player is None or len(player) == 0:
+                    cur.execute("INSERT INTO Players(Name) VALUES(?)", (score['player'],))
+                    cur.execute("SELECT Id FROM Players WHERE Name = ?", (score['player'],))
+                    player = cur.fetchone()
+                player = player[0]
+
+                adjscore = util.getScore(score['newscore'], len(scores), i + 1)
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore, gamedate))
+        self.write('{"status":0}')

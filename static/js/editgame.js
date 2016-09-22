@@ -18,18 +18,19 @@
 			scores.sort(function(a, b) {
 				return a.newscore > b.newscore ? -1 : a.newscore < b.newscore ? 1 : 0;
 			});
-			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
+			$.post('/admin/edit/' + window.gameid, {scores:JSON.stringify(scores), gamedate:$("#gamedate").val()}, function(data) {
 				console.log(data);
 				if(data.status !== 0) {
 					$(message).text(data.error);
 				}
 				else {
+					$("#gamedate").remove();
 					$("#players").remove();
 					$("#submit").remove();
-					$(message).text("GAME ADDED");
-					var add = document.createElement("a");
-					$(add).text("ADD ANOTHER");
-					add.href = "/addgame";
+					$(message).text("GAME EDITED");
+					var reedit = document.createElement("a");
+					$(reedit).text("EDIT AGAIN");
+					reedit.href = "/admin/edit/" + window.gameid;
 					var leaderboard = document.createElement("a");
 					$(leaderboard).text("VIEW LEADERBOARD");
 					leaderboard.href = "/leaderboard";
@@ -38,7 +39,7 @@
 					history.href = "/history";
 
 					$("#content").append(message);
-					$("#content").append(add);
+					$("#content").append(reedit);
 					$("#content").append(leaderboard);
 					$("#content").append(history);
 				}

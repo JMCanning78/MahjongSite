@@ -81,15 +81,10 @@ class AddGameHandler(handler.BaseHandler):
                     player = cur.fetchone()
                 player = player[0]
 
-                adjscore = getScore(score['newscore'], len(scores), i + 1)
+                adjscore = util.getScore(score['newscore'], len(scores), i + 1)
                 cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
             self.write('{"status":0}')
 
-
-def getScore(score, numplayers, rank):
-    umas = {4:[15,5,-5,-15],
-            5:[15,5,0,-5,-15]}
-    return score / 1000.0 - 25 + umas[numplayers][rank - 1]
 
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
@@ -266,6 +261,7 @@ class Application(tornado.web.Application):
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),
                 (r"/admin/delete/([0-9]*)", admin.DeleteGameHandler),
+                (r"/admin/edit/([0-9]*)", admin.EditGameHandler),
                 (r"/admin/promote/([0-9]*)", admin.PromoteUserHandler),
                 (r"/admin/demote/([0-9]*)", admin.DemoteUserHandler),
         ]
