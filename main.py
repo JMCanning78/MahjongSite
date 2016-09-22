@@ -277,6 +277,7 @@ class Application(tornado.web.Application):
 def periodicCleanup():
     with db.getCur() as cur:
         cur.execute("DELETE FROM VerifyLinks WHERE Expires <= NOW()")
+        cur.execute("DELETE FROM Players WHERE Id NOT IN (SELECT PlayerId FROM Scores)")
 
 def main():
     if len(sys.argv) > 1:
