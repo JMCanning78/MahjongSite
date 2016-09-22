@@ -24,6 +24,15 @@
 				{% set lastdate = game['date'] %}
 			{% end %}
 		<table class="game">
+			{% if is_admin %}
+			<thead>
+				<th />
+				<th>Game #{{ game['id'] }}</th>
+				<th><a href="/admin/delete/{{ game['id'] }}">Delete</a></th>
+				<th />
+				<th />
+			</thead>
+			{% end %}
 			<tbody>
 				{% for score in game['scores'].items() %}
 				<tr>

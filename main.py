@@ -85,6 +85,7 @@ class AddGameHandler(handler.BaseHandler):
                 cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'))", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
             self.write('{"status":0}')
 
+
 def getScore(score, numplayers, rank):
     umas = {4:[15,5,-5,-15],
             5:[15,5,0,-5,-15]}
@@ -182,7 +183,7 @@ class HistoryHandler(handler.BaseHandler):
                 games = {}
                 for row in rows:
                     if row[0] not in games:
-                        games[row[0]] = {'date':row[1], 'scores':{}}
+                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
                     games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
@@ -197,7 +198,7 @@ class HistoryHandler(handler.BaseHandler):
                     nex = None
                 self.render("history.html", error=None, games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
             else:
-                self.render("history.html", error="No games entered thusfar")
+                self.render("message.html", message="No games entered thusfar", title="Game History")
 
 class PlayerStats(handler.BaseHandler):
     def get(self, player):
@@ -264,6 +265,7 @@ class Application(tornado.web.Application):
                 (r"/pointcalculator", PointCalculator),
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),
+                (r"/admin/delete/([0-9]*)", admin.DeleteGameHandler),
                 (r"/admin/promote/([0-9]*)", admin.PromoteUserHandler),
                 (r"/admin/demote/([0-9]*)", admin.DemoteUserHandler),
         ]
