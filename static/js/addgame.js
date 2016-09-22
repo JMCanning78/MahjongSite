@@ -31,6 +31,7 @@
 		}
 		pointsChange = function(e) {
 			var total = getTotalPoints();
+			$(message).text("Total: " + total);
 
 			if(total > 25000 * 4 && $("#players .playerpoints").length == 4)
 				addPlayers();
@@ -70,13 +71,11 @@
 			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
 				console.log(data);
 				if(data.status !== 0) {
-					message.style.display = "block";
 					$(message).text(data.error);
 				}
 				else {
 					$("#players").remove();
 					$("#submit").remove();
-					message.style.display = "block";
 					$(message).text("GAME ADDED");
 					var add = document.createElement("a");
 					$(add).text("ADD ANOTHER");
