@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import tornado.web
 import db
 import random
@@ -32,14 +33,7 @@ class CurrentPlayers(tornado.web.RequestHandler):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
             cur.execute("SELECT Name FROM CurrentPlayers INNER JOIN Players ON PlayerId = Players.Id ORDER BY Players.Name")
-            self.write("[")
-            comma = False
-            for row in cur.fetchall():
-                if comma:
-                    self.write(",")
-                comma = True
-                self.write('"' + str(row[0]) + '"')
-            self.write("]")
+            self.write(json.dumps(map(lambda x:x[0], cur.fetchall())))
 
 
 class AddCurrentPlayer(tornado.web.RequestHandler):
@@ -74,7 +68,7 @@ class RemovePlayer(tornado.web.RequestHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN (SELECT Id FROM Players WHERE CurrentPlayers.PlayerId = Players.Id AND (Players.Id = ? OR Players.Name = ?))", (player, player))
+            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN (SELECT Id FROM Players WHERE Players.Id = ? OR Players.Name = ?)", (player, player))
             self.write('{"status":0}')
 
 class ClearCurrentPlayers(tornado.web.RequestHandler):
@@ -90,29 +84,15 @@ class CurrentTables(tornado.web.RequestHandler):
         self.set_header('Content-Type', 'application/json')
         with db.getCur() as cur:
             cur.execute("SELECT Players.Name FROM CurrentTables INNER JOIN Players ON Players.Id = CurrentTables.PlayerId")
-            self.write("[")
-            comma = False
-            for player in cur.fetchall():
-                if comma:
-                    self.write(",")
-                comma = True
-                self.write('"' + str(player[0]) + '"')
-            self.write("]")
+            self.write(json.dumps(cur.fetchall()))
 
 
 class PlayersList(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
-            cur.execute("SELECT Id, Name FROM Players ORDER BY Name")
-            self.write("[")
-            comma = False
-            for row in cur.fetchall():
-                if comma:
-                    self.write(",")
-                comma = True
-                self.write('"'+ row[1] + '"')
-            self.write("]")
+            cur.execute("SELECT Name FROM Players ORDER BY Name")
+            self.write(json.dumps(map(lambda x:x[0], cur.fetchall())))
 
 POPULATION = 256
 
