@@ -14,17 +14,35 @@
     user: www-data
 
   tasks:
+    - name: Install Software
+      apt:
+        update_cache: yes
+        name:
+          - nginx
+          - supervisor
+          - python3-pip
+
+    - name: Create nginx config
+      copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
+    - name: Reload nginx
+      service: name=nginx state=reloaded
+
     - name: deploy code from repository
       git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}"
+
     - name: Copy settings file
       copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name }}/settings.py"
+
     - name: Install dependency libraries
       apt:
         update_cache: yes
         name:
           - libsqlite3-dev
+
     - name: Install dependencies
       pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt"
+
     - name: Fix permissions
       file: path="{{ nginx_dir }}/{{ app_name }}" owner={{ user }} group={{ user }} state=directory recurse=yes
 
