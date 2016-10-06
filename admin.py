@@ -92,7 +92,7 @@ class EditGameHandler(handler.BaseHandler):
             if len(rows) == 0:
                 self.render("message.html", message = "Game not found", title = "Edit Game")
             else:
-                self.render("editgame.html", id=q, scores=json.dumps(rows))
+                self.render("editgame.html", id=q, scores=json.dumps(rows).replace("'", "\\'").replace("\\\"", "\\\\\""))
     @handler.is_admin_ajax
     def post(self, q):
         scores = self.get_argument('scores', None)
