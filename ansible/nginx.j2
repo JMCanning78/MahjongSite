@@ -4,6 +4,7 @@ upstream {{ app_name }} {
 
 server {
     listen       80;
+    listen       [::]:80;
     server_name  {{ inventory_hostname }} www.{{ inventory_hostname }};
     root         {{ nginx_dir }}/{{ app_name }};
 
