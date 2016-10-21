@@ -169,7 +169,7 @@ class HistoryHandler(handler.BaseHandler):
                     if row[0] not in games:
                         games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
                     games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
-                maxpage = math.ceil(gamecount * 1.0 / PERPAGE + 1)
+                maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
                 games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
                 if page != 0:
@@ -183,6 +183,61 @@ class HistoryHandler(handler.BaseHandler):
                 self.render("history.html", error=None, games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
             else:
                 self.render("message.html", message="No games entered thusfar", title="Game History")
+
+class PlayerHistory(handler.BaseHandler):
+    def get(self, player, page):
+        if page is None:
+            page = 0
+        else:
+            page = int(page[1:]) - 1
+        PERPAGE = 10
+        with db.getCur() as cur:
+            cur.execute("SELECT Id,Name FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            player = cur.fetchone()
+            if len(player) == 0:
+                self.render("message.html", message="Couldn't find that player", title="User Game History")
+                return
+            name = player[1]
+            player = player[0]
+            cur.execute("SELECT DISTINCT GameId FROM Scores WHERE PlayerId = ? ORDER BY Date DESC", (player,))
+            games = [i[0] for i in cur.fetchall()]
+            gamecount = len(games)
+            print min(page * PERPAGE + PERPAGE - 1, gamecount - 1)
+            if gamecount > 0:
+                thesegames = games[min(page * PERPAGE, gamecount - 1):min(page * PERPAGE + PERPAGE - 1, gamecount - 1)]
+                placeholder= '?' # For SQLite. See DBAPI paramstyle
+                placeholders= ', '.join(placeholder for i in range(len(thesegames)))
+                print(placeholders)
+                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.GameId IN (" + placeholders + ") GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
+                rows = cur.fetchall()
+                games = {}
+                for row in rows:
+                    if row[0] not in games:
+                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
+                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
+                pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
+                games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
+                if page != 0:
+                    prev = page
+                else:
+                    prev = None
+                if page + 1 < maxpage:
+                    nex = page + 2
+                else:
+                    nex = None
+                self.render("userhistory.html",
+                        error=None,
+                        games=games,
+                        curpage=page + 1,
+                        pages=pages,
+                        gamecount=gamecount,
+                        nex = nex,
+                        prev = prev,
+                        user = name,
+                        player = player)
+            else:
+                self.render("message.html", message="No games entered thusfar", title="Game History", user = name)
 
 class PlayerStats(handler.BaseHandler):
     def get(self, player):
@@ -237,6 +292,7 @@ class Application(tornado.web.Application):
                 (r"/leaderboard(/[^/]*)?", LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
+                (r"/playerhistory/(.*?)(/[0-9]+)?", PlayerHistory),
                 (r"/playerstats/(.*)", PlayerStats),
                 (r"/seating", seating.SeatingHandler),
                 (r"/seating/regentables", seating.RegenTables),
