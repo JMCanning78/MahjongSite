@@ -1,0 +1,18 @@
+{% extends "template.html" %}
+{% block title %} - {{ name }}'s Stats{% endblock %}
+{% block content %}
+	{% if not error %}
+		<h1 id="message">{{ name }}</h1>
+		Games played: {{ numgames }}<br />
+		Max score: {{ maxscore }}<br />
+		Min score: {{ minscore }}<br />
+		Average score: {{ avgscore }}<br />
+		Average rank: {{ avgrank }}<br />
+		Average score last 5 games: {{ avgscore5 }}<br />
+		Average rank last 5 games: {{ avgrank5 }}<br />
+		<br />
+		<h3><a href="/playerhistory/{{ name }}">Game History</a></h3><br />
+	{% else %}
+		<h1 id="message">{{ error }}</h1>
+	{% endif %}
+{% endblock %}

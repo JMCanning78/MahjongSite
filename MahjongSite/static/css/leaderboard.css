@@ -1,0 +1,21 @@
+body {
+	text-align:center;
+}
+
+table {
+	width:100%;
+}
+
+select {
+	width:100%;
+	text-align:center;
+	margin-top:1em;
+}
+
+.leaderboard {
+	margin-top:1em;
+}
+
+.leaderboard > h2 {
+	margin-bottom:0.5em;
+}

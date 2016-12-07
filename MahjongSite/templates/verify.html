@@ -1,0 +1,21 @@
+{% extends "template.html" %}
+
+{% block title %} - Signup{% endblock %}
+
+{% block content %}
+	<h1 id="page-name">Signup</h1>
+	{% if message %}
+		<div id="message">{{ message }}</div>
+	{% endif %}
+
+	<form action="/verify/{{ id }}" method="post">
+		<input autocapitalize="off" autocorrect="off" id="email-field" name="email" placeholder="EMAIL" type="text" {% if email %}value="{{ email }}"{% endif %}/><br/>
+
+		<input id="password-field" name="password" placeholder="PASSWORD" type="password" /><br/>
+
+		<input id="vpassword-field" name="vpassword" placeholder="REPEAT PASSWORD" type="password" /><br/>
+
+		<input type="submit" value="Signup"/>
+	</form>
+	Already have an account? <a href="/login">Login.</a>
+{% endblock %}

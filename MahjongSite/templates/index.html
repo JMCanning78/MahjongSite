@@ -1,0 +1,14 @@
+{% extends "template.html" %}
+{% block head %}
+	<link href="{{ url_for('static', filename="css/index.css") }}" type="text/css" rel="stylesheet" />
+{% endblock %}
+{% block content %}
+	<h1>Seattle Mahjong</h1>
+	{% if 'user' in session %}
+		<a href="/addgame">ADD GAME</a>
+	{% endif %}
+	<a href="/leaderboard">LEADERBOARD</a>
+	<a href="/history">GAME HISTORY</a>
+	<a href="/seating">SEATER</a>
+	<a href="/pointcalculator">POINT CALCULATOR</a>
+{% endblock %}

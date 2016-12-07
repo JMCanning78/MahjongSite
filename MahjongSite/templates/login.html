@@ -1,0 +1,23 @@
+{% extends "template.html" %}
+
+{% block title %} - Login{% endblock %}
+
+{% block head %}
+		<link href="{{ url_for('static', filename="css/login.css") }}" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+	<h1 id="page-title">Login</h1>
+	{% if message %}
+		<div id="message">{{ message }}</div>
+	{% endif %}
+
+	<form action="/login/{% if next %}{{ next }}{% endif %}" method="post">
+		<input autocapitalize="off" autocorrect="off" autofocus="autofocus" id="email-field" name="email" placeholder="EMAIL" type="text" /><br/>
+
+		<input id="password-field" name="password" placeholder="PASSWORD" type="password" /><br/>
+
+		<input type="submit" value="Login"/>
+	</form>
+	<a href="/reset">Reset my password</a>
+{% endblock %}

@@ -1,0 +1,16 @@
+a {
+	display:block;
+	color:black;
+	background:white;
+	margin-bottom:0.5em;
+	padding-bottom:1em;
+	padding-top:1em;
+}
+
+#content {
+	padding-top:0;
+}
+
+h1 {
+	margin:1em;
+}

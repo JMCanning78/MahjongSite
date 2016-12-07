@@ -1,0 +1,61 @@
+#personselector {
+	margin-right:2%;
+}
+#people {
+	margin-bottom:1em;
+}
+#people > div {
+	display:inline-block;
+	text-align:center;
+	height:2em;
+	line-height:2em;
+	vertical-align:middle;
+	margin-bottom:0.2em;
+}
+#people > div > .deletebutton {
+	position:relative;
+	float:right;
+	height:100%;
+	width:2em;
+	background:white;
+	color:black;
+}
+.table{
+	display:inline-block;
+	padding:0.5em;
+}
+.table > h3 {
+	background:white;
+	color:black;
+}
+.table > div {
+	text-align:center;
+	height:1.5em;
+	line-height:1.5em;
+	padding-left:0.2em;
+	padding-right:0.2em;
+	white-space:nowrap;
+	vertical-align:middle;
+	border-bottom:1px solid white;
+	border-left: 1px solid white;
+	border-right:1px solid white;
+}
+.table > div > .windicator {
+	float:left;
+}
+@media (min-width:600px) {
+	#tables > div {
+		width:50%;
+	}
+	#people > div {
+		width:50%;
+	}
+}
+@media (max-width:600px) {
+	#tables > div {
+		width:100%;
+	}
+	#people > div {
+		width:100%;
+	}
+}

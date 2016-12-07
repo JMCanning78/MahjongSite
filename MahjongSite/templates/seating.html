@@ -1,0 +1,18 @@
+{% extends "template.html" %}
+{% block title %} - Seater{% endblock %}
+{% block head %}
+		<link href="{{ url_for('static', filename="css/seating.css") }}" type="text/css" rel="stylesheet" />
+		<script src="{{ url_for('static', filename="js/seating.js") }}"></script>
+{% endblock %}
+{% block content %}
+	<input id="person" type="text" class="playercomplete" placeholder="PLAYER"></input>
+	<button id="addperson">ADD</button>
+	<button id="clearplayers">CLEAR</button>
+
+
+	<div id="people">
+	</div>
+	<button id="regentables">RESHUFFLE TABLES</button>
+	<div id="tables">
+	</div>
+{% endblock %}

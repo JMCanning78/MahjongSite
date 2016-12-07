@@ -19,8 +19,12 @@
         update_cache: yes
         name:
           - nginx
+          - virtualenv
           - supervisor
+          - uwsgi
+          - uwsgi-plugin-python
           - python3-pip
+          - libsqlite3-dev
 
     - name: Create nginx config
       copy: src=nginx.conf dest=/etc/nginx/nginx.conf
@@ -34,14 +38,8 @@
     - name: Copy settings file
       copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name }}/settings.py"
 
-    - name: Install dependency libraries
-      apt:
-        update_cache: yes
-        name:
-          - libsqlite3-dev
-
     - name: Install dependencies
-      pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt"
+      pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt" virtualenv="{{ nginx_dir }}/{{ app_name }}"
 
     - name: Fix permissions
       file: path="{{ nginx_dir }}/{{ app_name }}" owner={{ user }} group={{ user }} state=directory recurse=yes
@@ -50,9 +48,6 @@
       template: src="{{ playbook_dir }}/supervisor.j2" dest="/etc/supervisor/conf.d/{{ app_name }}.conf"
       notify:
         - restart supervisor
-
-    - name: Ensure tornado_params file is in place
-      copy: src="{{ playbook_dir }}/tornado_params" dest=/etc/nginx/tornado_params
 
     - name: create nginx site config
       template: src="{{ playbook_dir }}/nginx.j2" dest="/etc/nginx/vhosts.d/{{ app_name }}.conf"

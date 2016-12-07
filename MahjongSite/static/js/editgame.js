@@ -1,0 +1,52 @@
+(function($) {
+	$(function () {
+		function submit() {
+			var scores = [];
+			var points = $(".playerpoints").map(function() {
+				return parseInt($(this).val());
+			});
+			var chombos = $(".chombos").map(function() {
+				var val = $(this).val();
+				return val===""?0:parseInt(val);
+			});
+			var players = $(".playercomplete").map(function() {
+				return $(this).val();
+			});
+			for(var i = 0; i < points.length; ++i) {
+				scores.push({"player":players[i],"score":points[i],"chombos":chombos[i],"newscore":points[i]-chombos[i]*8000})
+			}
+			scores.sort(function(a, b) {
+				return a.newscore > b.newscore ? -1 : a.newscore < b.newscore ? 1 : 0;
+			});
+			$.post('/admin/edit/' + window.gameid, {scores:JSON.stringify(scores), gamedate:$("#gamedate").val()}, function(data) {
+				console.log(data);
+				if(data.status !== 0) {
+					$(message).text(data.error);
+				}
+				else {
+					$("#gamedate").remove();
+					$("#players").remove();
+					$("#submit").remove();
+					$(message).text("GAME EDITED");
+					var reedit = document.createElement("a");
+					$(reedit).text("EDIT AGAIN");
+					reedit.href = "/admin/edit/" + window.gameid;
+					var leaderboard = document.createElement("a");
+					$(leaderboard).text("VIEW LEADERBOARD");
+					leaderboard.href = "/leaderboard";
+					var history = document.createElement("a");
+					$(history).text("VIEW GAME HISTORY")
+					history.href = "/history";
+
+					$("#content").append(message);
+					$("#content").append(reedit);
+					$("#content").append(leaderboard);
+					$("#content").append(history);
+				}
+			}, 'json')
+		}
+		window.getPlayers(function () {
+			$("#submit").click(submit);
+		});
+	});
+})(jQuery);

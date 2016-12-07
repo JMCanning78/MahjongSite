@@ -1,0 +1,39 @@
+{% extends "template.html" %}
+
+{% block title %} - Manage Users{% endblock %}
+
+{% block head %}
+<style type="text/css">
+table {
+	width:100%;
+	margin-top:1em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+	<h1>Manage Users</h1>
+	<table class="users">
+		<tbody>
+			<tr>
+				<th>Id</th>
+				<th>Email</th>
+				<th>Admin</th>
+			</tr>
+			{% for user in users %}
+				<tr>
+					<td>{{ user['Id'] }}</td>
+					<td>{{ user['Email'] }}</td>
+					<td>
+						{% if user['Admin'] %}
+							<a href="/admin/demote/{{ user['Id'] }}">Demote</a>
+						{% else %}
+							<a href="/admin/promote/{{ user['Id'] }}">Promote</a>
+						{% endif %}
+					</td>
+				</tr>
+
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}

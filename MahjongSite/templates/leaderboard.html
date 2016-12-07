@@ -1,0 +1,22 @@
+{% extends "template.html" %}
+
+{% block title %} - Leaderboard{% endblock %}
+
+{% block head %}
+	<link href="{{ url_for('static', filename="css/leaderboard.css") }}" type="text/css" rel="stylesheet" />
+	<script src="{{ url_for('static', filename="js/leaderboard.js") }}" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
+	<p>Click any player to see his or her stats</p>
+	<select id="period">
+		<option value="quarter" selected="selected">QUARTER</option>
+		<option value="biannual">BI-ANNUAL</option>
+		<option value="annual">ANNUAL</option>
+	</select>
+	<div id="leaderboards">
+	</div>
+	<script id="leaderboard" type="x-tmpl-mustache">
+	</script>
+{% endblock %}

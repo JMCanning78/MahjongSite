@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Seattle Mahjong{% block title %}{% endblock %}</title>
+
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
+
+		<link rel="icon" type="image/png" href="{{ url_for('static', filename="images/favicon.png") }}" />
+
+		<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css' />
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css" rel="stylesheet" type="text/css" />
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.theme.min.css" rel="stylesheet" type="text/css" />
+		<link href="{{ url_for('static', filename="css/style.css") }}" type="text/css" rel="stylesheet" />
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+		<script src="{{ url_for('static', filename="js/script.js") }}"></script>
+
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		<div id="navbar">
+			<a href="/">Home</a>
+			{% if not session.user %}
+				<a href="/login{{ request.path }}">Login</a>
+			{% else %}
+				{% if session.admin %}
+					<a href="/admin">Admin</a>
+				{% endif %}
+				<a href="/invite">Invite</a>
+				<a href="/logout">Logout</a>
+			{% endif %}
+		</div>
+		<div id="content">
+			{% block content %}{% endblock %}
+		</div>
+	</body>
+</html>

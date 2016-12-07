@@ -1,0 +1,34 @@
+{% extends "template.html" %}
+{% block title %} - Point Calculator{% endblock %}
+{% block head %}
+	<link href="{{ url_for('static', filename="css/pointcalculator.css") }}" type="text/css" rel="stylesheet" />
+	<script type="text/javascript" src="{{ url_for('static', filename="js/pointcalculator.js") }}"></script>
+{% endblock %}
+{% block content %}
+	<h1 id="title">Point Calculator</h1>
+	<div id="scores">
+	</div>
+	<div class="input">
+		<div class="label">HAN</div>
+		<div id="han" class="value">1</div>
+		<a id="hanUp" class="arrow clickable noselect">▲</a><br/>
+		<a id="hanDown" class="arrow clickable noselect">▼</a>
+	</div>
+
+	<div class="input">
+		<div class="label">FU</div>
+		<div id="fu" class="value">20</div>
+		<a id="fuUp" class="arrow clickable noselect">▲</a><br/>
+		<a id="fuDown" class="arrow clickable noselect">▼</a>
+	</div>
+
+	<div class="input">
+		<div class="label">TSUMO</div>
+		<div id="tsumo" class="value clickable noselect"></div>
+	</div>
+
+	<div class="input">
+		<div class="label">DEALER</div>
+		<div id="dealer" class="value clickable noselect"></div>
+	</div>
+{% endblock %}

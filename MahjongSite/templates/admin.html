@@ -1,0 +1,12 @@
+{% extends "template.html" %}
+
+{% block title %} - Administration {% endblock %}
+
+{% block head %}
+	<link href="{{ url_for('static', filename="css/index.css") }}" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+	<h1>Administration</h1>
+	<a href="/admin/users">MANAGE USERS</a>
+{% endblock %}

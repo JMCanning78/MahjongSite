@@ -1,0 +1,16 @@
+{% extends "template.html" %}
+
+{% block title %} - Invite{% endblock %}
+
+{% block content %}
+	<h1 id="page-title">Invite</h1>
+	{% if message %}
+		<div id="message">{{ message }}</div>
+	{% endif %}
+
+	<form action="/invite" method="post">
+		<input autocapitalize="off" autocorrect="off" autofocus="autofocus" id="email-field" name="email" placeholder="EMAIL" type="text" /><br/>
+
+		<input type="submit" value="Invite"/>
+	</form>
+{% endblock %}

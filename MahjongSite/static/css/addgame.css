@@ -1,0 +1,30 @@
+#players {
+	padding-top:2em;
+	position:relative;
+}
+
+#players, #players input {
+	text-align:center;
+}
+
+.player > input.playerpoints {
+	margin-bottom:1em;
+	width:70%;
+	float:left;
+}
+.player > input.chombos {
+	display:inline-block;
+	width:29%;
+	float:right;
+}
+
+#content > a {
+	width:100%;
+	display:block;
+	text-align:center;
+	background:white;
+	color:black;
+	border:none;
+	padding:0.5em;
+	margin-top:1em;
+}
