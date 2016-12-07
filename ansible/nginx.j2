@@ -5,6 +5,8 @@ upstream {{ app_name }} {
 server {
     listen       80;
     listen       [::]:80;
+		listen 443 ssl;
+		listen [::]:443 ssl;
     server_name  {{ inventory_hostname }} www.{{ inventory_hostname }};
     root         {{ nginx_dir }}/{{ app_name }};
 
@@ -20,6 +22,11 @@ server {
         try_files $uri /static$uri /static/images$uri @tornado;
     }
 
+		location ~ /.well-known {
+				try_files $uri/ /static$uri @tornado;
+				allow all;
+		}
+
     location @tornado {
         proxy_pass http://{{ app_name }};
     }
@@ -27,4 +34,6 @@ server {
     location / {
         proxy_pass http://{{ app_name }};
     }
+		ssl_certificate /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem;
+		ssl_certificate_key /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem;
 }
