@@ -4,7 +4,15 @@
 #people {
 	margin-bottom:1em;
 }
-#people > div {
+#key {
+	padding:0.3em;
+	margin:0.3em;
+	border:1px solid white;
+}
+#key > .player {
+	width:45%;
+}
+.player {
 	display:inline-block;
 	text-align:center;
 	height:2em;
@@ -12,13 +20,30 @@
 	vertical-align:middle;
 	margin-bottom:0.2em;
 }
-#people > div > .deletebutton {
+.player > .deletebutton {
 	position:relative;
 	float:right;
 	height:100%;
 	width:2em;
 	background:white;
 	color:black;
+}
+.player > input.priority[type="checkbox"] {
+	display:none;
+}
+.player > input.priority[type="checkbox"] + label {
+	display:inlne-block;
+	height:100%;
+	float:left;
+	width:2em;
+	margin-left:0.5em;
+	height:100%;
+	width:2em;
+	background:black;
+	border:5px solid white;
+}
+.player > input.priority[type="checkbox"]:checked + label {
+	background:grey;
 }
 .table{
 	display:inline-block;
@@ -47,7 +72,7 @@
 	#tables > div {
 		width:50%;
 	}
-	#people > div {
+	.player {
 		width:50%;
 	}
 }
@@ -55,7 +80,7 @@
 	#tables > div {
 		width:100%;
 	}
-	#people > div {
+	.player {
 		width:100%;
 	}
 }

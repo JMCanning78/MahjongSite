@@ -29,7 +29,7 @@ def init():
         cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
-        cur.execute("CREATE TABLE IF NOT EXISTS CurrentPlayers(PlayerId INTEGER PRIMARY KEY,\
+        cur.execute("CREATE TABLE IF NOT EXISTS CurrentPlayers(PlayerId INTEGER PRIMARY KEY, Priority TINYINT,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE)")
 
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentTables(Id INTEGER PRIMARY KEY AUTOINCREMENT, PlayerId INTEGER,\

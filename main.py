@@ -299,6 +299,7 @@ class Application(tornado.web.Application):
                 (r"/seating/clearcurrentplayers", seating.ClearCurrentPlayers),
                 (r"/seating/addcurrentplayer", seating.AddCurrentPlayer),
                 (r"/seating/removeplayer", seating.RemovePlayer),
+                (r"/seating/prioritizeplayer", seating.PrioritizePlayer),
                 (r"/seating/currentplayers.json", seating.CurrentPlayers),
                 (r"/seating/currenttables.json", seating.CurrentTables),
                 (r"/seating/players.json", seating.PlayersList),

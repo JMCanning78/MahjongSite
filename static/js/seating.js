@@ -40,6 +40,13 @@
 			}, 'json');
 		}
 
+		function prioritizePlayer(player, priority) {
+			$.post("/seating/prioritizeplayer", {player:player, priority:priority?1:0}, function(data) {
+				getCurrentPlayers();
+				regenTables();
+			}, 'json');
+		}
+
 		function regenTables() {
 			$.post("/seating/regentables", function(data) {
 				getCurrentTables();
@@ -49,9 +56,29 @@
 		function getCurrentPlayers() {
 			$.getJSON('/seating/currentplayers.json', function(data) {
 				$(people).html("");
-				data.forEach(function(player) {
+				data.forEach(function(playerdata) {
+					player = playerdata[0];
 					var newplayer = document.createElement("div");
-					$(newplayer).text(player);
+					newplayer.className = "player";
+
+					var priority = document.createElement("input");
+					priority.id = player.replace(/ /g, "-") + "-priority";
+					priority.type = "checkbox";
+					priority.checked = !!playerdata[1];
+					priority.className = "priority";
+					$(priority).change(function(player) { return function() {
+						prioritizePlayer(player, this.checked);
+					};}(player));
+					newplayer.appendChild(priority);
+
+					var priorityview = document.createElement("label");
+					priorityview.htmlFor = priority.id;
+					newplayer.appendChild(priorityview);
+
+					var playername = document.createElement("span");
+					$(playername).text(player);
+					newplayer.appendChild(playername);
+
 					var deleteButton = document.createElement("a");
 					$(deleteButton).text("✖");
 					deleteButton.className = "deletebutton noselect"
@@ -59,6 +86,7 @@
 						removePlayer(player);
 					});
 					newplayer.appendChild(deleteButton);
+
 					people.appendChild(newplayer);
 				});
 			}).fail(xhrError);
