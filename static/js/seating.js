@@ -82,9 +82,9 @@
 					var deleteButton = document.createElement("a");
 					$(deleteButton).text("✖");
 					deleteButton.className = "deletebutton noselect"
-					$(deleteButton).click(function() {
+					$(deleteButton).click(function(player) { return function() {
 						removePlayer(player);
-					});
+					};}(player));
 					newplayer.appendChild(deleteButton);
 
 					people.appendChild(newplayer);
