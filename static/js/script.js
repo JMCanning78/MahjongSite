@@ -21,12 +21,14 @@
 				source:window.players,
 				minLength:2
 			});
-			elem.after("<button class=\"clearplayercomplete\">✖</button>");
-			elem.each(function(_, complete) {
-				$(complete).next(".clearplayercomplete").click(function(clearbutton) {
-					$(complete).val("");
+			if(elem.next(".clearplayercomplete").length === 0) {
+				elem.after("<button class=\"clearplayercomplete\">✖</button>");
+				elem.each(function(_, complete) {
+					$(complete).next(".clearplayercomplete").click(function(clearbutton) {
+						$(complete).val("");
+					});
 				});
-			});
+			}
 		}
 		window.populatePlayersSelect = function(elem) {
 			var select = document.createElement("option");

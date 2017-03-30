@@ -1,0 +1,12 @@
+{% extends "template.html" %}
+
+{% block title %} - Delete Quarter{% end %}
+
+{% block content %}
+	<h1 id="page-title">Delete Quarter</h1>
+
+	<p>Are you sure you want to remove the quarter {{ quarter }}'s special case gamecount for dropping games?</p>
+	<form action="/admin/deletequarter/{{ quarter }}" method="post">
+		<input type="submit" value="Delete"/>
+	</form>
+{% end %}

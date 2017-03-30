@@ -10,9 +10,6 @@ html, body {
 	font-family: Lato, sans-serif;
 	background:black;
 	color:white;
-}
-
-body {
 	text-align:center;
 }
 
@@ -44,15 +41,7 @@ body {
 }
 
 h1 {
-	font-size:2em;
-}
-
-h2 {
-	font-size:1.5em;
-}
-
-h3 {
-	font-size:1.25em;
+	margin:1em;
 }
 
 a {
@@ -76,6 +65,10 @@ input {
 	padding-right:0.5em;
 }
 
+input::placeholder {
+	color:grey;
+}
+
 button, input[type="submit"] {
 	cursor:pointer;
 }
@@ -85,9 +78,10 @@ button:hover, input[type="submit"]:hover, a:hover  {
 }
 
 button[disabled] {
-	color:grey;
+	color:darkgrey;
 	text-decoration:none;
 	cursor:not-allowed;
+	background:grey;
 }
 
 table {
@@ -97,15 +91,12 @@ table {
 table th {
 	background:white;
 	color:black;
-	border-right:1px solid black;
-}
-
-table th:last-of-type {
 	border-right:1px solid white;
 }
 
 table td {
 	border:1px solid white;
+	background:#111;
 }
 
 .noselect {
@@ -119,6 +110,8 @@ table td {
 
 .ui-widget-content {
 	background:white;
+	color:black;
+	border:none;
 }
 
 .ui-menu .ui-menu-item {
@@ -128,7 +121,7 @@ table td {
 }
 
 .ui-menu .ui-menu-item.ui-state-focus {
-	background:#ddd;
+	background:#bbb;
 	color:black;
 	border:none;
 }
@@ -143,4 +136,12 @@ button.clearplayercomplete {
 	line-height:2em;
 	vertical-align:middle;
 	background: none;
+}
+
+a.button {
+	display:block;
+	color:black;
+	background:white;
+	margin-bottom:0.5em;
+	padding:1em;
 }

@@ -1,0 +1,35 @@
+{% extends "template.html" %}
+
+{% block title %} - Show Quarters{% end %}
+
+{% block head %}
+<style type="text/css">
+table {
+	width:100%;
+	margin-top:1em;
+}
+</style>
+{% end %}
+
+{% block content %}
+	<h1>Show Quarter Gamecounts</h1>
+	<a class="button" href="/admin/addquarter">ADD</a>
+	<table class="quarters">
+		<tbody>
+			<tr>
+				<th>Quarter</th>
+				<th>Gamecount</th>
+				<th>Delete</th>
+			</tr>
+			{% for quarter in quarters%}
+				<tr>
+					<td>{{ quarter[0] }}</td>
+					<td>{{ quarter[1] }}</td>
+					<td>
+						<a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a>
+					</td>
+				</tr>
+			{% end %}
+		</tbody>
+	</table>
+{% end %}

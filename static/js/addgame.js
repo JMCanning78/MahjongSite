@@ -28,12 +28,15 @@
 					$("#submit").remove();
 					$(message).text("GAME ADDED");
 					var add = document.createElement("a");
+					add.className="button";
 					$(add).text("ADD ANOTHER");
 					add.href = "/addgame";
 					var leaderboard = document.createElement("a");
+					leaderboard.className="button";
 					$(leaderboard).text("VIEW LEADERBOARD");
 					leaderboard.href = "/leaderboard";
 					var history = document.createElement("a");
+					history.className="button";
 					$(history).text("VIEW GAME HISTORY")
 					history.href = "/history";
 
