@@ -142,5 +142,59 @@ class EditGameHandler(handler.BaseHandler):
                 player = player[0]
 
                 adjscore = util.getScore(score['newscore'], len(scores), i + 1)
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore, gamedate))
+                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date, Quarter) VALUES(?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y', ?) || ' ' || case ((strftime('%m', ?) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore, gamedate, gamedate, gamedate))
         self.write('{"status":0}')
+
+class AddQuarterHandler(handler.BaseHandler):
+    @handler.is_admin
+    def get(self):
+        with db.getCur() as cur:
+            cur.execute("SELECT DISTINCT Quarter FROM Scores")
+            rows = cur.fetchall()
+            rows = [row[0] for row in rows]
+            if len(rows) == 0:
+                self.render("message.html", message = "No scores in database", title = "Add Quarter Gamecount")
+            else:
+                self.render("addquarter.html", quarters=rows)
+    @handler.is_admin
+    def post(self):
+        quarter = self.get_argument('quarter', None)
+        gamecount = self.get_argument('gamecount', None)
+        with db.getCur() as cur:
+            cur.execute("DELETE FROM Quarters WHERE Quarter = ?;", (quarter,))
+            cur.execute("INSERT INTO Quarters(Quarter, Gamecount) VALUES (?,?);", (quarter, gamecount))
+
+        self.render("message.html", message = "Quarter updated", title = "Add Quarter Gamecount")
+
+class QuartersHandler(handler.BaseHandler):
+    @handler.is_admin
+    def get(self):
+        with db.getCur() as cur:
+            cur.execute("SELECT Quarter, Gamecount FROM Quarters")
+            rows = cur.fetchall()
+            if len(rows) == 0:
+                self.render("message.html", message = "No quarters found", title = "Show Quarter Gamecounts")
+            else:
+                self.render("quarters.html", quarters=rows)
+
+class DeleteQuarterHandler(handler.BaseHandler):
+    @handler.is_admin
+    def get(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
+            row = cur.fetchone()
+            if row == None:
+                self.render("message.html", message = "Quarter not found", title = "Delete Quarter Gamecounts")
+            else:
+                self.render("quarters.html", quarter=row[0])
+    @handler.is_admin
+    def get(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
+            row = cur.fetchone()
+            if row == None:
+                self.render("message.html", message = "Quarter not found", title = "Delete Quarter Gamecounts")
+            else:
+                cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (row[0],))
+                self.render("message.html", message = "Quarter deleted", title = "Delete Quarter Gamecount")
+

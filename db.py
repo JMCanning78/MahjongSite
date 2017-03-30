@@ -26,14 +26,14 @@ def init():
     with getCur() as cur:
         cur.execute("CREATE TABLE IF NOT EXISTS Players(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT);")
 
-        cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER,\
+        cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER, Quarter TEXT,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentPlayers(PlayerId INTEGER PRIMARY KEY, Priority TINYINT,\
-            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE)")
+            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentTables(Id INTEGER PRIMARY KEY AUTOINCREMENT, PlayerId INTEGER,\
-            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE)")
+            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS Users(Id INTEGER PRIMARY KEY AUTOINCREMENT, Email TEXT NOT NULL, Password TEXT NOT NULL,\
             UNIQUE(Email));")
@@ -42,6 +42,8 @@ def init():
             FOREIGN KEY(Id) REFERENCES Users(Id) ON DELETE CASCADE);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS ResetLinks(Id CHAR(32) PRIMARY KEY NOT NULL, User INTEGER, Expires DATETIME,\
-            FOREIGN KEY(User) REFERENCES Users(Id))")
+            FOREIGN KEY(User) REFERENCES Users(Id));")
 
-        cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME)")
+        cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME);")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS Quarters(Quarter TEXT NOT NULL, GameCount INTEGER NOT NULL);")
