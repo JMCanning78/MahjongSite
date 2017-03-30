@@ -29,7 +29,7 @@
       service: name=nginx state=reloaded
 
     - name: deploy code from repository
-      git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}"
+      git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}" version="master"
 
     - name: Copy settings file
       copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name }}/settings.py"
