@@ -155,6 +155,10 @@ class LoginHandler(handler.BaseHandler):
                     cur.execute("SELECT EXISTS(SELECT * FROM Admins WHERE Id = ?)", (result,))
                     if cur.fetchone()[0] == 1:
                         self.set_secure_cookie("admin", "1")
+                    cur.execute("SELECT Value FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (result,))
+                    res = cur.fetchone()
+                    if res != None:
+                        self.set_secure_cookie("stylesheet", res[0])
 
                     if result != None:
                         self.redirect(next)
@@ -166,3 +170,19 @@ class LogoutHandler(handler.BaseHandler):
         self.clear_cookie("user")
         self.clear_cookie("admin")
         self.redirect("/")
+
+class SettingsHandler(handler.BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        self.render("settings.html", stylesheets=sorted(os.listdir("static/css/colors")))
+    @tornado.web.authenticated
+    def post(self):
+        stylesheet = self.get_argument('stylesheet', None)
+        if stylesheet is None:
+            self.render("message.html", message="Please pick a stylesheet", title="Settings")
+        else:
+            with db.getCur() as cur:
+                cur.execute("DELETE FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (self.current_user,))
+                cur.execute("INSERT INTO Settings(UserId, Setting, Value) VALUES(?, 'stylesheet', ?);", (self.current_user, stylesheet))
+            self.set_secure_cookie("stylesheet", stylesheet)
+            self.redirect("/settings")

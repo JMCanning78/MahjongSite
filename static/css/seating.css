@@ -20,18 +20,16 @@
 	vertical-align:middle;
 	margin-bottom:0.2em;
 }
-.player > .deletebutton {
+.deletebutton {
 	position:relative;
 	float:right;
 	height:100%;
 	width:2em;
-	background:white;
-	color:black;
 }
-.player > input.priority[type="checkbox"] {
+input.priority[type="checkbox"] {
 	display:none;
 }
-.player > input.priority[type="checkbox"] + label {
+input.priority[type="checkbox"] + label {
 	display:inlne-block;
 	height:100%;
 	float:left;
@@ -39,10 +37,9 @@
 	margin-left:0.5em;
 	height:100%;
 	width:2em;
-	background:black;
 	border:5px solid white;
 }
-.player > input.priority[type="checkbox"]:checked + label {
+input.priority[type="checkbox"]:checked + label {
 	background:grey;
 }
 .table{

@@ -8,9 +8,13 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_is_admin(self):
         return self.get_secure_cookie("admin") == "1"
 
+    def get_stylesheet(self):
+        return self.get_secure_cookie("stylesheet")
+
     def render(self, template_name, **kwargs):
             tornado.web.RequestHandler.render(self,
                     template_name,
+                    stylesheet = self.get_stylesheet(),
                     current_user = self.current_user,
                     is_admin = self.get_is_admin(),
                     **kwargs

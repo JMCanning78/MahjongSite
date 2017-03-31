@@ -18,6 +18,12 @@
 		<script src="{{ static_url("js/script.js") }}"></script>
 
 		{% block head %}{% end %}
+
+		{% if current_user %}
+			{% if stylesheet %}
+				<link href="{{ static_url("css/colors/" + stylesheet) }}" type="text/css" rel="stylesheet" />
+			{% end %}
+		{% end %}
 	</head>
 	<body>
 		<div id="navbar">
@@ -28,6 +34,7 @@
 				{% if is_admin %}
 					<a href="/admin">Admin</a>
 				{% end %}
+				<a href="/settings">Settings</a>
 				<a href="/invite">Invite</a>
 				<a href="/logout">Logout</a>
 			{% end %}

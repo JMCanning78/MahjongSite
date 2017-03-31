@@ -81,7 +81,7 @@
 
 					var deleteButton = document.createElement("a");
 					$(deleteButton).text("✖");
-					deleteButton.className = "deletebutton noselect"
+					deleteButton.className = "deletebutton noselect clickable"
 					$(deleteButton).click(function(player) { return function() {
 						removePlayer(player);
 					};}(player));

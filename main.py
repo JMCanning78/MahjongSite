@@ -89,6 +89,7 @@ class AddGameHandler(handler.BaseHandler):
             self.write('{"status":0}')
 
 
+
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
         self.render("leaderboard.html")
@@ -297,6 +298,7 @@ class Application(tornado.web.Application):
                 (r"/login", login.LoginHandler),
                 (r"/logout", login.LogoutHandler),
                 (r"/invite", login.InviteHandler),
+                (r"/settings", login.SettingsHandler),
                 (r"/verify/([^/]+)", login.VerifyHandler),
                 (r"/reset", login.ResetPasswordHandler),
                 (r"/reset/([^/]+)", login.ResetPasswordLinkHandler),

@@ -1,0 +1,76 @@
+html, body {
+	background:#efe;
+	color:#363;
+}
+
+#navbar {
+	background:#363;
+}
+
+#navbar > a {
+	color:#dfd;
+}
+
+button, input, select, .button, .clickable {
+	background:#363;
+	color:#dfd;
+}
+
+input::placeholder {
+	color:#595;
+}
+
+button[disabled] {
+	color:#595;
+	background:#474;
+}
+
+table th {
+	background:#363;
+	color:#dfd;
+	border-right:1px solid #141;
+}
+
+.table > h3 {
+	background:#363;
+	color:#dfd;
+}
+
+.table > div {
+	border-bottom:1px solid #363;
+	border-left: 1px solid #363;
+	border-right:1px solid #363;
+}
+table td {
+	border:1px solid #141;
+	background:#aca;
+}
+
+.ui-widget-content {
+	background:#363;
+	color:#dfd;
+	border:none;
+}
+
+.ui-menu .ui-menu-item {
+	background:#363;
+	color:#dfd;
+	border:none;
+}
+
+.ui-menu .ui-menu-item.ui-state-focus {
+	background:#151;
+	color:#dfd;
+	border:none;
+}
+
+button.clearplayercomplete {
+	background: none;
+}
+
+input[type="checkbox"].priority + label {
+	border: 5px solid #363;
+}
+input[type="checkbox"].priority:checked + label {
+	background:#474;
+}

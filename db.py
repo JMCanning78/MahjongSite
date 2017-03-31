@@ -47,3 +47,6 @@ def init():
         cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS Quarters(Quarter TEXT NOT NULL, GameCount INTEGER NOT NULL);")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS Settings(UserId INTEGER, Setting TEXT NOT NULL, Value SETTING NOT NULL, \
+            FOREIGN KEY(UserId) REFERENCES Users(Id));")

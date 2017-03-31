@@ -20,7 +20,7 @@
 		</table>
 		{% for game in games %}
 			{% if lastdate != game['date'] %}
-				<h3 class="date">{{ game['date'] }}</h3>
+				<h3 class="date button">{{ game['date'] }}</h3>
 				{% set lastdate = game['date'] %}
 			{% end %}
 		<table class="game">

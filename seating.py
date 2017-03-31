@@ -7,7 +7,9 @@ import random
 import datetime
 from operator import itemgetter
 
-class SeatingHandler(tornado.web.RequestHandler):
+import handler
+
+class SeatingHandler(handler.BaseHandler):
     def get(self):
         self.render("seating.html")
 

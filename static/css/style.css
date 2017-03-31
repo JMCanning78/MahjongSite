@@ -51,7 +51,7 @@ a {
 	cursor:pointer;
 }
 
-button, input, select {
+button, input, select, .clickable  {
 	background:white;
 	color:black;
 	border:none;
@@ -138,7 +138,7 @@ button.clearplayercomplete {
 	background: none;
 }
 
-a.button {
+.button {
 	display:block;
 	color:black;
 	background:white;
