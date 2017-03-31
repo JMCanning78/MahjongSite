@@ -51,7 +51,7 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
             cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (player, player))
             row = cur.fetchone()
             if row is None or len(row) == 0:
-                cur.execute("INSERT INTO Players(Name, Priority) VALUES(?, 0)", (player,))
+                cur.execute("INSERT INTO Players(Name) VALUES(?)", (player,))
                 cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
                 row = cur.fetchone()
                 return
@@ -59,7 +59,7 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
 
             cur.execute("SELECT COUNT(*) FROM CurrentPlayers WHERE PlayerId = ?", (player,))
             if cur.fetchone()[0] == 0:
-                cur.execute("INSERT INTO CurrentPlayers(PlayerId) VALUES(?)", (player,))
+                cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) VALUES(?, 0)", (player,))
             self.write('{"status":0}')
 
 class RemovePlayer(tornado.web.RequestHandler):
