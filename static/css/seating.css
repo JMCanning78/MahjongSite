@@ -7,10 +7,11 @@
 #key {
 	padding:0.3em;
 	margin:0.3em;
-	border:1px solid white;
+	border:3px solid white;
 }
 #key > .player {
 	width:45%;
+	margin:0;
 }
 .player {
 	display:inline-block;

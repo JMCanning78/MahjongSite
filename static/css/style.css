@@ -133,9 +133,8 @@ button.clearplayercomplete {
 	height: 2em;
 	right:0;
 	margin: 0;
-	line-height:2em;
-	vertical-align:middle;
-	background: none;
+	margin-top:4px;
+	background:none;
 }
 
 .button {

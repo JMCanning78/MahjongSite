@@ -1,36 +1,36 @@
 html, body {
-	background:#e5efe5;
-	color:#363;
+	background:#111;
+	color:#eee;
 }
 
 button, input, select, .button, .clickable,
 #navbar, #navbar > a, table th, .table > h3,
 .ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus {
-	background:#363;
-	color:#dfd;
+	background:#444;
+	color:#ddd;
 }
 
 input::placeholder {
-	color:#595;
+	color:#777;
 }
 
 button[disabled] {
-	color:#595;
-	background:#474;
+	color:#555;
+	background:#222;
 }
 
 table th {
-	border-right:1px solid #141;
+	border-right:1px solid #444;
 }
 
 .table > div {
-	border-bottom:1px solid #363;
-	border-left: 1px solid #363;
-	border-right:1px solid #363;
+	border-bottom:1px solid #555;
+	border-left: 1px solid #555;
+	border-right:1px solid #555;
 }
 table td {
-	border:1px solid #141;
-	background:#aca;
+	border:1px solid #555;
+	background:#222;
 }
 
 .ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus {
@@ -38,12 +38,12 @@ table td {
 }
 
 #key {
-	border:3px solid #363;
+	border:3px solid #555;
 }
 
 input[type="checkbox"].priority + label {
-	border: 5px solid #363;
+	border: 5px solid #555;
 }
 input[type="checkbox"].priority:checked + label {
-	background:#474;
+	background:#666;
 }
