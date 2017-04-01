@@ -52,12 +52,23 @@ a {
 }
 
 button, input, select, .clickable  {
-	background:white;
-	color:black;
 	border:none;
 	width:100%;
 	height:2em;
 	margin-bottom:0.5em;
+}
+
+button, input, select, .button, .clickable,
+#navbar, #navbar > a, table th, .table > h3,
+.ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus, .ui-datepicker-header.ui-widget-header,
+.ui-widget-content .ui-state-hover, .ui-widget-content .ui-state-active {
+	background:white;
+	color:black;
+}
+
+.ui-datepicker.ui-widget-content, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-hover  {
+	background:black;
+	color:white;
 }
 
 input {
@@ -89,14 +100,12 @@ table {
 }
 
 table th {
-	background:white;
-	color:black;
 	border-right:1px solid white;
 }
 
 table td {
 	border:1px solid white;
-	background:#111;
+	background:black;
 }
 
 .noselect {
@@ -108,22 +117,41 @@ table td {
 	user-select: none;
 }
 
-.ui-widget-content {
-	background:white;
-	color:black;
+.ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus,
+.ui-datepicker-header.ui-widget-header, .ui-widget-content .ui-state-hover, .ui-datepicker td,
+.ui-widget-content .ui-state-default {
 	border:none;
 }
+.ui-widget-header.ui-datepicker-header {
+	border-radius:0;
+}
 
-.ui-menu .ui-menu-item {
-	background:white;
-	color:black;
-	border:none;
+.ui-widget-content .ui-state-disabled {
+	opacity:1;
+}
+
+.ui-widget-content.ui-datepicker {
+	border:2px solid white;
+	padding:0;
+}
+
+
+.ui-widget-content .ui-state-highlight {
+	background: #666;
+	color: #eee;
+}
+
+.ui-widget-header .ui-icon {
+	background-image: url(https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/images/ui-icons_222222_256x240.png);
+}
+
+.ui-widget-header .ui-state-hover .ui-icon {
+	background-image: url(https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/images/ui-icons_ffffff_256x240.png);
 }
 
 .ui-menu .ui-menu-item.ui-state-focus {
 	background:#bbb;
 	color:black;
-	border:none;
 }
 
 button.clearplayercomplete {
@@ -139,8 +167,6 @@ button.clearplayercomplete {
 
 .button {
 	display:block;
-	color:black;
-	background:white;
 	margin-bottom:0.5em;
 	padding:1em;
 }
