@@ -14,6 +14,7 @@ table {
 {% block content %}
 	<h1>Show Quarter Gamecounts</h1>
 	<a class="button" href="/admin/addquarter">ADD</a>
+	<p id="message">{% try %}{% if message %}{{ message }}{% end %}{% except %}{% end %}</p>
 	<table class="quarters">
 		<tbody>
 			<tr>
@@ -21,14 +22,17 @@ table {
 				<th>Gamecount</th>
 				<th>Delete</th>
 			</tr>
-			{% for quarter in quarters%}
-				<tr>
-					<td>{{ quarter[0] }}</td>
-					<td>{{ quarter[1] }}</td>
-					<td>
-						<a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a>
-					</td>
-				</tr>
+			{% try %}
+				{% for quarter in quarters%}
+					<tr>
+						<td>{{ quarter[0] }}</td>
+						<td>{{ quarter[1] }}</td>
+						<td>
+							<a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a>
+						</td>
+					</tr>
+				{% end %}
+			{% except %}
 			{% end %}
 		</tbody>
 	</table>

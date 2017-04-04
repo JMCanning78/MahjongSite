@@ -173,7 +173,7 @@ class QuartersHandler(handler.BaseHandler):
             cur.execute("SELECT Quarter, Gamecount FROM Quarters")
             rows = cur.fetchall()
             if len(rows) == 0:
-                self.render("message.html", message = "No quarters found", title = "Show Quarter Gamecounts")
+                self.render("quarters.html", message = "No quarters found")
             else:
                 self.render("quarters.html", quarters=rows)
 
