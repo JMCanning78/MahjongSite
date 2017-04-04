@@ -213,12 +213,10 @@ class PlayerHistory(handler.BaseHandler):
             cur.execute("SELECT DISTINCT GameId FROM Scores WHERE PlayerId = ? ORDER BY Date DESC", (player,))
             games = [i[0] for i in cur.fetchall()]
             gamecount = len(games)
-            print min(page * PERPAGE + PERPAGE - 1, gamecount - 1)
             if gamecount > 0:
-                thesegames = games[min(page * PERPAGE, gamecount - 1):min(page * PERPAGE + PERPAGE - 1, gamecount - 1)]
+                thesegames = games[min(page * PERPAGE, gamecount - 1):min(page * PERPAGE + PERPAGE, gamecount)]
                 placeholder= '?' # For SQLite. See DBAPI paramstyle
                 placeholders= ', '.join(placeholder for i in range(len(thesegames)))
-                print(placeholders)
                 cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.GameId IN (" + placeholders + ") GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
                 rows = cur.fetchall()
                 games = {}
