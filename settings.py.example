@@ -3,6 +3,9 @@
 # DB
 DBFILE = "scores.db"
 
+# PREFERENCES
+DROPGAMES = 9
+
 # EMAIL
 
 EMAILSERVER = "smtp.server.com"

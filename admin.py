@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import json
+
 import handler
 import db
 import util
+import settings
 
 class AdminPanelHandler(handler.BaseHandler):
     @handler.is_admin
@@ -155,7 +157,7 @@ class AddQuarterHandler(handler.BaseHandler):
             if len(rows) == 0:
                 self.render("message.html", message = "No scores in database", title = "Add Quarter Gamecount")
             else:
-                self.render("addquarter.html", quarters=rows)
+                self.render("addquarter.html", quarters=rows, dropgames=settings.DROPGAMES)
     @handler.is_admin
     def post(self):
         quarter = self.get_argument('quarter', None)

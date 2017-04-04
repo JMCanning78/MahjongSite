@@ -124,15 +124,15 @@ class LeaderDataHandler(handler.BaseHandler):
                                 COUNT(Scores.Score) AS GameCount, 0
                             FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
                             GROUP BY Scores.Quarter,Players.Id
-                            HAVING COUNT(Scores.Score) <= COALESCE(Quarters.GameCount, 7) ORDER BY AvgScore DESC;""",
+                            HAVING COUNT(Scores.Score) < COALESCE(Quarters.GameCount, """ + str(settings.DROPGAMES) + """) ORDER BY AvgScore DESC;""",
                         """SELECT
                             Scores.Quarter, Players.Name,
                                 ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100) / 100 AS AvgScore,
-                                COUNT(Scores.Score) + 1 AS GameCount, 1
+                                COUNT(Scores.Score) AS GameCount, 1
                             FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
                             WHERE Scores.Id NOT IN (SELECT Id FROM Scores GROUP BY PlayerId, Scores.Quarter HAVING Score = MIN(Score))
                             GROUP BY Scores.Quarter,Players.Id
-                            HAVING COUNT(Scores.Score) + 1 > COALESCE(Quarters.GameCount, 7) ORDER BY AvgScore DESC;"""
+                            HAVING COUNT(Scores.Score) + 1 >= COALESCE(Quarters.GameCount, """ + str(settings.DROPGAMES) + """) ORDER BY AvgScore DESC;"""
                     ]
             }
             if period not in queries:
@@ -151,7 +151,7 @@ class LeaderDataHandler(handler.BaseHandler):
                 leaderboard += [{'place': places[row[0]],
                                 'name':row[1],
                                 'score':row[2],
-                                'count':row[3] if row[4] == 0 else str(row[3] - 1) + " (+1)",
+                                'count':str(row[3]) + ("" if row[4] == 0 else " (+1)"),
                                 'dropped':row[4]}]
                 places[row[0]] += 1
             leaders = sorted(list(leaderboards.items()), reverse=True)
