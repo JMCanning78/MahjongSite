@@ -31,12 +31,15 @@
 					var reedit = document.createElement("a");
 					$(reedit).text("EDIT AGAIN");
 					reedit.href = "/admin/edit/" + window.gameid;
+					reedit.className = "button";
 					var leaderboard = document.createElement("a");
 					$(leaderboard).text("VIEW LEADERBOARD");
 					leaderboard.href = "/leaderboard";
+					leaderboard.className = "button";
 					var history = document.createElement("a");
 					$(history).text("VIEW GAME HISTORY")
 					history.href = "/history";
+					history.className = "button";
 
 					$("#content").append(message);
 					$("#content").append(reedit);
