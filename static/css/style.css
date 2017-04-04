@@ -8,8 +8,6 @@
 html, body {
 	font-size:16pt;
 	font-family: Lato, sans-serif;
-	background:black;
-	color:white;
 	text-align:center;
 }
 
@@ -17,7 +15,6 @@ html, body {
 	height:30px;
 	line-height:30px;
 	vertical-align:middle;
-	background:white;
 }
 
 #navbar > a {
@@ -28,7 +25,6 @@ html, body {
 	margin-bottom:0;
 	margin-left:0.5em;
 	margin-right:0.5em;
-	color:black;
 }
 
 #content {
@@ -58,26 +54,9 @@ button, input, select, .clickable  {
 	margin-bottom:0.5em;
 }
 
-button, input, select, .button, .clickable,
-#navbar, #navbar > a, table th, .table > h3,
-.ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus, .ui-datepicker-header.ui-widget-header,
-.ui-widget-content .ui-state-hover, .ui-widget-content .ui-state-active {
-	background:white;
-	color:black;
-}
-
-.ui-datepicker.ui-widget-content, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-hover  {
-	background:black;
-	color:white;
-}
-
 input {
 	padding-left:0.5em;
 	padding-right:0.5em;
-}
-
-input::placeholder {
-	color:grey;
 }
 
 button, input[type="submit"] {
@@ -89,23 +68,12 @@ button:hover, input[type="submit"]:hover, a:hover  {
 }
 
 button[disabled] {
-	color:darkgrey;
 	text-decoration:none;
 	cursor:not-allowed;
-	background:grey;
 }
 
 table {
 	border-collapse:collapse;
-}
-
-table th {
-	border-right:1px solid white;
-}
-
-table td {
-	border:1px solid white;
-	background:black;
 }
 
 .noselect {
@@ -131,27 +99,7 @@ table td {
 }
 
 .ui-widget-content.ui-datepicker {
-	border:2px solid white;
 	padding:0;
-}
-
-
-.ui-widget-content .ui-state-highlight {
-	background: #666;
-	color: #eee;
-}
-
-.ui-widget-header .ui-icon {
-	background-image: url(https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/images/ui-icons_222222_256x240.png);
-}
-
-.ui-widget-header .ui-state-hover .ui-icon {
-	background-image: url(https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/images/ui-icons_ffffff_256x240.png);
-}
-
-.ui-menu .ui-menu-item.ui-state-focus {
-	background:#bbb;
-	color:black;
 }
 
 button.clearplayercomplete {
