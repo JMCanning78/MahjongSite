@@ -59,7 +59,6 @@ class AddGameHandler(handler.BaseHandler):
 
         with db.getCur() as cur:
             gameid = None
-            cur.execute("BEGIN TRANSACTION;")
             for i in range(0, len(scores)):
                 score = scores[i]
                 if gameid == None:
@@ -85,7 +84,6 @@ class AddGameHandler(handler.BaseHandler):
                 adjscore = util.getScore(score['newscore'], len(scores), i + 1)
                 cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date, Quarter) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'), NULL)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
                 cur.execute("UPDATE Scores SET Quarter = strftime('%Y', Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end WHERE Id = ?;", (cur.lastrowid,))
-            cur.execute("COMMIT;")
             self.write('{"status":0}')
 
 
