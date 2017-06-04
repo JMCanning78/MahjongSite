@@ -40,55 +40,10 @@ class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def post(self):
         scores = self.get_argument('scores', None)
-        if scores is None:
-            self.write('{"status":1, "error":"Please enter some scores"}')
-            return
 
         scores = json.loads(scores)
 
-        if len(scores) != 4 and len(scores) != 5:
-            self.write('{"status":1, "error":"Please enter some scores"}')
-            return
-
-        scores.sort(key=lambda x: x['score'], reverse=True)
-
-        total = 0
-        for score in scores:
-            total += score['score']
-        if total != len(scores) * 25000:
-            self.write('{"status":1, "error":' + "Scores do not add up to " + len(scores) * 25000 + '}')
-            return
-
-        with db.getCur() as cur:
-            gameid = None
-            for i in range(0, len(scores)):
-                score = scores[i]
-                if gameid == None:
-                    cur.execute("SELECT GameId FROM Scores ORDER BY GameId DESC LIMIT 1")
-                    row = cur.fetchone()
-                    if row is not None:
-                        gameid = row[0] + 1
-                    else:
-                        gameid = 0
-
-                if score['player'] == "":
-                    self.write('{"status":1, "error":"Please enter all player names"}')
-                    return
-
-                cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (score['player'], score['player']))
-                player = cur.fetchone()
-                if player is None or len(player) == 0:
-                    cur.execute("INSERT INTO Players(Name) VALUES(?)", (score['player'],))
-                    cur.execute("SELECT Id FROM Players WHERE Name = ?", (score['player'],))
-                    player = cur.fetchone()
-                player = player[0]
-
-                adjscore = util.getScore(score['score'], len(scores), i + 1) - score['chombos'] * 8
-                cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date, Quarter) VALUES(?, ?, ?, ?, ?, ?, ?, date('now', 'localtime'), NULL)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore))
-                cur.execute("UPDATE Scores SET Quarter = strftime('%Y', Date) || ' ' || case ((strftime('%m', Date) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end WHERE Id = ?;", (cur.lastrowid,))
-            self.write('{"status":0}')
-
-
+        self.write(json.dumps(db.addGame(scores)))
 
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
