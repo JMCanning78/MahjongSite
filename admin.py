@@ -110,6 +110,8 @@ class EditGameHandler(handler.BaseHandler):
             self.write('{"status":1, "error":"Please enter 4 or 5 scores"}')
             return
 
+        scores.sort(key=lambda x: x['score'], reverse=True)
+
         total = 0
         for score in scores:
             total += score['score']
@@ -124,8 +126,6 @@ class EditGameHandler(handler.BaseHandler):
                 self.write('{"status":1, "error":"Game not found"}')
                 return
             gameid = row[0]
-            print(gameid)
-            print(gamedate)
 
             for i in range(0, len(scores)):
                 score = scores[i]

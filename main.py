@@ -50,6 +50,8 @@ class AddGameHandler(handler.BaseHandler):
             self.write('{"status":1, "error":"Please enter some scores"}')
             return
 
+        scores.sort(key=lambda x: x['score'], reverse=True)
+
         total = 0
         for score in scores:
             total += score['score']

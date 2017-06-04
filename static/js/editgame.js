@@ -15,9 +15,6 @@
 			for(var i = 0; i < points.length; ++i) {
 				scores.push({"player":players[i],"score":points[i],"chombos":chombos[i]})
 			}
-			scores.sort(function(a, b) {
-				return a.score > b.score ? -1 : a.score < b.score ? 1 : 0;
-			});
 			$.post('/admin/edit/' + window.gameid, {scores:JSON.stringify(scores), gamedate:$("#gamedate").val()}, function(data) {
 				console.log(data);
 				if(data.status !== 0) {
