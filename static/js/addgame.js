@@ -13,10 +13,10 @@
 				return $(this).val();
 			});
 			for(var i = 0; i < points.length; ++i) {
-				scores.push({"player":players[i],"score":points[i],"chombos":chombos[i],"newscore":points[i]-chombos[i]*8000})
+				scores.push({"player":players[i],"score":points[i],"chombos":chombos[i]})
 			}
 			scores.sort(function(a, b) {
-				return a.newscore > b.newscore ? -1 : a.newscore < b.newscore ? 1 : 0;
+				return a.score > b.score ? -1 : a.score < b.score ? 1 : 0;
 			});
 			$.post('/addgame', {scores:JSON.stringify(scores)}, function(data) {
 				console.log(data);
