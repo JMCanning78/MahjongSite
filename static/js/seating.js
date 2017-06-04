@@ -12,6 +12,7 @@
 				else {
 					getCurrentPlayers();
 					regenTables();
+					window.populatePlayerComplete(true);
 					$(selector).val("");
 				}
 			}, 'json');
@@ -28,9 +29,6 @@
 				}, 'json').fail(xhrError);
 			}
 		});
-		window.setInterval(function() {
-			refresh();
-		}, 5000);
 		$("#regentables").click(regenTables);
 
 		function removePlayer(player) {
@@ -146,17 +144,15 @@
 			getCurrentPlayers();
 			getCurrentTables();
 		}
-		function refreshAll() {
-			window.getPlayers();
+		window.setInterval(function() {
 			refresh();
-		}
-		refreshAll();
+		}, 5000);
+		window.populatePlayerComplete();
+		refresh();
 
 		function xhrError(xhr, status, error) {
 			console.log(status + ": " + error);
 			console.log(xhr);
 		}
-
-
 	});
 })(jQuery);
