@@ -6,24 +6,8 @@
 		<script src="{{ static_url("js/editgame.js") }}"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
-			window.populatedEditor = function () {
-				var scores = JSON.parse('{% raw scores %}');
-				window.gameid = {{ id }};
-				$("#gamedate").datepicker();
-				$("#gamedate").datepicker("option", "dateFormat", "yy-mm-dd")
-				$("#gamedate").val(scores[0][4]);
-				if(scores.length === 5)
-					addPlayers();
-				var players = $("#players .player");
-				for(var i = 0; i < scores.length; ++i) {
-					var player = $(players[i]);
-					var playerpoints = player.children(".playerpoints");
-					player.children(".playercomplete").val(scores[i][1]);
-					playerpoints.val(scores[i][2]);
-					player.children(".chombos").val(scores[i][3]);
-					playerpoints.keyup();
-				}
-			};
+			window.scores = JSON.parse('{% raw scores %}');
+			window.gameid = {{ id }};
 		</script>
 {% end %}
 {% block content %}
