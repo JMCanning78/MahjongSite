@@ -31,7 +31,13 @@ cookie_secret = util.randString(32)
 class MainHandler(handler.BaseHandler):
     def get(self):
         admin = self.get_secure_cookie("admin")
-        self.render("index.html", admin = admin)
+
+        no_user = False
+        with db.getCur() as cur:
+            cur.execute("SELECT COUNT(*) FROM Users")
+            no_user = cur.fetchone()[0] == 0
+
+        self.render("index.html", admin = admin, no_user = no_user)
 
 class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
@@ -248,6 +254,7 @@ class Application(tornado.web.Application):
 
         handlers = [
                 (r"/", MainHandler),
+                (r"/setup", login.SetupHandler),
                 (r"/login", login.LoginHandler),
                 (r"/logout", login.LogoutHandler),
                 (r"/invite", login.InviteHandler),

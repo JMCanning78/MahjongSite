@@ -41,6 +41,30 @@ class InviteHandler(handler.BaseHandler):
 
             self.render("message.html", message = "Invite sent. It will expire in 7 days.", title = "Invite")
 
+class SetupHandler(handler.BaseHandler):
+    def get(self):
+        with db.getCur() as cur:
+            cur.execute("SELECT COUNT(*) FROM Users")
+            if cur.fetchone()[0] != 0:
+                self.redirect("/")
+            else:
+                self.render("setup.html")
+    def post(self):
+        email = self.get_argument('email', None)
+        if not re.match("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]+$", email, flags = re.IGNORECASE):
+            self.render("setup.html", message = "Please enter a valid email address.")
+        else:
+            with db.getCur() as cur:
+                code = util.randString(32)
+                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) VALUES (?, LOWER(?), ?)", (code, email, (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+
+            util.sendEmail(email, "Your SeattleMahjong Account",
+                    "<p>You've been invited to SeattleMahjong\n<br />\
+                    Click <a href=\"http://" +  self.request.host + "/verify/" + code + "\">this</a> link to accept the invite and register an account or copy and paste the following into your URL bar:<br />http://" +  self.request.host + "/verify/" + code + "</p>\n" +
+                    "<p>If you believe you received this email in error, it can be safely ignored. It is likely a user simply entered your email by mistake.</p>")
+
+            self.render("message.html", message = "Invite sent. It will expire in 7 days.", title = "Invite")
+
 class VerifyHandler(handler.BaseHandler):
 	def get(self, q):
             with db.getCur() as cur:
@@ -69,6 +93,10 @@ class VerifyHandler(handler.BaseHandler):
                 passhash = pbkdf2_sha256.encrypt(password)
 
                 cur.execute("INSERT INTO Users (Email, Password) VALUES (LOWER(?), ?)", (email, passhash))
+                cur.execute("SELECT COUNT(*) FROM Users")
+                if cur.fetchone()[0] == 1:
+                    cur.execute("INSERT INTO Admins SELECT Id FROM Users")
+                    self.set_secure_cookie("admin", "1")
                 self.set_secure_cookie("user", str(cur.lastrowid))
                 cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
 
