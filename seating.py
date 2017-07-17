@@ -19,7 +19,7 @@ class RegenTables(tornado.web.RequestHandler):
         with db.getCur() as cur:
             cur.execute("SELECT PlayerId, Priority FROM CurrentPlayers")
             rows = cur.fetchall()
-            players = map(lambda x: x[0], rows)
+            players = list(map(lambda x: x[0], rows))
             numplayers = len(players)
             priorities = dict(rows)
             playergames = playerGames(players, cur)
@@ -109,7 +109,7 @@ class PlayersList(tornado.web.RequestHandler):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
             cur.execute("SELECT Name FROM Players ORDER BY Name")
-            self.write(json.dumps(map(lambda x:x[0], cur.fetchall())))
+            self.write(json.dumps(list(map(lambda x:x[0], cur.fetchall()))))
 
 POPULATION = 256
 
