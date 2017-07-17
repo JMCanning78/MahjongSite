@@ -9,18 +9,40 @@ $(function () {
 		if(typeof window.populatedEditor === "function")
 			window.populatedEditor();
 	});
+        function updateTotal() {
+	    var total = getTotalPoints();
+	    var last3 = total % 1000;
+	    $(message).text("Total: " + 
+			    (total < 1000 ? total : 
+			     Math.floor(total / 1000) + "," +
+			     (last3 < 10 ? "00" : last3 < 100 ? "0" : "") +
+			     last3));
+	    return total;
+	}
+    function updateHelp() {
+	$(".player5help").each(function (index, elem) {
+	    elem.style.display = $("#players .playerpoints").length == 4 ? "inline-block" : "none"
+	});
+	$(".player4help").each(function (index, elem) {
+	    elem.style.display = $("#players .playerpoints").length == 5 ? "inline-block" : "none"
+	});
+    }
 	function pointsChange(e) {
-		var total = getTotalPoints();
-		$(message).text("Total: " + total);
+	    var total = updateTotal();
 
-		if(total > 25000 * 4 && $("#players .playerpoints").length == 4)
-			addPlayers();
-		else if(total === 25000 * 4 && $("#players .playerpoints").length == 5)
-			$("#players .player:last-child").last().remove();
+	    if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
+		addPlayers();
+		updateHelp();
+	    }
+	    else if(total === 25000 * 4 && $("#players .playerpoints").length == 5) {
+		$("#players .player:last-child").last().remove();
+		updateTotal();
+		updateHelp();
+	    }
 
-		var complete = gameComplete(total);
-		if(complete && e.keyCode === 13)
-			$("#submit").click();
+	    var complete = gameComplete(total);
+	    if(complete && e.keyCode === 13)
+		$("#submit").click();
 	}
 	function gameComplete(total) {
 		var playersSelected = true;

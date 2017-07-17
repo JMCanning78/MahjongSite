@@ -17,3 +17,11 @@
 	width:29%;
 	float:right;
 }
+.player5help {
+    display: inline-block;
+    font-size: 0.8em
+}
+.player4help {
+    display: none;
+    font-size: 0.8em
+}
