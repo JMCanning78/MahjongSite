@@ -32,18 +32,32 @@ clone https://github.com/BlaiseRitchie/MahjongSite.git`.
 1. Ensure you have the extra Python packages needed to run the Mahjong site
 code.  These are easy to install using the Python package installer
 program, `pip` (https://pip.pypa.io).  Depending on how you installed
-Python 3, you may already have `pip`, but if you can either install it
+Python 3, you may already have `pip`, but if not, you can either install it
 separately or use other methods to get the packages.  If you use
 `pip`, here's the command to install the needed modules.
     1. `pip install tornado passlib`
 
-1. Create a `settings.py` file.  Assuming that your cloned repository is
-in `/path/to/MahjongSite`, run the following commands: 
+1. Create a `settings.py` file.  This is where you customize the
+parameters for running your local instance of the web site.  Assuming
+that your cloned repository is in `/path/to/MahjongSite`, run the
+following commands:
+```
+$ cd /path/to/MahjongSite
+$ cp settings.py.example settings.py
+```
 
-    $ cd /path/to/MahjongSite
-    $ cp settings.py.example settings.py
+1. Edit the `settings.py` file.  You can use any text editor but make
+sure you save any changes in plain text format and are careful not to
+use a mixture of tabs and space characters for indenting.  Python
+programs use the indenting of lines for the structure of the program.
+The `settings.py` file has only comments (starting with a pound
+character, #) and assignments that all start without any
+indent. Change the information in the EMAIL section to point to your
+_outgoing_ email server.  You can usually find this in the settings of
+your email composition program.  You'll need the host server name, the
+'port' that the host listens on for mail requests, the email account
+that you use when accessing that server
 
-1. Edit the `settings.py` file.
 
 History
 ==========
