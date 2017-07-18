@@ -2,3 +2,4 @@
 *.retry
 settings.py
 *.db
+*~
