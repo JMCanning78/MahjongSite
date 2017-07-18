@@ -101,7 +101,7 @@ users, admin settings, etc.  In the production system, this file should be
 backed up.
 
 1. The initial `scores.db` is empty.  It has no users and no game
-history.  Clicking the `SETUP` button on the first web page will go to
+history.  Clicking the "SETUP" button on the first web page will go to
 a page where you can specify the email address for the first user.
 After filling in the address and clicking "Invite", the web server
 will attempt to send email to that address via the `EMAILSERVER` you
@@ -109,6 +109,13 @@ specified in `settings.py`.  If everything succeeds, the email will
 come through with a link to validate the user account.  That account
 will automatically be granted admin privileges (which can later be
 taken away by any user with admin privileges).
+
+1. When you want to run the web server for a long time and keep the
+log in a file such as `web.log`, run `/path/to/MahjongSite/main.py
+8888 > web.log 2>&1 &` The `2>&1` near the end puts both the standard
+output and standard error text into the same log file.  You can look
+at the contents of this file with tools like `tail web.log` and `less
+web.log` to track server activity and debug issues.
 
 
 History
