@@ -16,7 +16,7 @@
 .player {
 	display:inline-block;
 	text-align:center;
-	height:2em;
+	min-height:2em;
 	line-height:2em;
 	vertical-align:middle;
 	margin-bottom:0.2em;
@@ -31,13 +31,11 @@ input.priority[type="checkbox"] {
 	display:none;
 }
 input.priority[type="checkbox"] + label {
-	display:inlne-block;
-	height:100%;
+	display:inline-block;
+	height:2em;
+	width:2em;
 	float:left;
-	width:2em;
 	margin-left:0.5em;
-	height:100%;
-	width:2em;
 	border:5px solid white;
 }
 input.priority[type="checkbox"]:checked + label {
@@ -80,5 +78,19 @@ input.priority[type="checkbox"]:checked + label {
 	}
 	.player {
 		width:100%;
+	}
+	#key > .player {
+		vertical-align:top;
+	}
+	#key > .player > span {
+		clear:both;
+		display:block;
+		line-height:1em;
+	}
+	#key > .player > label {
+		float:none;
+	}
+	#key {
+		padding:1em;
 	}
 }
