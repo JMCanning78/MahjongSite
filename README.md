@@ -57,7 +57,17 @@ without any indent. Change the information in the EMAIL section to
 point to your **_outgoing_** email server.  You can usually find this in
 the settings of your email composition program.  You'll need the host
 server name, the 'port' that the host listens on for mail requests,
-the email account that you use when accessing that server
+the email account that you use when accessing that server.
+
+    1. Set the EMAILSERVER parameter to the server or host name.
+       It can be a numeric address like 10.100.1.200, but must be inside
+       of quote characters.
+    2. Set the EMAILPORT to the port the server listens to for requests.
+       This should not be inside of quotes.
+    3. Set the EMAILUSER to an account the server recognizes, and provide
+       the password for that account in EMAILPASSWORD.
+    4. Set the EMAILFROM parameter to the alias that you want people to
+       see in the email they receive from the web site.
 
 
 History
