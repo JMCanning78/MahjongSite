@@ -46,17 +46,18 @@ $ cd /path/to/MahjongSite
 $ cp settings.py.example settings.py
 ```
 
-1. Edit the `settings.py` file.  You can use any text editor but make
-sure you save any changes in plain text format and are careful not to
-use a mixture of tabs and space characters for indenting.  Python
-programs use the indenting of lines for the structure of the program.
-The `settings.py` file has only comments (starting with a pound
-character, #) and assignments that all start without any
-indent. Change the information in the EMAIL section to point to your
-_outgoing_ email server.  You can usually find this in the settings of
-your email composition program.  You'll need the host server name, the
-'port' that the host listens on for mail requests, the email account
-that you use when accessing that server
+1. Edit the `settings.py` file in the repository directory.  You can
+use any text editor but make sure you save any changes in plain text
+format and are careful not to use a mixture of tabs and space
+characters for indenting.  Python programs use the indenting of lines
+for the structure of the program and do not treat tab and space
+characters equivalently.  The `settings.py` file has only comments
+(starting with a pound character, `#`) and assignments that all start
+without any indent. Change the information in the EMAIL section to
+point to your *_outgoing_* email server.  You can usually find this in
+the settings of your email composition program.  You'll need the host
+server name, the 'port' that the host listens on for mail requests,
+the email account that you use when accessing that server
 
 
 History
