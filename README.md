@@ -59,19 +59,60 @@ the settings of your email composition program.  You'll need the host
 server name, the 'port' that the host listens on for mail requests,
 the email account that you use when accessing that server.
 
-    1. Set the EMAILSERVER parameter to the server or host name.
+    1. Set the `EMAILSERVER` parameter to the server or host name.
        It can be a numeric address like 10.100.1.200, but must be inside
        of quote characters.
-    2. Set the EMAILPORT to the port the server listens to for requests.
+    2. Set the `EMAILPORT` to the port the server listens to for requests.
        This should not be inside of quotes.
-    3. Set the EMAILUSER to an account the server recognizes, and provide
-       the password for that account in EMAILPASSWORD.
-    4. Set the EMAILFROM parameter to the alias that you want people to
+    3. Set the `EMAILUSER` to an account the server recognizes, and provide
+       the password for that account in `EMAILPASSWORD`.
+    4. Set the `EMAILFROM` parameter to the alias that you want people to
        see in the email they receive from the web site.
+
+1. Start up the web server.  On your test system, you'll want to run
+this on some unused port on the machine.  This should be a number
+between 1024 and 65535.  A common one to use is 8888, but if this is
+in use, you'll need to choose something else.  Start the server with
+the command `/path/to/MahjongSite/main.py 8888`.  If you don't get any
+error messages, then the web site should be up and running.  If you get
+errors like:
+
+    1. "permission denied" - you may have chosen a port number outside
+       the range 1024 to 65535.  Your account needs elevated
+       privileges to use ports below 1024 like the standard http port, 80.
+    1. "port already in use" - you have chosen a port that some other
+       program is using for network requests.  Choose a different port.
+
+1. Once the web server is running, open a browser and enter
+`localhost:8888` (or maybe `http://localhost:8888`) in the address.
+You will need to change the 8888 to whatever port you chose in the
+previous step.  If everything is working, you should get a web page
+with several buttons including a "SETUP" button near the top and there
+should be lines like `[I 170718 11:57:10 web:1971] 200 GET /static/css/style.css?v=23dde61ad8d450a9dfddb112a7d84bc9 (::1) 11.10ms` showing up in command
+window where you ran the `main.py` program.
+
+1. The first time the program is run, it will create a `scores.db` file in
+the directory where you launched the `main.py` program.  This might be
+in the `/path/to/MahjongSite` directory or somewhere else if you change
+the `DBFILE` parameter in `settings.py` or the current working directory
+of the command shell where you launch the program.  The `scores.db` is the
+full database of the program.  It will contain all the accumulated scores,
+users, admin settings, etc.  In the production system, this file should be
+backed up.
+
+1. The initial `scores.db` is empty.  It has no users and no game
+history.  Clicking the `SETUP` button on the first web page will go to
+a page where you can specify the email address for the first user.
+After filling in the address and clicking "Invite", the web server
+will attempt to send email to that address via the `EMAILSERVER` you
+specified in `settings.py`.  If everything succeeds, the email will
+come through with a link to validate the user account.  That account
+will automatically be granted admin privileges (which can later be
+taken away by any user with admin privileges).
 
 
 History
 ==========
 
-This web site was originally developed by Blaise Ritchie for the Seattle Riichi
-Mahjong Club.
+This web site was originally developed by Blaise Ritchie for the
+Seattle Riichi Mahjong Club.  John Canning made contributions.
