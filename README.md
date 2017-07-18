@@ -41,10 +41,10 @@ separately or use other methods to get the packages.  If you use
 parameters for running your local instance of the web site.  Assuming
 that your cloned repository is in `/path/to/MahjongSite`, run the
 following commands:
-```
-$ cd /path/to/MahjongSite
-$ cp settings.py.example settings.py
-```
+    ```
+    $ cd /path/to/MahjongSite
+    $ cp settings.py.example settings.py
+    ```
 
 1. Edit the `settings.py` file in the repository directory.  You can
 use any text editor but make sure you save any changes in plain text
