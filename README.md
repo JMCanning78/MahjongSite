@@ -10,12 +10,14 @@ Getting Started
 If you are copying this repository for the first time to set up your own
 web site, there are few things you'll need to do to get your test system
 up and running.  You'll need to be familiar with Linux/Unix command line
-operations to do some of this.  For customizing the web site, it will be
+operations to do most of this.  For customizing the web site, it will be
 helpful to understand Python program syntax and how to use text editors.
 
-1. Find a host that can support Python, git, and sqlite3.  Linux, MacOS, and
-Windows all can support these tools, but you may have to download some
-software to run these.
+1. Find a host that can support Python, git, and sqlite3.  Linux,
+MacOS, and Windows all can support these tools, but you may have to
+download some software to run these.  Note: on MacOS, a missing low
+level function, `sem_getvalue()`, prevents the email manager from
+functioning.
 
 1. Ensure you have some kind of `git` tool on your system
 (https://git-scm.com/downloads).  These can be either command line or
@@ -54,10 +56,11 @@ for the structure of the program and do not treat tab and space
 characters equivalently.  The `settings.py` file has only comments
 (starting with a pound character, `#`) and assignments that all start
 without any indent. Change the information in the EMAIL section to
-point to your **_outgoing_** email server.  You can usually find this in
-the settings of your email composition program.  You'll need the host
-server name, the 'port' that the host listens on for mail requests,
-the email account that you use when accessing that server.
+point to your **_outgoing_** email server.  You can usually find this
+information by looking at the settings of the program you use to compose
+emails.  You'll need the (smtp) host server name, the 'port' that the host
+listens on for mail requests, the email account that you use when
+accessing that server.
 
     1. Set the `EMAILSERVER` parameter to the server or host name.
        It can be a numeric address like 10.100.1.200, but must be inside
