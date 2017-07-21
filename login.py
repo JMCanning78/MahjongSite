@@ -9,11 +9,14 @@ import re
 import urllib
 import tornado.web
 from passlib.hash import pbkdf2_sha256
+import logging
 
 import handler
 import settings
 import db
 import util
+
+log = logging.getLogger("WebServer")
 
 class InviteHandler(handler.BaseHandler):
     @tornado.web.authenticated
@@ -175,26 +178,33 @@ class LoginHandler(handler.BaseHandler):
 
             row = cur.fetchone()
             if row is not None:
-                result = row[0]
+                userID = row[0]
                 passhash = row[1]
 
                 if pbkdf2_sha256.verify(password, passhash):
-                    self.set_secure_cookie("user", str(result))
-                    cur.execute("SELECT EXISTS(SELECT * FROM Admins WHERE Id = ?)", (result,))
+                    self.set_secure_cookie("user", str(userID))
+                    log.info("Successful login for {0} (ID = {1}".format(
+                        email, userID))
+                    cur.execute("SELECT EXISTS(SELECT * FROM Admins WHERE Id = ?)", (userID,))
                     if cur.fetchone()[0] == 1:
+                        log.info("and {0} is an admin user".format(
+                            email))
                         self.set_secure_cookie("admin", "1")
-                    cur.execute("SELECT Value FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (result,))
+                    cur.execute("SELECT Value FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (userID,))
                     res = cur.fetchone()
                     if res != None:
                         self.set_secure_cookie("stylesheet", res[0])
 
-                    if result != None:
+                    if userID != None:
                         self.redirect(next)
                         return
+        log.info("Invalid login attempt for {0}".format(email))
         self.render("login.html", message = "Incorrect email and password")
 
 class LogoutHandler(handler.BaseHandler):
     def get(self):
+        userID = handler.stringify(self.get_secure_cookie("user"))
+        log.info("Explicit logout for user ID {0}".format(userID))
         self.clear_cookie("user")
         self.clear_cookie("admin")
         self.redirect("/")

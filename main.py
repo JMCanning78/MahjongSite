@@ -30,7 +30,7 @@ cookie_secret = util.randString(32)
 
 class MainHandler(handler.BaseHandler):
     def get(self):
-        admin = self.get_secure_cookie("admin")
+        admin = handler.stringify(self.get_secure_cookie("admin"))
 
         no_user = False
         with db.getCur() as cur:

@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 import tornado.web
 
+def stringify(x):
+    if x is None or isinstance(x, str):
+        return x
+    elif isinstance(x, bytes):
+        return x.decode()
+    else:
+        return str(x)
+
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        return stringify(self.get_secure_cookie("user"))
 
     def get_is_admin(self):
-        return self.get_secure_cookie("admin") == "1"
+        return stringify(self.get_secure_cookie("admin")) == "1"
 
     def get_stylesheet(self):
-        return self.get_secure_cookie("stylesheet")
+        return stringify(self.get_secure_cookie("stylesheet"))
 
     def render(self, template_name, **kwargs):
             tornado.web.RequestHandler.render(self,
