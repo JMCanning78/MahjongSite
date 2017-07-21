@@ -28,8 +28,8 @@ only the command line methods.
 clone https://github.com/BlaiseRitchie/MahjongSite.git`.  
 
 1. Ensure you have a Python 3 interpreter.  You can get these from sites like:
-    1. https://www.continuum.io/downloads (anaconda)
     1. https://www.python.org/downloads/
+    1. https://www.continuum.io/downloads (anaconda)
 
 1. Ensure you have the extra Python packages needed to run the Mahjong
 site code. The packages are listed in the `requirements.txt` file.
@@ -38,9 +38,10 @@ These are easy to install using the Python package installer program,
 you may already have `pip`, but if not, you can either install it
 separately or use other methods to get the packages.  If you use
 `pip`, here's the command to install the needed modules.
-```
-  pip install `cat requirements.txt`
-```
+
+    ```
+    $ pip install `cat requirements.txt`
+    ```
 
 1. Create a `settings.py` file.  This is where you customize the
 parameters for running your local instance of the web site.  Assuming
