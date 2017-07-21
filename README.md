@@ -38,7 +38,7 @@ These are easy to install using the Python package installer program,
 you may already have `pip`, but if not, you can either install it
 separately or use other methods to get the packages.  If you use
 `pip`, here's the command to install the needed modules.
-  1. `pip install `cat requirements.txt\``
+  1. `pip install \`cat requirements.txt\``
 
 1. Create a `settings.py` file.  This is where you customize the
 parameters for running your local instance of the web site.  Assuming
