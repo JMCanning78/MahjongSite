@@ -32,13 +32,12 @@ $(function () {
 
 	    if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
 		addPlayers();
-		updateHelp();
 	    }
 	    else if(total === 25000 * 4 && $("#players .playerpoints").length == 5) {
 		$("#players .player:last-child").last().remove();
 		updateTotal();
-		updateHelp();
 	    }
+	    updateHelp();
 
 	    var complete = gameComplete(total);
 	    if(complete && e.keyCode === 13)
