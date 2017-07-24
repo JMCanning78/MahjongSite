@@ -40,7 +40,7 @@ separately or use other methods to get the packages.  If you use
 `pip`, here's the command to install the needed modules.
 
     ```
-    $ pip install `cat requirements.txt`
+    $ pip install -r requirements.txt
     ```
 
 1. Create a `settings.py` file.  This is where you customize the
