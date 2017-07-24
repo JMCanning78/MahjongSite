@@ -5,12 +5,8 @@
 				$("#message").text("GAME ADDED");
 				$("#content").append($("<a href='/addgame' class='button'>ADD ANOTHER</a>"));
 
-			        $(".player5help").each(function (index, elem) {
-				    elem.style.display = "none"
-				});
-			        $(".player4help").each(function (index, elem) {
-				    elem.style.display = "none"
-				});
+			        $(".player5help").remove();
+			        $(".player4help").remove();
 			}, undefined));
 	});
 })(jQuery);
