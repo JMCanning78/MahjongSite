@@ -3,6 +3,7 @@
 		var selector = document.getElementById("person");
 		var people = document.getElementById("people");
 		var tables = document.getElementById("tables");
+		var tablesTemplate;
 
 		$("#addperson").click(function() {
 			var val = $(selector).val();
@@ -90,53 +91,16 @@
 			}).fail(xhrError);
 		}
 
+		$.get("/static/mustache/tables.mst", function(data) {
+			tablesTemplate = data;
+			Mustache.parse(tablesTemplate);
+		});
 		function getCurrentTables() {
 			$.getJSON('/seating/currenttables.json', function(data) {
-				var numplayers = data.length
-				var total_tables = 0;
-				var tables_5p = 0;
-				var tables_4p = 0;
-				if(numplayers < 4 || numplayers === 11 || numplayers === 7 || numplayers === 6 || numplayers === 0) {
-					$(tables).html("<h1>Invalid number of players: " + numplayers + "</h1>");
-					return;
-				}
-				else if(numplayers >= 8) {
-					tables_5p = numplayers % 4;
-					total_tables = Math.floor(numplayers / 4);
-					tables_4p = total_tables - tables_5p;
-				}
-				else {
-					if(numplayers === 5)
-						tables_5p = 1;
-					else
-						tables_5p = 0;
-					total_tables = 1;
-					tables_4p = total_tables - tables_5p;
-				}
-
-				$(tables).html("");
-				var total_players = tables_4p * 4 + tables_5p * 5;
-				var table_id = 1;
-				for(var i = 0; i < total_players;) {
-					var table = document.createElement("div");
-					table.className = "table";
-					var title = document.createElement("h3");
-					$(title).text("TABLE " + table_id++);
-					table.appendChild(title);
-					var endtable = i + 4;
-
-					if(i >= tables_4p * 4)
-						endtable = i + 5;
-
-					var place = 0;
-					var places = "東南西北５";
-					for(; i < endtable; ++i) {
-						var player = document.createElement("div");
-						$(player).html("<span class=\"windicator\">" + places[place++] + "</span> " + data[i]);
-						table.appendChild(player);
-					}
-					tables.appendChild(table);
-				}
+				if(data.status === "success")
+					$(tables).html(Mustache.render(tablesTemplate, {"tables":data.tables}));
+				else
+					$(tables).html("<h1>" + data.message + "</h1>");
 			}).fail(xhrError);
 		}
 

@@ -5,6 +5,7 @@ import tornado.web
 import db
 import random
 import datetime
+import math
 from operator import itemgetter
 
 import handler
@@ -99,9 +100,40 @@ class ClearCurrentPlayers(tornado.web.RequestHandler):
 class CurrentTables(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
+        result = {"status":"error", "message":"Unknown error ocurred"}
         with db.getCur() as cur:
             cur.execute("SELECT Players.Name FROM CurrentTables INNER JOIN Players ON Players.Id = CurrentTables.PlayerId")
-            self.write(json.dumps(cur.fetchall()))
+            rows = cur.fetchall()
+            numplayers = len(rows)
+            if numplayers < 4 or numplayers in [11, 7, 6]:
+                result["message"] = "Invalid number of players: " + str(numplayers)
+            else:
+                if numplayers >= 8:
+                    tables_5p = numplayers % 4
+                    total_tables = math.floor(numplayers / 4)
+                    tables_4p = total_tables - tables_5p
+                else:
+                    if numplayers == 5:
+                        tables_5p = 1
+                    else:
+                        tables_5p = 0
+                    total_tables = 1
+                    tables_4p = total_tables - tables_5p
+
+                result["tables"] = []
+                places = "東南西北５"
+                for table in range(total_tables):
+                    if table < tables_4p:
+                        players = [{"wind":places[player], "name":rows[table * 4 + player][0]} for player in range(4)]
+                    else:
+                        players = [{"wind":places[player], "name":rows[table * 4 + (table - tables_4p) + player][0]} for player in range(5)]
+                    result["tables"] += [{
+                            "index":str(table + 1),
+                            "players":players
+                        }]
+                result["status"] = "success"
+                result["message"] = "Generated tables"
+            self.write(json.dumps(result))
 
 
 class PlayersList(tornado.web.RequestHandler):

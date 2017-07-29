@@ -9,39 +9,40 @@ $(function () {
 		if(typeof window.populatedEditor === "function")
 			window.populatedEditor();
 	});
-        function updateTotal() {
+
+	function updateTotal() {
 	    var total = getTotalPoints();
-	    var last3 = total % 1000;
-	    $(message).text("Total: " + 
-			    (total < 1000 ? total : 
+	    $(message).text("Total: " +
+			    (total < 1000 ? total :
 			     Math.floor(total / 1000) + "," +
-			     (last3 < 10 ? "00" : last3 < 100 ? "0" : "") +
-			     last3));
+			     "00".substr(Math.log10(last3 = total % 1000)) + last3));
 	    return total;
 	}
-    function updateHelp() {
-	$(".player5help").each(function (index, elem) {
-	    elem.style.display = $("#players .playerpoints").length == 4 ? "inline-block" : "none"
-	});
-	$(".player4help").each(function (index, elem) {
-	    elem.style.display = $("#players .playerpoints").length == 5 ? "inline-block" : "none"
-	});
-    }
+	function updateHelp() {
+		if($("#players .playerpoints").length === 4) {
+			$('.player5help').hide();
+			$('.player4help').show();
+		}
+		else {
+			$('.player5help').show();
+			$('.player4help').hide();
+		}
+	}
 	function pointsChange(e) {
-	    var total = updateTotal();
+		var total = updateTotal();
 
-	    if(total > 25000 * 4 && $("#players .playerpoints").length == 4) {
-		addPlayers();
-	    }
-	    else if(total === 25000 * 4 && $("#players .playerpoints").length == 5) {
-		$("#players .player:last-child").last().remove();
-		updateTotal();
-	    }
-	    updateHelp();
+		if(total > 25000 * 4 && $("#players .playerpoints").length === 4) {
+			addPlayers();
+		}
+		else if(total === 25000 * 4 && $("#players .playerpoints").length === 5) {
+			$("#players .player:last-child").last().remove();
+			updateTotal();
+		}
+		updateHelp();
 
-	    var complete = gameComplete(total);
-	    if(complete && e.keyCode === 13)
-		$("#submit").click();
+		var complete = gameComplete(total);
+		if(complete && e.keyCode === 13)
+			$("#submit").click();
 	}
 	function gameComplete(total) {
 		var playersSelected = true;
@@ -102,4 +103,38 @@ $(function () {
 			}
 		}, 'json');
 	}
+
+	var tablesTemplate;
+	$("#seating").click(function() {
+		function _getCurrentTables() {
+			$.getJSON('/seating/currenttables.json', function(data) {
+				if(data.status === "success") {
+					$("#tables").html(
+						"<h3>Click a table to insert its players into the form</h3>" +
+							Mustache.render(tablesTemplate, {"tables":data.tables})
+					);
+					$("#tables").children(".table").click(function() {
+						var players = $(this).children("div");
+						if(players.length === 5 && $("#players .player").length === 4)
+							addPlayers();
+						else if(players.length === 4 && $("#players .player").length === 5)
+							$($("#players .playercomplete")[4]).val("");
+						players.each(function(i, elem) {
+							$($("#players .playercomplete")[i]).val($(elem).clone().children().remove().end().text());
+						});
+					});
+				}
+				else
+					$("#tables").text(data.message);
+			}).fail(xhrError);
+		}
+		if(tablesTemplate === undefined)
+			$.get("/static/mustache/tables.mst", function(data) {
+				tablesTemplate = data;
+				Mustache.parse(tablesTemplate);
+				_getCurrentTables();
+			});
+		else
+			_getCurrentTables();
+	});
 });

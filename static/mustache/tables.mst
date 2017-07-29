@@ -1,0 +1,8 @@
+{{ #tables }}
+	<div class="table">
+		<h3>TABLE {{ index }}</h3>
+		{{ #players }}
+			<div><span class="windicator">{{ wind }}</span>{{ name }}</div>
+		{{ /players}}
+	</div>
+{{ /tables}}

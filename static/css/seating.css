@@ -20,6 +20,7 @@
 	line-height:2em;
 	vertical-align:middle;
 	margin-bottom:0.2em;
+	width:50%;
 }
 .deletebutton {
 	position:relative;
@@ -41,41 +42,7 @@ input.priority[type="checkbox"] + label {
 input.priority[type="checkbox"]:checked + label {
 	background:grey;
 }
-.table{
-	display:inline-block;
-	padding:0.5em;
-}
-.table > h3 {
-	background:white;
-	color:black;
-}
-.table > div {
-	text-align:center;
-	height:1.5em;
-	line-height:1.5em;
-	padding-left:0.2em;
-	padding-right:0.2em;
-	white-space:nowrap;
-	vertical-align:middle;
-	border-bottom:1px solid white;
-	border-left: 1px solid white;
-	border-right:1px solid white;
-}
-.table > div > .windicator {
-	float:left;
-}
-@media (min-width:600px) {
-	#tables > div {
-		width:50%;
-	}
-	.player {
-		width:50%;
-	}
-}
 @media (max-width:600px) {
-	#tables > div {
-		width:100%;
-	}
 	.player {
 		width:100%;
 	}
