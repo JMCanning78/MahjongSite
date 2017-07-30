@@ -30,6 +30,15 @@
 				}, 'json').fail(xhrError);
 			}
 		});
+		$("#meetup").click(function () {
+			$.post('/seating/meetup', function(data) {
+				if(data.status !== 'success')
+					console.log(data.message);
+				else
+					getCurrentPlayers();
+					regenTables();
+			}, 'json').fail(xhrError);
+		});
 		$("#regentables").click(regenTables);
 
 		function removePlayer(player) {

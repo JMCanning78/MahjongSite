@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import meetup.api
 import json
 import tornado.web
 import db
@@ -9,6 +10,7 @@ import math
 from operator import itemgetter
 
 import handler
+import settings
 
 class SeatingHandler(handler.BaseHandler):
     def get(self):
@@ -40,6 +42,30 @@ class CurrentPlayers(tornado.web.RequestHandler):
             self.write(json.dumps(cur.fetchall()))
 
 
+class AddMeetupPlayers(tornado.web.RequestHandler):
+    def post(self):
+        client = meetup.api.Client(settings.MEETUP_APIKEY)
+        events = client.GetEvents({'group_urlname':settings.MEETUP_GROUPNAME})
+        ret = {'status':'error','message':'Unknown error ocurred'}
+        if len(events.results) > 0:
+            event = None
+            for result in events.results:
+                if datetime.date.fromtimestamp(result['time'] / 1000) == datetime.date.today():
+                    event = result
+            if event is None:
+                event = events.results[0]
+            rsvps = client.GetRsvps({'event_id':event['id']})
+            with db.getCur() as cur:
+                members = [member['member']['name'] for member in rsvps.results]
+                if len(members) > 0:
+                    cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
+                            Name IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
+                ret['status'] = "success"
+                ret['message'] = "Players added"
+        else:
+            ret['message'] = 'No meetup events found'
+        self.write(json.dumps(ret))
+
 class AddCurrentPlayer(tornado.web.RequestHandler):
     def post(self):
         player = self.get_argument('player', None)
@@ -55,12 +81,9 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
                 cur.execute("INSERT INTO Players(Name) VALUES(?)", (player,))
                 cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
                 row = cur.fetchone()
-                return
             player = row[0]
 
-            cur.execute("SELECT COUNT(*) FROM CurrentPlayers WHERE PlayerId = ?", (player,))
-            if cur.fetchone()[0] == 0:
-                cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) VALUES(?, 0)", (player,))
+            cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT ?, 0 WHERE NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)", (player,player))
             self.write('{"status":0}')
 
 class RemovePlayer(tornado.web.RequestHandler):

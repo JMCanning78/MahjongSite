@@ -277,6 +277,7 @@ class Application(tornado.web.Application):
                 (r"/seating/currentplayers.json", seating.CurrentPlayers),
                 (r"/seating/currenttables.json", seating.CurrentTables),
                 (r"/seating/players.json", seating.PlayersList),
+                (r"/seating/meetup", seating.AddMeetupPlayers),
                 (r"/pointcalculator", PointCalculator),
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),
