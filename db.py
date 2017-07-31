@@ -27,7 +27,7 @@ def init():
     warnings.filterwarnings('ignore', r'Table \'[^\']*\' already exists')
 
     with getCur() as cur:
-        cur.execute("CREATE TABLE IF NOT EXISTS Players(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT);")
+        cur.execute("CREATE TABLE IF NOT EXISTS Players(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, MeetupName TEXT);")
 
         cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER, Quarter TEXT,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
