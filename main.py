@@ -214,27 +214,20 @@ class PlayerHistory(handler.BaseHandler):
 class PlayerStats(handler.BaseHandler):
     def get(self, player):
         with db.getCur() as cur:
-            cur.execute("SELECT Id,Name FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if len(player) == 0:
-                self.render("stats.html", error="Couldn't find that player")
-                return
-            name = player[1]
-            player = player[0]
+                return self.render("stats.html", error = "Couldn't find that player")
+
+            player, name, meetupname = player
             cur.execute("SELECT Max(Score),MIN(Score),COUNT(*),ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100 FROM Scores WHERE PlayerId = ?", (player,))
-            row = cur.fetchone()
-            maxscore = row[0]
-            minscore = row[1]
-            numgames = row[2]
-            avgscore = row[3]
-            avgrank = row[4]
+            maxscore, minscore, numgames, avgscore, avgrank = cur.fetchone()
             cur.execute("SELECT ROUND(Sum(Score) * 1.0 / COUNT(*) * 100) / 100, ROUND(Sum(Rank) * 1.0 / COUNT(*) * 100) / 100 FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date DESC LIMIT 5)", (player,))
-            row = cur.fetchone()
-            avgscore5 = row[0]
-            avgrank5 = row[1]
+            avgscore5, avgrank5 = cur.fetchone()
             self.render("stats.html",
                     error = None,
                     name = name,
+                    meetupname = meetupname,
                     maxscore = maxscore,
                     minscore = minscore,
                     numgames = numgames,
@@ -243,6 +236,24 @@ class PlayerStats(handler.BaseHandler):
                     avgscore5 = avgscore5,
                     avgrank5 = avgrank5
                 )
+    def post(self, player):
+        name = self.get_argument("name", player)
+        meetupname = self.get_argument("meetupname", None)
+        if name != player or meetupname is not None:
+            args = []
+            cols = []
+            if name != player:
+                cols += ["Name = ?"]
+                args += [name]
+            if meetupname is not None:
+                cols += ["MeetupName = ?"]
+                args += [meetupname]
+            if len(args) > 0:
+                query = "UPDATE Players SET " + ",".join(cols) + " WHERE Id = ? OR Name = ?"
+                args += [player, player]
+                with db.getCur() as cur:
+                    cur.execute(query, args)
+        self.redirect("/playerstats/" + name)
 
 class PointCalculator(handler.BaseHandler):
     def get(self):

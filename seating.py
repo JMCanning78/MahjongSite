@@ -59,7 +59,7 @@ class AddMeetupPlayers(tornado.web.RequestHandler):
                 members = [member['member']['name'] for member in rsvps.results]
                 if len(members) > 0:
                     cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
-                            Name IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
+                            Name IN (" + ",".join('?' * len(members)) + ") OR MeetupName IN (" + ",".join('?' * len(members)) + ")AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members * 2)
                 ret['status'] = "success"
                 ret['message'] = "Players added"
         else:
