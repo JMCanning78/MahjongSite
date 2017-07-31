@@ -69,7 +69,8 @@ $(function () {
 		for(var i = 0; i < (num || 1); ++i)
 			$("#players").append(Mustache.render(playerScoreTemplate));
 		window.populatePlayerComplete();
-		$(".playerpoints").keyup(pointsChange);
+	        $(".playerpoints").keyup(pointsChange);
+	        $(".playerpoints").change(pointsChange);
 		$(".playercomplete").keyup(completeChange);
 	}
 	window.submitGame = function(endpoint, callback, senddata) {
