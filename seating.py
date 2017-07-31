@@ -5,16 +5,22 @@ import json
 import tornado.web
 import db
 import random
-import datetime
+import datetime, time
 import math
 from operator import itemgetter
 
 import handler
 import settings
 
+def meetup_ready():
+    return (settings.MEETUP_APIKEY and settings.MEETUP_GROUPNAME and
+            len(settings.MEETUP_APIKEY) > 1 and
+            len(settings.MEETUP_GROUPNAME) > 1)
+
 class SeatingHandler(handler.BaseHandler):
     def get(self):
-        self.render("seating.html")
+        self.render("seating.html", meetup_ok = meetup_ready(), 
+                    today=time.strftime('%a %d-%b'))
 
 class RegenTables(tornado.web.RequestHandler):
     def post(self):
@@ -44,26 +50,27 @@ class CurrentPlayers(tornado.web.RequestHandler):
 
 class AddMeetupPlayers(tornado.web.RequestHandler):
     def post(self):
-        client = meetup.api.Client(settings.MEETUP_APIKEY)
-        events = client.GetEvents({'group_urlname':settings.MEETUP_GROUPNAME})
-        ret = {'status':'error','message':'Unknown error ocurred'}
-        if len(events.results) > 0:
-            event = None
-            for result in events.results:
-                if datetime.date.fromtimestamp(result['time'] / 1000) == datetime.date.today():
-                    event = result
-            if event is None:
+        if meetup_ready():
+            client = meetup.api.Client(settings.MEETUP_APIKEY)
+            events = client.GetEvents({'group_urlname':settings.MEETUP_GROUPNAME})
+            ret = {'status':'error','message':'Unknown error ocurred'}
+            if len(events.results) > 0:
                 event = events.results[0]
-            rsvps = client.GetRsvps({'event_id':event['id']})
-            with db.getCur() as cur:
-                members = [member['member']['name'] for member in rsvps.results]
-                if len(members) > 0:
-                    cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
+                for result in events.results:
+                    if datetime.date.fromtimestamp(result['time'] / 1000) == datetime.date.today():
+                        event = result
+                rsvps = client.GetRsvps({'event_id':event['id']})
+                with db.getCur() as cur:
+                    members = [member['member']['name'] for member in rsvps.results]
+                    if len(members) > 0:
+                        cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
                             Name IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
-                ret['status'] = "success"
-                ret['message'] = "Players added"
+                    ret['status'] = "success"
+                    ret['message'] = "Players added"
+            else:
+                ret['message'] = 'No meetup events found'
         else:
-            ret['message'] = 'No meetup events found'
+            ret = {'status':'error','message':'Meetup.com API not configured'}
         self.write(json.dumps(ret))
 
 class AddCurrentPlayer(tornado.web.RequestHandler):
