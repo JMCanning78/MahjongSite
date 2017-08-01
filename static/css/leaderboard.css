@@ -19,3 +19,25 @@ select {
 .leaderboard > h2 {
 	margin-bottom:0.5em;
 }
+#period {
+    	width:30%;
+	float:left;
+}
+.min_game_label {
+        margin-left: 15em;
+        font-size: medium;
+        position: relative;
+        bottom:  -0.4em;
+}
+.gamecount {
+        width: 5%;
+        position: relative;
+        bottom:  -0.9em;
+}
+.rank_control {
+        display: inline;
+        width: 5%;
+        float: right;
+        position: relative;
+        bottom:  -1.3em;
+}
