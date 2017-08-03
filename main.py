@@ -203,7 +203,7 @@ class Application(tornado.web.Application):
                 (r"/reset/([^/]+)", login.ResetPasswordLinkHandler),
                 (r"/addgame", AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", leaderboard.LeaderboardHandler),
-                (r"/leaderdata(/[^/]*(/[^/]*)?)?", leaderboard.LeaderDataHandler),
+                (r"/leaderdata(/[^/]*)?", leaderboard.LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
                 (r"/playerhistory/(.*?)(/[0-9]+)?", PlayerHistory),
                 (r"/playerstats/(.*)", PlayerStats),

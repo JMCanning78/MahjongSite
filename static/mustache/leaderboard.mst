@@ -1,15 +1,15 @@
 {{#leaderboards}}
 	<div class="leaderboard">
-		<h2>LEADERBOARD {{ name }}</h2>
+	        <h2>LEADERBOARD <span id="lbname">{{ name }}</span></h2>
 		<table>
-			<tr>
-				<th>PLACE</th>
-				<th>NAME</th>
-				<th>AVG SCORE</th>
-				<th>GAME COUNT</th>
-			</tr>
-			{{#scores}}
-				<tr>
+		    <tr class="leaderbd_col_header">
+			<th class="ordering">PLACE</th>
+			<th>NAME</th>
+			<th>AVG SCORE</th>
+			<th>GAME COUNT</th>
+		    </tr>
+		    {{#scores}}
+                                <tr class="leaderbd_row">
 					<td>{{ place }}</td>
 					<td><a href="/playerstats/{{ name }}">{{ name }}</a></td>
 					<td>{{ score }}</td>

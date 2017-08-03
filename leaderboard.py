@@ -10,7 +10,7 @@ class LeaderboardHandler(handler.BaseHandler):
         self.render("leaderboard.html")
 
 class LeaderDataHandler(handler.BaseHandler):
-    def get(self, period, min_games='1', rank_visible=False):
+    def get(self, period):
         queries = {
             "annual":[
                 """SELECT
@@ -68,18 +68,6 @@ class LeaderDataHandler(handler.BaseHandler):
         if period not in queries:
             period = "quarter"
             
-        if isinstance(min_games, int):
-            min_games = str(min_games)
-        elif min_games is None:
-            min_games = '1'
-
-        while min_games.startswith('/'):
-            min_games = min_games[1:]
-        if '/' in min_games:
-            min_games, rest = min_games.split('/', 1)
-        if not min_games.isdigit():
-            min_games = '1'
-            
         with db.getCur() as cur:
             leaderboards = {}
             rows = []
@@ -93,20 +81,14 @@ class LeaderDataHandler(handler.BaseHandler):
                 if row[0] not in leaderboards:
                     leaderboards[row[0]] = []
                     places[row[0]] = 1
-                    last_place[row[0]] = 0
                 leaderboard = leaderboards[row[0]]
-                if row[3] + row[4] >= int(min_games):
-                    leaderboard += [
-                        {'place': ("" if last_place[row[0]]+1 == places[row[0]]
-                                   else "... ") + str(places[row[0]]),
-                         'name':row[1],
-                         'score':row[2],
-                         'count':str(row[3]) + ("" if row[4] == 0 else " (+1)"),
-                         'dropped':row[4]}]
-                    last_place[row[0]] = places[row[0]]
-                    places[row[0]] += 1
-                elif not rank_visible:
-                    places[row[0]] += 1
+                leaderboard += [
+                    {'place': places[row[0]],
+                     'name':row[1],
+                     'score':row[2],
+                     'count':str(row[3]) + ("" if row[4] == 0 else " (+1)"),
+                     'dropped':row[4]}]
+                places[row[0]] += 1
             leaders = sorted(list(leaderboards.items()), reverse=True)
             leaderboards = []
             for name, scores in leaders:
