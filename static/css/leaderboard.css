@@ -17,27 +17,23 @@ select {
 }
 
 .leaderboard > h2 {
-	margin-bottom:0.5em;
+        margin-bottom:0.5em;
+}
+#content_controls {
+        height: 1.0em;
 }
 #period {
     	width:30%;
-	float:left;
+        float: left;
 }
-.min_game_label {
-        margin-left: 15em;
+.min_game_control {
         font-size: medium;
         position: relative;
-        bottom:  -0.4em;
+        bottom:  -0.5em;
+	float: right;
 }
 .gamecount {
-        width: 5%;
+        width: 3em;
         position: relative;
-        bottom:  -0.9em;
-}
-.rank_control {
-        display: inline;
-        width: 5%;
-        float: right;
-        position: relative;
-        bottom:  -1.3em;
+        bottom:  -0.0em;
 }

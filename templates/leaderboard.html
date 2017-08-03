@@ -9,18 +9,19 @@
 {% end %}
 
 {% block content %}
-	<p>Click any player to see his or her stats</p>
-	<select id="period">
+        <p>Click any player to see his or her stats</p>
+	<div id="content_controls">
+	  <select id="period">
 		<option value="quarter" selected="selected">QUARTER</option>
 		<option value="biannual">BI-ANNUAL</option>
 		<option value="annual">ANNUAL</option>
-	</select>
-	<span class="min_game_label">Minimum # of games</span>
-	<input id="min_games" class="gamecount" 
-		type="number" min="1" max="13" step="1" placeholder="GAMES">
-	</input>
-	<input id="rank_visible" class="rank_control" type="checkbox">
-	</input>
+	  </select>
+	  <span class="min_game_control">Minimum # of games
+	    <input id="min_games" class="gamecount" 
+		   type="number" min="1" max="13" step="1" placeholder="GAMES">
+            </input>
+	  </span>
+	</div>
 	<div id="leaderboards">
 	</div>
 	<script id="leaderboard" type="x-tmpl-mustache">
