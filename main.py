@@ -23,6 +23,7 @@ import settings
 import seating
 import login
 import admin
+import playerstats
 
 # import and define tornado-y things
 from tornado.options import define, options
@@ -211,50 +212,6 @@ class PlayerHistory(handler.BaseHandler):
             else:
                 self.render("message.html", message="No games entered thusfar", title="Game History", user = name)
 
-class PlayerStats(handler.BaseHandler):
-    def get(self, player):
-        with db.getCur() as cur:
-            cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
-            player = cur.fetchone()
-            if len(player) == 0:
-                return self.render("stats.html", error = "Couldn't find that player")
-
-            player, name, meetupname = player
-            cur.execute("SELECT Max(Score),MIN(Score),COUNT(*),ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100 FROM Scores WHERE PlayerId = ?", (player,))
-            maxscore, minscore, numgames, avgscore, avgrank = cur.fetchone()
-            cur.execute("SELECT ROUND(Sum(Score) * 1.0 / COUNT(*) * 100) / 100, ROUND(Sum(Rank) * 1.0 / COUNT(*) * 100) / 100 FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date DESC LIMIT 5)", (player,))
-            avgscore5, avgrank5 = cur.fetchone()
-            self.render("stats.html",
-                    error = None,
-                    name = name,
-                    meetupname = meetupname,
-                    maxscore = maxscore,
-                    minscore = minscore,
-                    numgames = numgames,
-                    avgscore = avgscore,
-                    avgrank  = avgrank,
-                    avgscore5 = avgscore5,
-                    avgrank5 = avgrank5
-                )
-    def post(self, player):
-        name = self.get_argument("name", player)
-        meetupname = self.get_argument("meetupname", None)
-        if name != player or meetupname is not None:
-            args = []
-            cols = []
-            if name != player:
-                cols += ["Name = ?"]
-                args += [name]
-            if meetupname is not None:
-                cols += ["MeetupName = ?"]
-                args += [meetupname]
-            if len(args) > 0:
-                query = "UPDATE Players SET " + ",".join(cols) + " WHERE Id = ? OR Name = ?"
-                args += [player, player]
-                with db.getCur() as cur:
-                    cur.execute(query, args)
-        self.redirect("/playerstats/" + name)
-
 class PointCalculator(handler.BaseHandler):
     def get(self):
         self.render("pointcalculator.html")
@@ -278,7 +235,7 @@ class Application(tornado.web.Application):
                 (r"/leaderdata(/[^/]*)?", LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
                 (r"/playerhistory/(.*?)(/[0-9]+)?", PlayerHistory),
-                (r"/playerstats/(.*)", PlayerStats),
+                (r"/playerstats/(.*)", playerstats.PlayerStats),
                 (r"/seating", seating.SeatingHandler),
                 (r"/seating/regentables", seating.RegenTables),
                 (r"/seating/clearcurrentplayers", seating.ClearCurrentPlayers),
