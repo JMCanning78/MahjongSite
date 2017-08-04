@@ -6,10 +6,12 @@ import handler
 class PlayerStats(handler.BaseHandler):
     def get(self, player):
         with db.getCur() as cur:
+            name = player
             cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if player is None or len(player) == 0:
-                return self.render("stats.html", error = "Couldn't find that player")
+                return self.render("playerstats.html", name=name,
+                                   error = "Couldn't find player")
 
             player, name, meetupname = player
             cur.execute("""SELECT Max(Score),MIN(Score),COUNT(*),
