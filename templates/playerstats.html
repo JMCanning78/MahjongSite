@@ -1,28 +1,36 @@
 {% extends "template.html" %}
+
 {% block title %} - {{ name }}'s Stats{% end %}
+
+{% block head %}
+<style type="text/css">
+ table {
+     width:100%;
+     margin-top:1em;
+ }
+</style>
+<script src="{{ static_url("js/playerstats.js") }}" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
+{% end %}
+
 {% block content %}
-	{% if error is None %}
-		<h1 id="message">{{ name }}</h1>
-		{% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}
-		Games played: {{ numgames }}<br />
-		Max score: {{ maxscore }}<br />
-		Min score: {{ minscore }}<br />
-		Average score: {{ avgscore }}<br />
-		Average rank: {{ avgrank }}<br />
-		Average score last 5 games: {{ avgscore5 }}<br />
-		Average rank last 5 games: {{ avgrank5 }}<br />
-		Last played: {{ maxdate }}<br />
-		First played: {{ mindate }}<br />
-		<br />
-		<a class="button" href="/playerhistory/{{ name }}">Game History</a>
-		{% if is_admin %}
-			<form method="post" action="/playerstats/{{ name }}">
-				<input type="text" name="name" value="{{ name }}" />
-				<input type="text" name="meetupname" {% if meetupname %}value="{{ meetupname }}"{% end %} placeholder="Meetup Name (optional)" />
-				<input type="submit" value="Update Names" />
-			</form>
-		{% end %}
-	{% else %}
-		<h1 id="message">{{ error }} {{ name }}</h1>
-	{% end %}
+  {% if error %}
+    <h1 id="message">{{ error }} {{ name }}</h1>
+  {% else %}
+    <h1 id="message">{{ name }}</h1>
+    {% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}
+    <div id="playerstats">
+    </div>
+    <br /> 
+    <a class="button" href="/playerhistory/{{ name }}">Game History</a>
+    {% if is_admin %}
+      <form method="post" action="/playerstats/{{ name }}">
+	<input type="text" name="name" value="{{ name }}" />
+	<input type="text" name="meetupname" 
+  	       {% if meetupname %}value="{{ meetupname }}"{% end %}
+  	       placeholder="Meetup Name (optional)" />
+	<input type="submit" value="Update Names" />
+      </form>
+    {% end %}
+  {% end %}
 {% end %}

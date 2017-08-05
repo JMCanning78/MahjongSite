@@ -1,0 +1,15 @@
+{{#playerstats}}
+  <br />
+  <div class="playerstatperiod">
+      <h2>{{ name }}</h2>
+      <table>
+	  <tr><th></th>      <th>Min</th>            <th>Max</th></tr>
+	  <tr><td>Score</td> <td>{{ minscore }}</td> <td>{{ maxscore }}</td></tr>
+	  <tr><td>Avg Score</td>     <td colspan="2">{{ avgscore }}</td></tr>
+	  <tr><td>Rank</td>  <td>{{ minrank }}</td> <td>{{ maxrank }}</td></tr>
+	  <tr><td>Avg Rank</td>      <td colspan="2">{{ avgrank }}</td></tr>
+	  <tr><td>Date</td>  <td>{{ mindate }}</td> <td>{{ maxdate }}</td></tr>
+	  <tr><td>Games</td>      <td colspan="2">{{ numgames }}</td></tr>
+      </table>
+  </div>
+{{/playerstats}}
