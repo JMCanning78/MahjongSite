@@ -6,6 +6,33 @@ import handler
 from util import *
 
 class PlayerStatsDataHandler(handler.BaseHandler):
+    _statquery = """
+       SELECT Max(Score),MIN(Score),COUNT(*),
+         ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,
+         ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100,
+         MIN(Rank), MAX(Rank), MIN(Date), MAX(Date), 
+         MIN(Quarter), MAX(Quarter) {subquery} """
+    _statqfields = ['maxscore', 'minscore', 'numgames', 'avgscore',
+                    'avgrank', 'maxrank', 'minrank', 'mindate', 'maxdate',
+                    'minquarter', 'maxquarter']
+    _rankhistogramquery = """
+        SELECT Rank, COUNT(*) {subquery} GROUP BY Rank ORDER BY Rank"""
+    _rankhfields = ['rank', 'rankcount']
+    
+    def populate_queries(self, cur, period_dict):
+        cur.execute(self._statquery.format(**period_dict),
+                    period_dict['params'])
+        period_dict.update(
+            dict(zip(self._statqfields,
+                     map(lambda x: round(x, 2) if isinstance(x, float) else x,
+                         cur.fetchone()))))
+        cur.execute(self._rankhistogramquery.format(**period_dict),
+                    period_dict['params'])
+        rank_histogram = dict([map(int, r) for r in cur.fetchall()])
+        for i in range(1, 6):
+            rank_histogram[i] = rank_histogram.get(i, 0)
+        period_dict['rank_histogram'] = rank_histogram
+        
     def get(self, player):
         with db.getCur() as cur:
             name = player
@@ -16,15 +43,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                                        'error': "Couldn't find player"}))
                 return
             playerID, name, meetupName = player
-            statquery = """SELECT Max(Score),MIN(Score),COUNT(*),
-               ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,
-               ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100,
-               MIN(Rank), MAX(Rank), MIN(Date), MAX(Date), 
-               MIN(Quarter), MAX(Quarter)
-               """
-            fields = ['maxscore', 'minscore', 'numgames', 'avgscore',
-                      'avgrank', 'maxrank', 'minrank', 'mindate', 'maxdate',
-                      'minquarter', 'maxquarter']
+            
             N = 5
             periods = [
                 {'name': 'All Time Stats',
@@ -33,10 +52,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                 },
             ]
             p = periods[0]
-            cur.execute(statquery + p['subquery'], p['params'])
-            p.update(dict(zip(fields,
-                              map(lambda x: round(x, 2) if isinstance(x, float) else x,
-                                  cur.fetchone()))))
+            self.populate_queries(cur, p)
             if p['numgames'] == 0:
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find any scores for")
@@ -61,10 +77,8 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                      'params': (playerID, prevQtr)
                      })
             for p in periods[1:]:
-                cur.execute(statquery + p['subquery'], p['params'])
-                p.update(dict(zip(fields,
-                                  map(lambda x: round(x, 2) if isinstance(x, float) else x,
-                                      cur.fetchone()))))
+                self.populate_queries(cur, p)
+
             self.write(json.dumps({'playerstats': periods}))
 
         
