@@ -5,7 +5,7 @@ import json
 import tornado.web
 import db
 import random
-import datetime, time
+import datetime
 import math
 from operator import itemgetter
 
@@ -17,10 +17,14 @@ def meetup_ready():
             len(settings.MEETUP_APIKEY) > 1 and
             len(settings.MEETUP_GROUPNAME) > 1)
 
+def meetup_date():
+    debug = False;  # Set True to force a particular date when testing meetup
+    return datetime.date(2017, 7, 31) if debug else datetime.date.today()
+
 class SeatingHandler(handler.BaseHandler):
     def get(self):
         self.render("seating.html", meetup_ok = meetup_ready(), 
-                    today=time.strftime('%a %d-%b'))
+                    today=meetup_date().strftime('%a %d-%b'))
 
 class RegenTables(tornado.web.RequestHandler):
     def post(self):
@@ -52,19 +56,23 @@ class AddMeetupPlayers(tornado.web.RequestHandler):
     def post(self):
         if meetup_ready():
             client = meetup.api.Client(settings.MEETUP_APIKEY)
-            events = client.GetEvents({'group_urlname':settings.MEETUP_GROUPNAME})
+            event_params = {'group_urlname':settings.MEETUP_GROUPNAME}
+            if meetup_date() < datetime.date.today():
+                event_params['status'] = 'past'
+                event_params['desc'] = True
+            events = client.GetEvents(event_params)
             ret = {'status':'error','message':'Unknown error ocurred'}
             if len(events.results) > 0:
                 event = events.results[0]
                 for result in events.results:
-                    if datetime.date.fromtimestamp(result['time'] / 1000) == datetime.date.today():
+                    if datetime.date.fromtimestamp(result['time'] / 1000) == meetup_date():
                         event = result
                 rsvps = client.GetRsvps({'event_id':event['id']})
                 with db.getCur() as cur:
                     members = [member['member']['name'] for member in rsvps.results]
                     if len(members) > 0:
                         cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
-                            Name IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
+                            COALESCE(MeetupName, Name) IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
                     ret['status'] = "success"
                     ret['message'] = "Players added"
             else:

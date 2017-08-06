@@ -216,7 +216,7 @@ class PlayerStats(handler.BaseHandler):
         with db.getCur() as cur:
             cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
-            if len(player) == 0:
+            if player is None or len(player) == 0:
                 return self.render("stats.html", error = "Couldn't find that player")
 
             player, name, meetupname = player
