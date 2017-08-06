@@ -10,6 +10,7 @@
 		Average rank: {{ avgrank }}<br />
 		Average score last 5 games: {{ avgscore5 }}<br />
 		Average rank last 5 games: {{ avgrank5 }}<br />
+		{% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}
 		<br />
 		<a class="button" href="/playerhistory/{{ name }}">Game History</a>
 		{% if is_admin %}
