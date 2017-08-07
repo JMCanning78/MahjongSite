@@ -13,14 +13,14 @@
 			}).fail(window.xhrError);
 		}
 		window.populatePlayerComplete = function(force) {
-			if(players === null || force)
+			if (players === null || force)
 				return getPlayers();
 			var elem = $("input.playercomplete");
 			elem.autocomplete({
-				source:players,
-				minLength:2
+				source: players,
+				minLength: 2
 			});
-			if(elem.next(".clearplayercomplete").length === 0) {
+			if (elem.next(".clearplayercomplete").length === 0) {
 				elem.after("<button class=\"clearplayercomplete\">✖</button>");
 				elem.each(function(_, complete) {
 					$(complete).next(".clearplayercomplete").click(function(clearbutton) {
