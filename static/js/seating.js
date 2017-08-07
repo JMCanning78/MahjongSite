@@ -1,5 +1,5 @@
 (function($) {
-	$(function () {
+	$(function() {
 		var selector = document.getElementById("person");
 		var people = document.getElementById("people");
 		var tables = document.getElementById("tables");
@@ -7,8 +7,10 @@
 
 		$("#addperson").click(function() {
 			var val = $(selector).val();
-			$.post("/seating/addcurrentplayer", {player:val}, function(data) {
-				if(data.status !== 0)
+			$.post("/seating/addcurrentplayer", {
+				player: val
+			}, function(data) {
+				if (data.status !== 0)
 					console.log(data);
 				else {
 					getCurrentPlayers();
@@ -18,11 +20,11 @@
 				}
 			}, 'json');
 		});
-		$("#clearplayers").click(function () {
+		$("#clearplayers").click(function() {
 			var clearplayers = $("#clearplayers");
-			if(confirm("Really clear current players?")) {
+			if (confirm("Really clear current players?")) {
 				$.post('/seating/clearcurrentplayers', function(data) {
-					if(data.status !== 0)
+					if (data.status !== 0)
 						console.log(data);
 					else {
 						refresh();
@@ -30,26 +32,31 @@
 				}, 'json').fail(xhrError);
 			}
 		});
-		$("#meetup").click(function () {
+		$("#meetup").click(function() {
 			$.post('/seating/meetup', function(data) {
-				if(data.status !== 'success')
+				if (data.status !== 'success')
 					console.log(data.message);
 				else
 					getCurrentPlayers();
-					regenTables();
+				regenTables();
 			}, 'json').fail(xhrError);
 		});
 		$("#regentables").click(regenTables);
 
 		function removePlayer(player) {
-			$.post("/seating/removeplayer", {player:player}, function(data) {
+			$.post("/seating/removeplayer", {
+				player: player
+			}, function(data) {
 				getCurrentPlayers();
 				regenTables();
 			}, 'json');
 		}
 
 		function prioritizePlayer(player, priority) {
-			$.post("/seating/prioritizeplayer", {player:player, priority:priority?1:0}, function(data) {
+			$.post("/seating/prioritizeplayer", {
+				player: player,
+				priority: priority ? 1 : 0
+			}, function(data) {
 				getCurrentPlayers();
 				regenTables();
 			}, 'json');
@@ -74,9 +81,11 @@
 					priority.type = "checkbox";
 					priority.checked = !!playerdata[1];
 					priority.className = "priority";
-					$(priority).change(function(player) { return function() {
-						prioritizePlayer(player, this.checked);
-					};}(player));
+					$(priority).change(function(player) {
+						return function() {
+							prioritizePlayer(player, this.checked);
+						};
+					}(player));
 					newplayer.appendChild(priority);
 
 					var priorityview = document.createElement("label");
@@ -90,9 +99,11 @@
 					var deleteButton = document.createElement("a");
 					$(deleteButton).text("✖");
 					deleteButton.className = "deletebutton noselect clickable"
-					$(deleteButton).click(function(player) { return function() {
-						removePlayer(player);
-					};}(player));
+					$(deleteButton).click(function(player) {
+						return function() {
+							removePlayer(player);
+						};
+					}(player));
 					newplayer.appendChild(deleteButton);
 
 					people.appendChild(newplayer);
@@ -104,10 +115,13 @@
 			tablesTemplate = data;
 			Mustache.parse(tablesTemplate);
 		});
+
 		function getCurrentTables() {
 			$.getJSON('/seating/currenttables.json', function(data) {
-				if(data.status === "success")
-					$(tables).html(Mustache.render(tablesTemplate, {"tables":data.tables}));
+				if (data.status === "success")
+					$(tables).html(Mustache.render(tablesTemplate, {
+						"tables": data.tables
+					}));
 				else
 					$(tables).html("<h1>" + data.message + "</h1>");
 			}).fail(xhrError);
