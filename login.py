@@ -18,6 +18,23 @@ import util
 
 log = logging.getLogger("WebServer")
 
+def format_invite(clubname, host, code):
+    return """
+<p>You've been invited to {clubname}\n<br />
+Click <a href="http://{host}/verify/{code}">this link</a>
+to accept the invite and register an account, or copy and paste the following
+into your URL bar:<br />
+http://{host}/verify/{code}</p>
+
+<p>If you believe you received this email in error, it can be safely ignored.
+It is likely a user simply entered your email by mistake.</p>""".format(
+    clubname=clubname, host=host, code=code)
+
+def expiration_date(start=None, duration=settings.LINKVALIDDAYS):
+    if start is None:
+        start = datetime.date.today()
+    return start + datetime.timedelta(days=duration)
+
 class InviteHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
@@ -34,15 +51,29 @@ class InviteHandler(handler.BaseHandler):
             self.render("invite.html", message = "Please enter a valid email address.")
         else:
             with db.getCur() as cur:
+                cur.execute("SELECT Email from Users where Email = ?", (email,))
+                try:
+                    existing = cur.fetchone()[0]
+                    self.render("message.html",
+                                message = "Account for {0} already exists.".format(
+                                    email),
+                                title="Duplicate Account")
+                    return
+                except:
+                    pass
                 code = util.randString(32)
-                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) VALUES (?, LOWER(?), ?)", (code, email, (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) "
+                            "VALUES (?, LOWER(?), ?)", 
+                            (code, email, expiration_date().isoformat()))
 
-            util.sendEmail(email, "Your SeattleMahjong Account",
-                    "<p>You've been invited to SeattleMahjong\n<br />\
-                    Click <a href=\"http://" +  self.request.host + "/verify/" + code + "\">this</a> link to accept the invite and register an account or copy and paste the following into your URL bar:<br />http://" +  self.request.host + "/verify/" + code + "</p>\n" +
-                    "<p>If you believe you received this email in error, it can be safely ignored. It is likely a user simply entered your email by mistake.</p>")
+            util.sendEmail(email, "Your {0} Account".format(settings.CLUBNAME),
+                           format_invite(settings.CLUBNAME, self.request.host,
+                                         code))
 
-            self.render("message.html", message = "Invite sent. It will expire in 7 days.", title = "Invite")
+            self.render("message.html",
+                        message = "Invite sent. It will expire in {0} days."
+                        .format(settings.LINKVALIDDAYS), 
+                        title = "Invite")
 
 class SetupHandler(handler.BaseHandler):
     def get(self):
@@ -59,37 +90,66 @@ class SetupHandler(handler.BaseHandler):
         else:
             with db.getCur() as cur:
                 code = util.randString(32)
-                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) VALUES (?, LOWER(?), ?)", (code, email, (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+                cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) "
+                            "VALUES (?, LOWER(?), ?)",
+                            (code, email, expiration_date().isoformat()))
 
-            util.sendEmail(email, "Your SeattleMahjong Account",
-                    "<p>You've been invited to SeattleMahjong\n<br />\
-                    Click <a href=\"http://" +  self.request.host + "/verify/" + code + "\">this</a> link to accept the invite and register an account or copy and paste the following into your URL bar:<br />http://" +  self.request.host + "/verify/" + code + "</p>\n" +
-                    "<p>If you believe you received this email in error, it can be safely ignored. It is likely a user simply entered your email by mistake.</p>")
+            util.sendEmail(email, "Your {0} Account".format(settings.CLUBNAME),
+                           format_invite(settings.CLUBNAME, self.request.host,
+                                         code))
 
-            self.render("message.html", message = "Invite sent. It will expire in 7 days.", title = "Invite")
+            self.render("message.html", 
+                        message = "Invite sent. It will expire in {0} days."
+                        .format(settings.LINKVALIDDAYS),
+                        title = "Invite")
 
 class VerifyHandler(handler.BaseHandler):
 	def get(self, q):
             with db.getCur() as cur:
-                cur.execute("SELECT Email FROM VerifyLinks WHERE Id = ? AND Expires > datetime('now')", (q,))
+                cur.execute(
+                    "SELECT Email, Expires FROM VerifyLinks WHERE Id = ?",
+                    (q,))
+                try:
+                    email, expires = cur.fetchone()
+                except:
+                    self.redirect("/")
+                    return
 
-                if cur.rowcount == 0:
-                        self.redirect("/")
-                        return
+                if expires < datetime.date.today().isoformat():
+                    cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
+                    self.render("message.html",
+                                message = "The invite expired {0}.  Please request another.".format(
+                                    expires),
+                                title="Expired Invite.")
+                    return
+                
+                cur.execute("SELECT Email FROM Users WHERE Email = ?", (email,))
+                try:
+                    existing = cur.fetchone()[0]
+                    cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
 
-                email = cur.fetchone()[0]
-
+                    self.render("message.html",
+                                message = "Account for {0} already exists.".format(
+                                    email),
+                                title="Duplicate Account")
+                    return
+                except:
+                    pass
             self.render("verify.html", email = email, id = q)
+
 	def post(self, q):
             email = self.get_argument('email', None)
             password = self.get_argument('password', None)
             vpassword = self.get_argument('vpassword', None)
 
             if email is None or password is None or vpassword is None or email == "" or password == "" or vpassword == "":
-                self.render("verify.html", email = email, id = q, message = "You must enter an email, pasword, and repeat your password")
+                self.render("verify.html", email = email, id = q,
+                            message = "You must enter an email, a password, "
+                            "and repeat your password exactly.")
                 return
             if password != vpassword:
-                self.render("verify.html", email = email, id = q, message = "Your passwords didn't match")
+                self.render("verify.html", email = email, id = q, 
+                            message = "Your passwords didn't match")
                 return
 
             with db.getCur() as cur:
@@ -115,22 +175,36 @@ class ResetPasswordHandler(handler.BaseHandler):
             row = cur.fetchone()
             if row is not None:
                 code = util.randString(32)
-                cur.execute("INSERT INTO ResetLinks(Id, User, Expires) VALUES (?, ?, ?)", (code, row[0], (datetime.date.today() + datetime.timedelta(days=7)).isoformat()))
+                cur.execute("INSERT INTO ResetLinks(Id, User, Expires) "
+                            "VALUES (?, ?, ?)",
+                            (code, row[0], expiration_date().isoformat()))
 
-                util.sendEmail(email, "Your SeattleMahjong Account",
-                    "<p>Here's the link to reset your SeattleMahjong account password\n<br />\
-                    Click <a href=\"http://" +  self.request.host + "/reset/" + code + "\">this</a> link to reset your password or copy and paste the following into your URL bar:<br />http://" +  self.request.host + "/reset/" + code + "</p>\n")
-                self.render("message.html", message = "Your password reset link has been sent")
+                util.sendEmail(
+                    email, "Your {0} Account".format(settings.CLUBNAME), """
+<p>Here's the link to reset your {clubname} account password.<br />
+Click <a href="http://{host}/reset/{code}">this link</a> to reset your password,
+or copy and paste the following into your URL bar:<br />
+http://{host}/reset/{code} </p>
+""".format(clubname=settings.CLUBNAME, host=self.request.host, code=code))
+                self.render("message.html",
+                            message = "Your password reset link has been sent")
             else:
-                self.render("message.html", message = "No accounts found associated with this email", email = email)
+                self.render("message.html",
+                            message = "No account found associated with this email", 
+                            email = email)
 
 class ResetPasswordLinkHandler(handler.BaseHandler):
     def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT Email FROM Users JOIN ResetLinks ON ResetLinks.User = Users.Id WHERE ResetLinks.Id = ?", (q,))
+            cur.execute(
+                "SELECT Email FROM Users JOIN ResetLinks ON "
+                "ResetLinks.User = Users.Id WHERE ResetLinks.Id = ? AND "
+                "ResetLinks.Expires > datetime('now')", (q,))
             row = cur.fetchone()
             if row is None:
-                self.render("message.html", message = "Link is either invalid or has expired. Please request a new one")
+                self.render("message.html",
+                            message = "Link is either invalid or has expired. "
+                            "Please request a new one.")
             else:
                 self.render("resetpassword.html", email = row[0], id = q)
     def post(self, q):
@@ -138,24 +212,34 @@ class ResetPasswordLinkHandler(handler.BaseHandler):
         vpassword = self.get_argument('vpassword', None)
 
         with db.getCur() as cur:
-            cur.execute("SELECT Users.Id, Email FROM Users JOIN ResetLinks ON ResetLinks.User = Users.Id WHERE ResetLinks.Id = ?", (q,))
+            cur.execute(
+                "SELECT Users.Id, Email "
+                "FROM Users JOIN ResetLinks ON ResetLinks.User = Users.Id "
+                "WHERE ResetLinks.Id = ?",
+                (q,))
             row = cur.fetchone()
             if row is None:
-                self.render("message.html", message = "Link is either invalid or has expired. Please request a new one")
+                self.render("message.html", 
+                            message = "Link is either invalid or has expired. "
+                            "Please request a new one")
             else:
                 id = row[0]
                 email = row[1]
                 if password is None or vpassword is None or password == "" or vpassword == "":
-                    self.render("resetpassword.html", email = email, id = q, message = "You must enter a pasword and repeat that password")
+                    self.render("resetpassword.html", email = email, id = q,
+                    message = "You must enter a pasword and repeat that password")
                     return
                 if password != vpassword:
-                    self.render("resetpassword.html", email = email, id = q, message = "Your passwords didn't match")
+                    self.render("resetpassword.html", email = email, id = q,
+                    message = "Your passwords didn't match")
                     return
                 passhash = pbkdf2_sha256.encrypt(password)
 
                 cur.execute("UPDATE Users SET Password = ? WHERE Id = ?", (passhash, id))
                 cur.execute("DELETE FROM ResetLinks WHERE Id = ?", (q,))
-                self.render("message.html", message = "Your password has been reset. You may now <a href=\"/login\">Login</a>")
+                self.render("message.html",
+                    message = "Your password has been reset. "
+                    "You may now <a href=\"/login\">Login</a>")
 
 class LoginHandler(handler.BaseHandler):
     def get(self):

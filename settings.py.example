@@ -13,6 +13,10 @@ DBFILE = "scores.db"
 #   DROPGAMES is the default number of games a player must complete in a
 #   quarter in order to have the lowest score dropped from the average.
 DROPGAMES = 9
+#   LINKVALIDDAYS is the number of days links for invitations and
+#   password resets should remain valid.  They expire after LINKVALIDDAYS
+#   has passed.
+LINKVALIDDAYS = 7
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,
