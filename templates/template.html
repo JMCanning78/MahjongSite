@@ -1,7 +1,8 @@
 <!doctype html>
+{% import settings %}
 <html>
 	<head>
-		<title>Seattle Mahjong{% block title %}{% end %}</title>
+		<title>{{settings.CLUBNAME}} {% block title %}{% end %}</title>
 
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
