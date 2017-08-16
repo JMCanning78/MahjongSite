@@ -1,5 +1,5 @@
 [program:{{ app_name }}]
-command=python {{ nginx_dir }}/{{ app_name }}/{{ file }} /tmp/{{ app_name }}.sock
+command=python3 {{ nginx_dir }}/{{ app_name }}/{{ file }} /tmp/{{ app_name }}.sock
 user=www-data
 directory={{ nginx_dir }}/{{ app_name }}
 autostart=true
