@@ -63,7 +63,7 @@ class InviteHandler(handler.BaseHandler):
                     pass
                 code = util.randString(32)
                 cur.execute("INSERT INTO VerifyLinks (Id, Email, Expires) "
-                            "VALUES (?, LOWER(?), ?)", 
+                            "VALUES (?, LOWER(?), ?)",
                             (code, email, expiration_date().isoformat()))
 
             util.sendEmail(email, "Your {0} Account".format(settings.CLUBNAME),
@@ -72,7 +72,7 @@ class InviteHandler(handler.BaseHandler):
 
             self.render("message.html",
                         message = "Invite sent. It will expire in {0} days."
-                        .format(settings.LINKVALIDDAYS), 
+                        .format(settings.LINKVALIDDAYS),
                         title = "Invite")
 
 class SetupHandler(handler.BaseHandler):
@@ -98,7 +98,7 @@ class SetupHandler(handler.BaseHandler):
                            format_invite(settings.CLUBNAME, self.request.host,
                                          code))
 
-            self.render("message.html", 
+            self.render("message.html",
                         message = "Invite sent. It will expire in {0} days."
                         .format(settings.LINKVALIDDAYS),
                         title = "Invite")
@@ -122,7 +122,7 @@ class VerifyHandler(handler.BaseHandler):
                                     expires),
                                 title="Expired Invite.")
                     return
-                
+
                 cur.execute("SELECT Email FROM Users WHERE Email = ?", (email,))
                 try:
                     existing = cur.fetchone()[0]
@@ -148,7 +148,7 @@ class VerifyHandler(handler.BaseHandler):
                             "and repeat your password exactly.")
                 return
             if password != vpassword:
-                self.render("verify.html", email = email, id = q, 
+                self.render("verify.html", email = email, id = q,
                             message = "Your passwords didn't match")
                 return
 
@@ -167,7 +167,14 @@ class VerifyHandler(handler.BaseHandler):
 
 class ResetPasswordHandler(handler.BaseHandler):
     def get(self):
-        self.render("forgotpassword.html")
+        email = None
+        if self.current_user:
+            with db.getCur() as cur:
+                cur.execute("SELECT Email FROM Users WHERE Id = ?", self.current_user)
+                email = cur.fetchone()
+                if email is not None:
+                    email = email[0]
+        self.render("forgotpassword.html", email = email)
     def post(self):
         with db.getCur() as cur:
             email = self.get_argument("email", None)
@@ -190,7 +197,7 @@ http://{host}/reset/{code} </p>
                             message = "Your password reset link has been sent")
             else:
                 self.render("message.html",
-                            message = "No account found associated with this email", 
+                            message = "No account found associated with this email",
                             email = email)
 
 class ResetPasswordLinkHandler(handler.BaseHandler):
@@ -219,7 +226,7 @@ class ResetPasswordLinkHandler(handler.BaseHandler):
                 (q,))
             row = cur.fetchone()
             if row is None:
-                self.render("message.html", 
+                self.render("message.html",
                             message = "Link is either invalid or has expired. "
                             "Please request a new one")
             else:
@@ -296,15 +303,22 @@ class LogoutHandler(handler.BaseHandler):
 class SettingsHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        self.render("settings.html", stylesheets=sorted(os.listdir("static/css/colors")))
+        with db.getCur() as cur:
+            cur.execute("SELECT Email FROM Users WHERE Id = ?", self.current_user)
+            email = cur.fetchone()
+            if email is not None:
+                email = email[0]
+            self.render("settings.html", email = email, stylesheets=sorted(os.listdir("static/css/colors")))
     @tornado.web.authenticated
     def post(self):
         stylesheet = self.get_argument('stylesheet', None)
-        if stylesheet is None:
-            self.render("message.html", message="Please pick a stylesheet", title="Settings")
+        email = self.get_argument('email', None)
+        if stylesheet is None or email is None:
+            self.render("message.html", message="Please pick a stylesheet and enter a valid email", title="Settings")
         else:
             with db.getCur() as cur:
                 cur.execute("DELETE FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (self.current_user,))
                 cur.execute("INSERT INTO Settings(UserId, Setting, Value) VALUES(?, 'stylesheet', ?);", (self.current_user, stylesheet))
+                cur.execute("UPDATE Users SET Email = ? WHERE Id = ? AND Email != ?", (email, self.current_user, email))
             self.set_secure_cookie("stylesheet", stylesheet)
             self.redirect("/settings")
