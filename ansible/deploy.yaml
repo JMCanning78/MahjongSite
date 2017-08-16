@@ -31,8 +31,8 @@
     - name: deploy code from repository
       git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}" version="master"
 
-    - name: Copy settings file
-      copy: src=settings.py dest="{{ nginx_dir }}/{{ app_name }}/settings.py"
+    - name: Copy mysettings.py file
+      copy: src=../mysettings.py dest="{{ nginx_dir }}/{{ app_name }}/mysettings.py"
 
     - name: Install dependency libraries
       apt:

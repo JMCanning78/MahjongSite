@@ -1,6 +1,6 @@
 *.pyc
 *.retry
-settings.py
+mysettings.py
 *.db
 *~
 *.log
