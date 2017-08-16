@@ -319,6 +319,6 @@ class SettingsHandler(handler.BaseHandler):
             with db.getCur() as cur:
                 cur.execute("DELETE FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (self.current_user,))
                 cur.execute("INSERT INTO Settings(UserId, Setting, Value) VALUES(?, 'stylesheet', ?);", (self.current_user, stylesheet))
-                cur.execute("UPDATE Users SET Email = ? WHERE Id = ? AND Email != ?", (email, self.current_user, email))
+                cur.execute("UPDATE Users SET Email = LOWER(?) WHERE Id = ? AND Email != LOWER(?)", (email, self.current_user, email))
             self.set_secure_cookie("stylesheet", stylesheet)
             self.redirect("/settings")
