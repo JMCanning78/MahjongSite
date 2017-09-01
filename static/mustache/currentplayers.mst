@@ -1,0 +1,8 @@
+{{ #players }}
+	<div class="player" data-name="{{ name }}">
+		<input id="{{ id }}" class="priority" type="checkbox" {{ #priority }}checked{{ /priority }}></input>
+		<label for="{{ id }}"></label>
+		<span>{{ name }}</span>
+		<a class="deletebutton noselect clickable">✖</a>
+	</div>
+{{ /players}}

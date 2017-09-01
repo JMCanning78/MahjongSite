@@ -47,23 +47,28 @@ $(function() {
 				var plus1 = counttext.search(/[^0-9]/)
 				if (plus1 < 0) {
 					count = Math.floor(counttext)
-				} else if (plus1 == 0) {
+				}
+				else if (plus1 == 0) {
 					count = 0
-				} else {
+				}
+				else {
 					count = Math.floor(counttext.substr(0, plus1)) + 1
 				}
 				/* Hide rows with too few games */
 				if (count < min_games) {
 					$(row).slideUp('fast');
-				} else {
+				}
+				else {
 					$(row).slideDown('fast');
 					if (++last_place == bd_scores[i]['place']) {
 						row.children[0].innerText =
 							(rank_visible ? last_place :
 								bd_scores[i]['place']).toString();
-					} else if (rank_visible) {
+					}
+					else if (rank_visible) {
 						row.children[0].innerText = last_place.toString();
-					} else {
+					}
+					else {
 						row.children[0].innerText = '... ' +
 							bd_scores[i]['place'].toString();
 						last_place = bd_scores[i]['place'];

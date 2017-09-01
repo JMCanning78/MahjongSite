@@ -69,15 +69,20 @@ function updateScore() {
 
 		var total = (dealer ? 6 : 4) * basicPoints;
 		total = Math.ceil(total / 100) * 100;
-	} else if ((han === 4 && fu >= 40) || (han === 3 && fu >= 70) || han === 5) {
+	}
+	else if ((han === 4 && fu >= 40) || (han === 3 && fu >= 70) || han === 5) {
 		var total = dealer ? 12000 : 8000;
-	} else if (han >= 6 && han <= 7) {
+	}
+	else if (han >= 6 && han <= 7) {
 		var total = dealer ? 18000 : 12000;
-	} else if (han >= 8 && han <= 10) {
+	}
+	else if (han >= 8 && han <= 10) {
 		var total = dealer ? 24000 : 16000;
-	} else if (han >= 11 && han <= 12) {
+	}
+	else if (han >= 11 && han <= 12) {
 		var total = dealer ? 36000 : 24000;
-	} else if (han >= 13) {
+	}
+	else if (han >= 13) {
 		var total = dealer ? 48000 : 32000;
 	}
 
@@ -89,10 +94,12 @@ function updateScore() {
 			var child = Math.ceil(total / 3 / 100) * 100;
 			scores += "Total: " + child * 3 + "<br />";
 			scores += "Payment: " + child;
-		} else {
+		}
+		else {
 			scores += "<br />Total: " + total;
 		}
-	} else {
+	}
+	else {
 		if (tsumo) {
 			var parent = Math.ceil(total / 2 / 100) * 100;
 			var child = Math.ceil(parent / 2 / 100) * 100;
@@ -100,7 +107,8 @@ function updateScore() {
 			scores += "Total: " + (parent + child * 2) + "<br />";
 			scores += "Parent: " + parent + "<br />";
 			scores += "Child: " + child + "<br />";
-		} else {
+		}
+		else {
 			scores += "<br />Total: " + total;
 		}
 

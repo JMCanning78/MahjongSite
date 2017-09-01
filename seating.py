@@ -51,7 +51,7 @@ class CurrentPlayers(handler.BaseHandler):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
             cur.execute("SELECT Name, Priority FROM CurrentPlayers INNER JOIN Players ON PlayerId = Players.Id ORDER BY Players.Name")
-            self.write(json.dumps(cur.fetchall()))
+            self.write(json.dumps({"players":[{"name":row[0], "priority":row[1] == 1} for row in cur.fetchall()]}))
 
 
 class AddMeetupPlayers(handler.BaseHandler):

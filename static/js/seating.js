@@ -4,6 +4,16 @@
 		var people = document.getElementById("people");
 		var tables = document.getElementById("tables");
 		var tablesTemplate;
+		var currentPlayersTemplate;
+
+		$.get("/static/mustache/tables.mst", function(data) {
+			tablesTemplate = data;
+			Mustache.parse(tablesTemplate);
+		});
+		$.get("/static/mustache/currentplayers.mst", function(data) {
+			currentPlayersTemplate = data;
+			Mustache.parse(currentPlayersTemplate);
+		});
 
 		$("#addperson").click(function() {
 			var val = $(selector).val();
@@ -70,51 +80,20 @@
 
 		function getCurrentPlayers() {
 			$.getJSON('/seating/currentplayers.json', function(data) {
-				$(people).html("");
-				data.forEach(function(playerdata) {
-					player = playerdata[0];
-					var newplayer = document.createElement("div");
-					newplayer.className = "player";
-
-					var priority = document.createElement("input");
-					priority.id = player.replace(/ /g, "-") + "-priority";
-					priority.type = "checkbox";
-					priority.checked = !!playerdata[1];
-					priority.className = "priority";
-					$(priority).change(function(player) {
-						return function() {
-							prioritizePlayer(player, this.checked);
-						};
-					}(player));
-					newplayer.appendChild(priority);
-
-					var priorityview = document.createElement("label");
-					priorityview.htmlFor = priority.id;
-					newplayer.appendChild(priorityview);
-
-					var playername = document.createElement("span");
-					$(playername).text(player);
-					newplayer.appendChild(playername);
-
-					var deleteButton = document.createElement("a");
-					$(deleteButton).text("✖");
-					deleteButton.className = "deletebutton noselect clickable"
-					$(deleteButton).click(function(player) {
-						return function() {
-							removePlayer(player);
-						};
-					}(player));
-					newplayer.appendChild(deleteButton);
-
-					people.appendChild(newplayer);
-				});
+				if (data.players) {
+					data.players.forEach(function(player) {
+						player.id = player.name.replace(/ /g, "-");
+					});
+					$(people).html(Mustache.render(currentPlayersTemplate, data));
+					$(".deletebutton").click(function() {
+						removePlayer($(this).parent().data("name"));
+					});
+				}
+				else if (data.message)
+					$(people).html("<h1>" + data.message + "</h1>");
 			}).fail(xhrError);
 		}
 
-		$.get("/static/mustache/tables.mst", function(data) {
-			tablesTemplate = data;
-			Mustache.parse(tablesTemplate);
-		});
 
 		function getCurrentTables() {
 			$.getJSON('/seating/currenttables.json', function(data) {
