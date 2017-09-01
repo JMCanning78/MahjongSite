@@ -1,0 +1,8 @@
+{{ #timers }}
+	<div class="timer" {{ #time }}data-time="{{ time }}"{{ /time }} data-duration="{{ duration }}" data-id="{{ id }}">
+		<span id="remove"></span>
+		<h3>{{ name }}</h3>
+		<span class="remaining">{{ remaining }}</span>
+		<button class="start">{{ #time }}RESET{{ /time }}{{ ^time }}START{{ /time }}</button>
+	</div>
+{{ /timers}}

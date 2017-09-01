@@ -1,0 +1,20 @@
+#controls {
+	margin-bottom:1em;
+}
+
+#controls > button, .timer {
+	width:49.5%;
+}
+.timer {
+	display:inline-block;
+	margin-bottom:0.5em;
+}
+.timer > button {
+	margin-bottom:0;
+}
+
+@media (max-width:600px) {
+	.timer, #controls > button {
+		width:100%;
+	}
+}

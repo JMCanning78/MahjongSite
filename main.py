@@ -21,6 +21,7 @@ import db
 import settings
 
 import seating
+import timers
 import login
 import admin
 import leaderboard
@@ -217,6 +218,11 @@ class Application(tornado.web.Application):
                 (r"/seating/currenttables.json", seating.CurrentTables),
                 (r"/seating/players.json", seating.PlayersList),
                 (r"/seating/meetup", seating.AddMeetupPlayers),
+                (r"/timers", timers.TimersHandler),
+                (r"/timers.json", timers.GetTimersHandler),
+                (r"/timers/add", timers.AddTimer),
+                (r"/timers/start", timers.StartTimer),
+                (r"/timers/clear", timers.ClearTimers),
                 (r"/pointcalculator", PointCalculator),
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),

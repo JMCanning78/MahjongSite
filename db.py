@@ -38,6 +38,9 @@ def init():
         cur.execute("CREATE TABLE IF NOT EXISTS CurrentTables(Id INTEGER PRIMARY KEY AUTOINCREMENT, PlayerId INTEGER,\
             FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
 
+        cur.execute("CREATE TABLE IF NOT EXISTS Timers(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, \
+                Duration INTEGER, Time DATETIME)")
+
         cur.execute("CREATE TABLE IF NOT EXISTS Users(Id INTEGER PRIMARY KEY AUTOINCREMENT, Email TEXT NOT NULL, Password TEXT NOT NULL,\
             UNIQUE(Email));")
 

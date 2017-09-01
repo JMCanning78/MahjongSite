@@ -4,7 +4,7 @@ html, body {
 }
 
 button, input, select, .button, .clickable,
-#navbar, #navbar > a, table th, .table > h3,
+#navbar, #navbar > a, table th, .table > h3, .timer > h3,
 .ui-widget-content, .ui-menu .ui-menu-item, .ui-menu .ui-menu-item.ui-state-focus,
 .ui-datepicker-header.ui-widget-header, .ui-widget-content.ui-datepicker {
 	background:white;

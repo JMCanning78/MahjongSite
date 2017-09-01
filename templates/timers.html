@@ -1,0 +1,21 @@
+{% extends "template.html" %}
+{% block title %} - Seater{% end %}
+{% block head %}
+	<link href="{{ static_url("css/timers.css") }}" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
+	<script src="{{ static_url("js/timers.js") }}"></script>
+{% end %}
+{% block content %}
+	{% if current_user %}
+		<div id="controls">
+			<input id="name" type="text" placeholder="NAME"></input>
+			<input id="duration" type="number" step="1" min="0" placeholder="DURATION (minutes)"></input>
+			<button id="add">ADD</button>
+			<button id="clear">CLEAR</button>
+			<button id="start">START NEW</button>
+			<button id="reset">RESET ALL</button>
+		</div>
+	{% end %}
+	<div id="timers">
+	</div>
+{% end %}
