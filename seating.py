@@ -23,10 +23,11 @@ def meetup_date():
 
 class SeatingHandler(handler.BaseHandler):
     def get(self):
-        self.render("seating.html", meetup_ok = meetup_ready(), 
+        self.render("seating.html", meetup_ok = meetup_ready(),
                     today=meetup_date().strftime('%a %d-%b'))
 
-class RegenTables(tornado.web.RequestHandler):
+class RegenTables(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         self.set_header('Content-Type', 'application/json')
         with db.getCur() as cur:
@@ -44,7 +45,8 @@ class RegenTables(tornado.web.RequestHandler):
                 cur.execute("INSERT INTO CurrentTables(PlayerId) VALUES(?)", (player,))
             self.write('{"status":0}')
 
-class CurrentPlayers(tornado.web.RequestHandler):
+class CurrentPlayers(handler.BaseHandler):
+    @tornado.web.authenticated
     def get(self):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
@@ -52,7 +54,8 @@ class CurrentPlayers(tornado.web.RequestHandler):
             self.write(json.dumps(cur.fetchall()))
 
 
-class AddMeetupPlayers(tornado.web.RequestHandler):
+class AddMeetupPlayers(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         if meetup_ready():
             client = meetup.api.Client(settings.MEETUP_APIKEY)
@@ -81,7 +84,8 @@ class AddMeetupPlayers(tornado.web.RequestHandler):
             ret = {'status':'error','message':'Meetup.com API not configured'}
         self.write(json.dumps(ret))
 
-class AddCurrentPlayer(tornado.web.RequestHandler):
+class AddCurrentPlayer(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         player = self.get_argument('player', None)
 
@@ -101,7 +105,8 @@ class AddCurrentPlayer(tornado.web.RequestHandler):
             cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT ?, 0 WHERE NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)", (player,player))
             self.write('{"status":0}')
 
-class RemovePlayer(tornado.web.RequestHandler):
+class RemovePlayer(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         player = self.get_argument('player', None)
 
@@ -113,7 +118,8 @@ class RemovePlayer(tornado.web.RequestHandler):
             cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN (SELECT Id FROM Players WHERE Players.Id = ? OR Players.Name = ?)", (player, player))
             self.write('{"status":0}')
 
-class PrioritizePlayer(tornado.web.RequestHandler):
+class PrioritizePlayer(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         player = self.get_argument('player', None)
         priority = self.get_argument('priority', 0)
@@ -127,7 +133,8 @@ class PrioritizePlayer(tornado.web.RequestHandler):
 
             self.write('{"status":0}')
 
-class ClearCurrentPlayers(tornado.web.RequestHandler):
+class ClearCurrentPlayers(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
         with db.getCur() as cur:
             cur.execute("DELETE FROM CurrentPlayers")

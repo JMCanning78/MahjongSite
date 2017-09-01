@@ -6,28 +6,30 @@
 		<script src="{{ static_url("js/seating.js") }}"></script>
 {% end %}
 {% block content %}
-	<input id="person" type="text" class="playercomplete" placeholder="PLAYER"></input>
-	<button id="addperson">ADD</button>
-	<button id="clearplayers">CLEAR</button>
-	{% if meetup_ok %}
-	        <button id="meetup">ADD RSVPS FOR {{ today.upper() }} OR NEXT MEETUP</button>
-	{% end %}
+	{% if current_user %}
+		<input id="person" type="text" class="playercomplete" placeholder="PLAYER"></input>
+		<button id="addperson">ADD</button>
+		<button id="clearplayers">CLEAR</button>
+		{% if meetup_ok %}
+						<button id="meetup">ADD RSVPS FOR {{ today.upper() }} OR NEXT MEETUP</button>
+		{% end %}
 
-	<div id="key">
-		<div class="player">
-			<input type="checkbox" class="priority" checked id="checked-key-box" />
-			<label for="checked-key-box"></label>
-			<span> Prioritize for 4p</span>
+		<div id="key">
+			<div class="player">
+				<input type="checkbox" class="priority" checked id="checked-key-box" />
+				<label for="checked-key-box"></label>
+				<span> Prioritize for 4p</span>
+			</div>
+			<div class="player">
+				<input type="checkbox" class="priority" id="unchecked-key-box" />
+				<label for="unchecked-key-box"></label>
+				<span> Deprioritize</span>
+			</div>
 		</div>
-		<div class="player">
-			<input type="checkbox" class="priority" id="unchecked-key-box" />
-			<label for="unchecked-key-box"></label>
-			<span> Deprioritize</span>
+		<div id="people">
 		</div>
-	</div>
-	<div id="people">
-	</div>
-	<button id="regentables">RESHUFFLE TABLES</button>
+		<button id="regentables">RESHUFFLE TABLES</button>
+	{% end %}
 	<div id="tables">
 	</div>
 {% end %}
