@@ -13,7 +13,7 @@
 	  <tr><td><div class="pielegendbox">
 	      <table class="rankpielegend">
 	      </table></div>
-	  </td> 
+	  </td>
 	  <td colspan="2"><div class="piechartbox">
 	      <svg class=""rankpiechart"> Browser does not support inline SVG
 	      </svg></div>

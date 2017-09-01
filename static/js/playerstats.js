@@ -61,5 +61,4 @@ $(function () {
 		return d.column + "_" + d.value + "_label"}).
 	    text(function (d) {return d.value});
     }
-    
 });
