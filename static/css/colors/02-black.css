@@ -54,3 +54,66 @@ table td {
 	background: #666;
 	color: #eee;
 }
+
+.rankpielegend {
+    margin-top: 0;
+}
+
+/* Player stats pie chart and corresponding legend colors:
+   rank_1_path is the pie slice for rank 1
+   rank_1_label is the legend label for rank 1
+   rank_1_count is for the text in the pie slice showing the count of how
+     many times that rank occurred in the time period
+   Note the color of the text in the legend is specified by 'color' since
+   it's a table while the color of count is specified by 'fill' since it is
+   a text element inside a svg.
+*/
+.rank_1_path, .rank_1_label {
+    fill:       #88f;
+    background: #88f;
+    color:      black;
+}
+
+.rank_1_count {
+    fill:       black;
+}
+
+.rank_2_path, .rank_2_label {
+    fill:       #f88;
+    background: #f88;
+    color:      black;
+}
+
+.rank_2_count {
+    fill:       black;
+}
+
+.rank_3_path, .rank_3_label {
+    fill:       #8f8;
+    background: #8f8;
+    color:      black;
+}
+
+.rank_3_count {
+    fill:       black;
+}
+
+.rank_4_path, .rank_4_label {
+    fill:       #f8f;
+    background: #f8f;
+    color:      black;
+}
+
+.rank_4_count {
+    fill:       black;
+}
+
+.rank_5_path, .rank_5_label {
+    fill:       #ff8;
+    background: #ff8;
+    color:      black;
+}
+
+.rank_5_count {
+    fill:       black;
+}
