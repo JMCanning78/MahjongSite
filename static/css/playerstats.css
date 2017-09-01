@@ -1,0 +1,15 @@
+ table {
+     width:100%;
+     margin-top:1em;
+ }
+
+ .rankpielegend {
+    width: 100%;
+    height: 100;
+    background-color: #663333;
+}
+
+.rankpiechart {
+    width: 100%;
+    height: 100;
+}

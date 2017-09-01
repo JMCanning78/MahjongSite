@@ -29,9 +29,9 @@ class PlayerStatsDataHandler(handler.BaseHandler):
         cur.execute(self._rankhistogramquery.format(**period_dict),
                     period_dict['params'])
         rank_histogram = dict([map(int, r) for r in cur.fetchall()])
-        for i in range(1, 6):
-            rank_histogram[i] = rank_histogram.get(i, 0)
-        period_dict['rank_histogram'] = rank_histogram
+        rank_histogram_list = [{'rank': i, 'count': rank_histogram.get(i, 0)}
+                               for i in range(1, 6)]
+        period_dict['rank_histogram'] = rank_histogram_list
         
     def get(self, player):
         with db.getCur() as cur:
