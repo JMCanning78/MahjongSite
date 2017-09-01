@@ -28,7 +28,7 @@ $(function() {
 			var time = $(timer).data("time");
 			var duration = new Date($(timer).data("duration") * 60 * 1000);
 			if(time === undefined)
-				time = new Date().getTime() + duration;
+				time = new Date(new Date().getTime() + duration.getTime());
 			else
 				time = new Date(time.replace(/ /g, "T"));
 			var remaining = new Date(Math.max(time - new Date(), 0));
