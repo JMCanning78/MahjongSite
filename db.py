@@ -4,6 +4,8 @@ import warnings
 import sqlite3
 import random
 import datetime
+import re
+import collections
 
 import util
 import settings
@@ -23,39 +25,156 @@ class getCur():
 
         return False
 
-def init():
+schema = collections.OrderedDict({
+    'Players': [
+        'Id INTEGER PRIMARY KEY AUTOINCREMENT', 
+        'Name TEXT', 
+        'MeetupName TEXT'
+    ],
+    'Scores': [
+        'Id INTEGER PRIMARY KEY AUTOINCREMENT',
+        'GameId INTEGER',
+        'PlayerId INTEGER',
+        'Rank TINYINT',
+        'PlayerCount TINYINT',
+        'RawScore INTEGER',
+        'Score REAL',
+        'Date DATE',
+        'Chombos INTEGER',
+        'Quarter TEXT',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
+    ],
+    'CurrentPlayers': [
+        'PlayerId INTEGER PRIMARY KEY',
+        'Priority TINYINT',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
+    ],
+    'CurrentTables': [
+        'Id INTEGER PRIMARY KEY AUTOINCREMENT',
+        'PlayerId INTEGER',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
+    ],
+    'Users': [
+        'Id INTEGER PRIMARY KEY AUTOINCREMENT',
+        'Email TEXT NOT NULL',
+        'Password TEXT NOT NULL',
+        'UNIQUE(Email)'
+    ],
+    'Admins': [
+        'Id INTEGER PRIMARY KEY NOT NULL',
+        'FOREIGN KEY(Id) REFERENCES Users(Id) ON DELETE CASCADE'
+    ],
+    'ResetLinks': [
+        'Id CHAR(32) PRIMARY KEY NOT NULL',
+        'User INTEGER',
+        'Expires DATETIME',
+        'FOREIGN KEY(User) REFERENCES Users(Id))'
+    ],
+    'VerifyLinks': [
+        'Id CHAR(32) PRIMARY KEY NOT NULL',
+        'Email TEXT NOT NULL',
+        'Expires DATETIME'
+    ],
+    'Quarters': [
+        'Quarter TEXT NOT NULL',
+        'GameCount INTEGER NOT NULL)',
+    ],
+    'Settings': [
+        'UserId INTEGER',
+        'Setting TEXT NOT NULL',
+        'Value SETTING NOT NULL',
+        'FOREIGN KEY(UserId) REFERENCES Users(Id)'
+    ],
+})
+
+def init(force=False):
     warnings.filterwarnings('ignore', r'Table \'[^\']*\' already exists')
 
+    global schema
+    independent_tables = []
+    dependent_tables = []
+    for table in schema:
+        if len(parent_tables(schema[table])) == 0:
+            independent_tables.append(table)
+        else:
+            dependent_tables.append(table)
+
+    to_check = collections.deque(independent_tables + dependent_tables)
+    checked = set()
+    max_count = len(independent_tables) + len(dependent_tables) ** 2 / 2
+    count = 0
+    while count < max_count and len(to_check) > 0:
+        table = to_check.popleft()
+        # If this table's parents haven't been checked yet, defer it
+        if set(parent_tables(table)) - checked:
+            to_check.append(table)
+        else:
+            check_table_schema(table, force=force)
+            checked.add(table)
+        count += 1
+
+fkey_pattern = re.compile(
+    r'.*FOREIGN\s+KEY\s*\((\w+)\)\s*REFERENCES\s+(\w+)\s*\((\w+)\).*',
+    re.IGNORECASE)
+
+def parent_tables(table_spec):
+    global fkey_pattern
+    parents = []
+    for spec in table_spec:
+        match = fkey_pattern.match(spec)
+        if match:
+            parents.append(match.group(2))
+    return parents
+
+def check_table_schema(tablename, force=False):
+    table_fields = schema[tablename]
     with getCur() as cur:
-        cur.execute("CREATE TABLE IF NOT EXISTS Players(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, MeetupName TEXT);")
+        cur.execute("PRAGMA table_info('{0}')".format(tablename))
+        actual_fields = cur.fetchall()
+        cur.execute("PRAGMA foreign_key_list('{0}')".format(tablename))
+        actual_fkeys = cur.fetchall()
+        if len(actual_fields) == 0:
+            cur.execute("CREATE TABLE IF NOT EXISTS {0} ({1});".format(
+                tablename, ", ".join(schema[table])))
+        else:
+            fields_to_add = missing_fields(table_fields, actual_fields)
+            fkeys_to_add = missing_constraints(table_fields, actual_fkeys)
+            if len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and (
+                    force or util.prompt("Add {0} to table {1}".format(
+                        ", ".join(fields_to_add), tablename))):
+                for field_spec in fields_to_add:
+                    cur.execute("ALTER TABLE {0} ADD COLUMN {1};".format(
+                        tablename, field_spec))
+            elif len(fkeys_to_add) > 0 and (
+                    force or util.prompt("Drop and recreate table {1}".format(
+                        tablename))):
+                cur.execute("DROP TABLE {0}: CREATE TABLE {0} ({1});".format(
+                    tablename, ", ".join(schema[table])))
 
-        cur.execute("CREATE TABLE IF NOT EXISTS Scores(Id INTEGER PRIMARY KEY AUTOINCREMENT, GameId INTEGER, PlayerId INTEGER, Rank TINYINT, PlayerCount TINYINT, RawScore INTEGER, Score REAL, Date DATE, Chombos INTEGER, Quarter TEXT,\
-            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
+def words(spec):
+    return re.findall(r'\w+', spec)
 
-        cur.execute("CREATE TABLE IF NOT EXISTS CurrentPlayers(PlayerId INTEGER PRIMARY KEY, Priority TINYINT,\
-            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
+def missing_fields(table_fields, actual_fields):
+    return [ field_spec for field_spec in table_fields if (
+        words(field_spec)[0].upper() not in [
+            'FOREIGN', 'CONSTRAINT', 'PRIMARY', 'UNIQUE', 'NOT',
+            'CHECK', 'DEFAULT', 'COLLATE'] + [
+                x[1].upper() for x in actual_fields]) ]
 
-        cur.execute("CREATE TABLE IF NOT EXISTS CurrentTables(Id INTEGER PRIMARY KEY AUTOINCREMENT, PlayerId INTEGER,\
-            FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE);")
+def missing_constraints(table_fields, actual_fkeys):
+    return [ field_spec for field_spec in table_fields if (
+        words(field_spec)[0].upper() in ['FOREIGN', 'CONSTRAINT'] and
+        'REFERENCES' in [ w.upper() for w in words(field_spec) ] and
+        not any(map(lambda fkey: match_constraint(field_spec, fkey),
+                    actual_fkeys))) ]
 
-        cur.execute("CREATE TABLE IF NOT EXISTS Timers(Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, \
-                Duration INTEGER, Time DATETIME)")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS Users(Id INTEGER PRIMARY KEY AUTOINCREMENT, Email TEXT NOT NULL, Password TEXT NOT NULL,\
-            UNIQUE(Email));")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS Admins(Id INTEGER PRIMARY KEY NOT NULL,\
-            FOREIGN KEY(Id) REFERENCES Users(Id) ON DELETE CASCADE);")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS ResetLinks(Id CHAR(32) PRIMARY KEY NOT NULL, User INTEGER, Expires DATETIME,\
-            FOREIGN KEY(User) REFERENCES Users(Id));")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS VerifyLinks(Id CHAR(32) PRIMARY KEY NOT NULL, Email TEXT NOT NULL, Expires DATETIME);")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS Quarters(Quarter TEXT NOT NULL, GameCount INTEGER NOT NULL);")
-
-        cur.execute("CREATE TABLE IF NOT EXISTS Settings(UserId INTEGER, Setting TEXT NOT NULL, Value SETTING NOT NULL, \
-            FOREIGN KEY(UserId) REFERENCES Users(Id));")
+def match_constraint(field_spec, fkey_record):
+    global fkey_pattern               
+    match = fkey_pattern.match(field_spec)
+    return (match and 
+            match.group(1).upper() == fkey_record[3].upper() and 
+            match.group(2).upper() == fkey_record[2].upper() and
+            match.group(3).upper() == fkey_record[4].upper())
 
 def addGame(scores, gamedate = None, gameid = None):
     if gamedate is None:
