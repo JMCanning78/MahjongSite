@@ -10,7 +10,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
        SELECT Max(Score),MIN(Score),COUNT(*),
          ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,
          ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100,
-         MIN(Rank), MAX(Rank), MIN(Date), MAX(Date), 
+         MIN(Rank), MAX(Rank), MIN(Date), MAX(Date),
          MIN(Quarter), MAX(Quarter) {subquery} """
     _statqfields = ['maxscore', 'minscore', 'numgames', 'avgscore',
                     'avgrank', 'maxrank', 'minrank', 'mindate', 'maxdate',
@@ -18,7 +18,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
     _rankhistogramquery = """
         SELECT Rank, COUNT(*) {subquery} GROUP BY Rank ORDER BY Rank"""
     _rankhfields = ['rank', 'rankcount']
-    
+
     def populate_queries(self, cur, period_dict):
         cur.execute(self._statquery.format(**period_dict),
                     period_dict['params'])
@@ -32,7 +32,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
         rank_histogram_list = [{'rank': i, 'count': rank_histogram.get(i, 0)}
                                for i in range(1, 6)]
         period_dict['rank_histogram'] = rank_histogram_list
-        
+
     def get(self, player):
         with db.getCur() as cur:
             name = player
@@ -43,12 +43,6 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                                        'error': "Couldn't find player"}))
                 return
             playerID, name, meetupName = player
-            statquery = """SELECT Max(Score),MIN(Score),COUNT(*),
-               ROUND(SUM(Score) * 1.0/COUNT(*) * 100) / 100,
-               ROUND(SUM(Rank) * 1.0/COUNT(*) * 100) / 100,
-               MIN(Rank), MAX(Rank), MIN(Date), MAX(Date), 
-               MIN(Quarter), MAX(Quarter)
-               """
 
             N = 5
             periods = [
@@ -62,7 +56,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
             if p['numgames'] == 0:
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find any scores for")
-            
+
             # Add optional periods if warranted
             if p['numgames'] > N:
                 periods.append(
@@ -87,7 +81,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
 
             self.write(json.dumps({'playerstats': periods}))
 
-        
+
 class PlayerStatsHandler(handler.BaseHandler):
     def get(self, player):
         with db.getCur() as cur:
