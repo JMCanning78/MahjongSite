@@ -1,37 +1,43 @@
-$(function () {
-    var playerstats;
-    $.get("/static/mustache/playerstats.mst", function(data) {
-	playerstats = data;
-	Mustache.parse(playerstats);
-	var parts = document.URL.split('/');
-	player = parts[parts.length - 1];
-	getData(player);
-    });
-    function getData(player) {
-	$.getJSON("/playerstatsdata/" + player, function(data) {
-	    $("#playerstats").html(Mustache.render(playerstats, data));
-	    d3.selectAll(".playerstatperiod").each(function(d, i) {
-		drawData(d3.select(this).select('svg'), 
-			 d3.select(this).select('.rankpielegend'),
-			 data['playerstats'][i]['rank_histogram']);
-	    })
+$(function() {
+	var playerstats;
+	$.get("/static/mustache/playerstats.mst", function(data) {
+		playerstats = data;
+		Mustache.parse(playerstats);
+		var parts = document.URL.split('/');
+		player = parts[parts.length - 1];
+		getData(player);
 	});
-    }
-    function drawData(svg_selection, legend_selection, data) {
-	var rect = svg_selection.nodes()[0].getBoundingClientRect(),
-	    width = rect.width || 800,
-	    height = rect.height || 500,
-	    outerRadius = Math.min(height, width) / 2 - 10,
-	    innerRadius = outerRadius / 3,
-	    labelInnerRadius = outerRadius * 0.50,
-	    path = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius),
-	    label = d3.arc().innerRadius(labelInnerRadius).outerRadius(
-		outerRadius),
-	    nonzero = filter(data, function (d) {return d.count > 0}),
-	    arcs = d3.pie().sort(null).value(function(d) {return d.count})(
-		nonzero),
-	    g = svg_selection.html("").append("g"). // Remove any error message
-		   attr("transform",      // Make group node in svg w/ transform
+
+	function getData(player) {
+		$.getJSON("/playerstatsdata/" + player, function(data) {
+			$("#playerstats").html(Mustache.render(playerstats, data));
+			d3.selectAll(".playerstatperiod").each(function(d, i) {
+				drawData(d3.select(this).select('svg'),
+					d3.select(this).select('.rankpielegend'),
+					data['playerstats'][i]['rank_histogram']);
+			})
+		});
+	}
+
+	function drawData(svg_selection, legend_selection, data) {
+		var rect = svg_selection.nodes()[0].getBoundingClientRect(),
+			width = rect.width || 800,
+			height = rect.height || 500,
+			outerRadius = Math.min(height, width) / 2 - 10,
+			innerRadius = outerRadius / 3,
+			labelInnerRadius = outerRadius * 0.50,
+			path = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius),
+			label = d3.arc().innerRadius(labelInnerRadius).outerRadius(
+				outerRadius),
+			nonzero = data.filter(function(d) {
+				return d.count > 0
+			}),
+			arcs = d3.pie().sort(null).value(function(d) {
+				return d.count
+			})(
+				nonzero),
+			g = svg_selection.html("").append("g"). // Remove any error message
+		attr("transform", // Make group node in svg w/ transform
 			"translate(" + width / 2 + "," + height / 2 + ")");
 	// Create pie slices for each rank with a non-zero count
 	g.selectAll(".arc").data(arcs).enter().
