@@ -23,7 +23,8 @@ $(function() {
 		if ($("#players .playerpoints").length === 4) {
 			$('.player5help').hide();
 			$('.player4help').show();
-		} else {
+		}
+		else {
 			$('.player5help').show();
 			$('.player4help').hide();
 		}
@@ -34,7 +35,8 @@ $(function() {
 
 		if (total > 25000 * 4 && $("#players .playerpoints").length === 4) {
 			addPlayers();
-		} else if (total === 25000 * 4 && $("#players .playerpoints").length === 5) {
+		}
+		else if (total === 25000 * 4 && $("#players .playerpoints").length === 5) {
 			$("#players .player:last-child").last().remove();
 			updateTotal();
 		}
@@ -101,7 +103,8 @@ $(function() {
 			console.log(data);
 			if (data.status !== 0) {
 				$("#message").text(data.error);
-			} else {
+			}
+			else {
 				if (typeof callback === 'function')
 					callback();
 				$("#players").remove();
@@ -133,7 +136,8 @@ $(function() {
 							$($("#players .playercomplete")[i]).val($(elem).clone().children().remove().end().text());
 						});
 					});
-				} else
+				}
+				else
 					$("#tables").text(data.message);
 			}).fail(xhrError);
 		}
