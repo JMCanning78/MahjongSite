@@ -21,7 +21,8 @@ table {
 		<tbody>
 			<tr>
 				<th>Quarter</th>
-				<th>Gamecount</th>
+				<th>Game count</th>
+				<th>Unused points increment</th>
 				<th>Actions</th>
 			</tr>
 			{% try %}
@@ -29,6 +30,7 @@ table {
 					<tr>
 						<td>{{ quarter[0] }}</td>
 						<td>{{ quarter[1] }}</td>
+						<td>{{ quarter[2] }}</td>
 						<td>
 						  {% if quarter[1] %}
 						  <a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a> &nbsp;&nbsp;

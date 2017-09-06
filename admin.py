@@ -116,11 +116,12 @@ class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT Quarter, Gamecount FROM Quarters "
-                        "WHERE Quarter = ? ORDER BY Quarter DESC", (q,))
+            cur.execute("SELECT Quarter, Gamecount, UnusedPointsIncrement "
+                        "FROM Quarters WHERE Quarter = ? ORDER BY Quarter DESC",
+                        (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                rows = [(q, settings.DROPGAMES)]
+                rows = [(q, settings.DROPGAMES, 0)]
             if len(rows) > 1:
                 self.render("message.html",
                             message = "Multiple entries in database for Quarter {0}".format(q),
@@ -134,9 +135,12 @@ class EditQuarterHandler(handler.BaseHandler):
     def post(self, q):
         quarter = q
         gamecount = self.get_argument('gamecount', None)
+        unusedPointsIncrement = self.get_argument('unusedPointsIncrement', None)
         with db.getCur() as cur:
             cur.execute("DELETE FROM Quarters WHERE Quarter = ?;", (quarter,))
-            cur.execute("INSERT INTO Quarters(Quarter, Gamecount) VALUES (?,?);", (quarter, gamecount))
+            cur.execute("INSERT INTO Quarters(Quarter, Gamecount, "
+                        "UnusedPointsIncrement) VALUES (?,?,?);",
+                        (quarter, gamecount, unusedPointsIncrement))
 
         self.render("message.html",
                     message = "Quarter {0} updated".format(quarter),
@@ -149,7 +153,8 @@ class QuartersHandler(handler.BaseHandler):
     def get(self):
         with db.getCur() as cur:
             cur.execute(
-                "SELECT DISTINCT Scores.Quarter, Gamecount"
+                "SELECT DISTINCT Scores.Quarter, Gamecount, "
+                " UnusedPointsIncrement"
                 " FROM Scores LEFT OUTER JOIN Quarters"
                 " ON Scores.Quarter = Quarters.Quarter"
                 " ORDER BY Scores.Quarter DESC")
