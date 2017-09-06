@@ -244,13 +244,82 @@ def field_spec_matches_pragma(field_spec, pragma_rec):
                 1 if 'PRIMARY' in spec and 'KEY' in spec else 0))
     )
 
+def quarterString(time=None):
+    """Return the string for the calendar quarter for the given datetime object.
+    Time defaults to current time"""
+    if time is None:
+        time = datetime.datetime.now()
+    return time.strftime("%Y ") + ["1st", "2nd", "3rd", "4th"][
+        (time.month - 1) // 3]
+
+def unusedPointsIncrement(quarter=None):
+    """Get the UnusedPointsIncrement value for the given quarter.
+    The quarter defaults to the most recent quarter in the database
+    (but no later than today's date)."""
+    if quarter is None:
+        quarter = quarterString()
+    try:
+        with getCur() as cur:
+            cur.execute("SELECT UnusedPointsIncrement FROM Quarters"
+                        " WHERE Quarter <= ? ORDER BY Quarter DESC"
+                        " LIMIT 1",
+                        (quarter,))
+            increment = cur.fetchone()[0]
+    except:
+        increment = 0
+    return increment
+
+_unusedPointsPlayer = None
+unusedPointsPlayerName = '!#*UnusedPointsPlayer*#!'
+
+def getUnusedPointsPlayerID():
+    """ Get the ID of the Players table entry that records unused points in
+    games.  If an entry doesn't exist, create one."""
+    global _unusedPointsPlayer, unusedPointsPlayerName
+    if _unusedPointsPlayer:
+        return _unusedPointsPlayer
+    with getCur() as cur:
+        cur.execute("SELECT Id from Players WHERE Name = ? AND"
+                    " MeetupName IS NULL",
+                    (unusedPointsPlayerName,))
+        result = cur.fetchall()
+        if len(result) > 1:
+            raise Exception("More than 1 player defined for unused points")
+        elif len(result) == 1:
+            _unusedPointsPlayer = result[0][0]
+        else:
+            cur.execute("INSERT INTO Players (Name, MeetupName) VALUES (?, NULL)",
+                        (unusedPointsPlayerName,))
+            _unusedPointsPlayer = cur.lastrowid
+    return _unusedPointsPlayer
+        
+dateFormat = "%Y-%m-%d"
+    
 def addGame(scores, gamedate = None, gameid = None):
+    """Add raw scores for a particular game to the database.
+    The scores should be a list of dictionaries.
+    Each dictionary should have a 'player' name or ID, a raw 'score', and
+    a 'chombos' count.
+    One of the players may be the UnusedPointsPlayer to represent points
+    that were not claimed at the end of play.
+    The gamedate defaults to today.  A new gameid is created if none is given.
+    If a player name is not found in database, a new record is created for
+    them.
+    """
+    global dateFormat, unusedPointsPlayerName
     if gamedate is None:
-        gamedate = datetime.datetime.now().strftime("%Y-%m-%d")
+        gamedate = datetime.datetime.now().strftime(dateFormat)
+        quarter = quarterString()
+    else:
+        quarter = quarterString(datetime.datetime.strptime(gamedate, dateFormat))
 
     if scores is None:
         return {"status":1, "error":"Please enter some scores"}
 
+    players = [score['player'] for score in scores]
+    unusedPoints = (getUnusedPointsPlayerID() in players or 
+                    unusedPointsPlayerName in players)
+    
     if len(scores) != 4 and len(scores) != 5:
         return {"status":1, "error":"Please enter 4 or 5 scores"}
 
@@ -261,10 +330,16 @@ def addGame(scores, gamedate = None, gameid = None):
         if score['player'] == "":
             return {"status":1, "error":"Please enter all player names"}
 
-    if total != len(scores) * 25000:
-        return {"status":1, "error":"Scores do not add up to " + len(scores) * 25000}
+    realPlayerCount = len(scores) - (1 if unusedPoints else 0)
+    targetTotal = realPlayerCount * 25000
+    if total != targetTotal:
+        return {"status": 1, 
+                "error": "Scores do not add up to " + str(targetTotal)}
 
-    scores.sort(key=lambda x: x['score'], reverse=True)
+    # Sort scores for ranking, ensuring unused points player is last, if present
+    scores.sort(
+        key=lambda x: (x['player'] != getUnusedPointsPlayerID(), x['score']),
+        reverse=True)
 
     with getCur() as cur:
         if gameid is None:
@@ -280,14 +355,24 @@ def addGame(scores, gamedate = None, gameid = None):
         for i in range(0, len(scores)):
             score = scores[i]
 
-            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (score['player'], score['player']))
+            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
+                        (score['player'], score['player']))
             player = cur.fetchone()
             if player is None or len(player) == 0:
-                cur.execute("INSERT INTO Players(Name) VALUES(?)", (score['player'],))
-                cur.execute("SELECT Id FROM Players WHERE Name = ?", (score['player'],))
+                cur.execute("INSERT INTO Players(Name) VALUES(?)",
+                            (score['player'],))
+                cur.execute("SELECT Id FROM Players WHERE Name = ?",
+                            (score['player'],))
                 player = cur.fetchone()
             player = player[0]
 
-            adjscore = util.getScore(score['score'], len(scores), i + 1) - score['chombos'] * 8
-            cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date, Quarter) VALUES(?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y', ?) || ' ' || case ((strftime('%m', ?) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end)", (gameid, player, i + 1, len(scores), score['score'], score['chombos'], adjscore, gamedate, gamedate, gamedate))
+            adjscore = 0 if score['player'] == getUnusedPointsPlayerID() else (
+                util.getScore(score['score'], realPlayerCount, i + 1) - 
+                        score['chombos'] * 8)
+            cur.execute(
+                "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
+                " RawScore, Chombos, Score, Date, Quarter) "
+                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (gameid, player, i + 1, len(scores), 
+                 score['score'], score['chombos'], adjscore, gamedate, quarter))
     return {"status":0}
