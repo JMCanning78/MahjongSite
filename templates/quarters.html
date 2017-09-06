@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 
-{% block title %} - Show Quarters{% end %}
+{% block title %} - Quarter Settings{% end %}
 
 {% block head %}
 <style type="text/css">
@@ -12,15 +12,17 @@ table {
 {% end %}
 
 {% block content %}
-	<h1>Show Quarter Gamecounts</h1>
-	<a class="button" href="/admin/addquarter">ADD</a>
-	<p id="message">{% try %}{% if message %}{{ message }}{% end %}{% except %}{% end %}</p>
+	<h1>Quarter Settings</h1>
+	<p id="message">
+	  {% try %}
+	     {% if message %}{{ message }}{% end %}
+	  {% except %}{% end %}</p>
 	<table class="quarters">
 		<tbody>
 			<tr>
 				<th>Quarter</th>
 				<th>Gamecount</th>
-				<th>Delete</th>
+				<th>Actions</th>
 			</tr>
 			{% try %}
 				{% for quarter in quarters%}
@@ -28,7 +30,10 @@ table {
 						<td>{{ quarter[0] }}</td>
 						<td>{{ quarter[1] }}</td>
 						<td>
-							<a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a>
+						  {% if quarter[1] %}
+						  <a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a> &nbsp;&nbsp;
+						  {% end %}
+						  <a href="/admin/editquarter/{{ quarter[0] }}">Edit</a>
 						</td>
 					</tr>
 				{% end %}

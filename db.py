@@ -68,7 +68,7 @@ schema = collections.OrderedDict({
         'Id CHAR(32) PRIMARY KEY NOT NULL',
         'User INTEGER',
         'Expires DATETIME',
-        'FOREIGN KEY(User) REFERENCES Users(Id))'
+        'FOREIGN KEY(User) REFERENCES Users(Id)'
     ],
     'VerifyLinks': [
         'Id CHAR(32) PRIMARY KEY NOT NULL',
@@ -76,8 +76,9 @@ schema = collections.OrderedDict({
         'Expires DATETIME'
     ],
     'Quarters': [
-        'Quarter TEXT NOT NULL',
-        'GameCount INTEGER NOT NULL)',
+        'Quarter TEXT PRIMARY KEY NOT NULL',
+        'GameCount INTEGER NOT NULL',
+        'UnusedPointsIncrement INTEGER DEFAULT 0'
     ],
     'Settings': [
         'UserId INTEGER',
@@ -126,7 +127,16 @@ def parent_tables(table_spec):
             parents.append(match.group(2))
     return parents
 
-def check_table_schema(tablename, force=False):
+def check_table_schema(tablename, force=False, backupname="_backup"):
+    """Compare existing table schema with that specified in schema above
+    and make corrections as needed.  This checks for new tables, new
+    fields, new (foreign key) constraints, and altered field specificaitons.
+    For schema changes beyond just adding fields, it renames the old table
+    to a "backup" table, and then copies its content into a freshly built
+    new version of the table.
+    For really complex schema changs, move the old database aside and 
+    either build from scratch or manually alter it.
+    """
     table_fields = schema[tablename]
     with getCur() as cur:
         cur.execute("PRAGMA table_info('{0}')".format(tablename))
@@ -135,21 +145,44 @@ def check_table_schema(tablename, force=False):
         actual_fkeys = cur.fetchall()
         if len(actual_fields) == 0:
             cur.execute("CREATE TABLE IF NOT EXISTS {0} ({1});".format(
-                tablename, ", ".join(schema[table])))
+                tablename, ", ".join(table_fields)))
         else:
             fields_to_add = missing_fields(table_fields, actual_fields)
             fkeys_to_add = missing_constraints(table_fields, actual_fkeys)
-            if len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and (
-                    force or util.prompt("Add {0} to table {1}".format(
-                        ", ".join(fields_to_add), tablename))):
-                for field_spec in fields_to_add:
-                    cur.execute("ALTER TABLE {0} ADD COLUMN {1};".format(
-                        tablename, field_spec))
-            elif len(fkeys_to_add) > 0 and (
-                    force or util.prompt("Drop and recreate table {1}".format(
-                        tablename))):
-                cur.execute("DROP TABLE {0}: CREATE TABLE {0} ({1});".format(
-                    tablename, ", ".join(schema[table])))
+            altered = altered_fields(table_fields, actual_fields)
+            if (len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and 
+                len(altered) == 0):
+                # Only new fields to add
+                if force or util.prompt(
+                        "SCHEMA CHANGE: Add {0} to table {1}".format(
+                            ", ".join(fields_to_add), tablename)):
+                    for field_spec in fields_to_add:
+                        cur.execute("ALTER TABLE {0} ADD COLUMN {1};".format(
+                            tablename, field_spec))
+            elif len(fkeys_to_add) > 0 or len(altered) > 0:
+                # Fields have changed significantly; try copying old into new
+                if force or util.prompt(
+                        ("SCHEMA CHANGE: Backup and recreate table {0} "
+                         "to add {1}, impose {2}, or correct {3}))").format(
+                             tablename, fields_to_add, fkeys_to_add,
+                             altered)):
+                    backup = tablename + backupname
+                    sql = "ALTER TABLE {0} RENAME TO {1};".format(
+                        tablename, backup)
+                    cur.execute(sql)
+                    sql = "CREATE TABLE {0} ({1});".format(
+                        tablename, ", ".join(table_fields))
+                    cur.execute(sql)
+                    # Copy all actual fields that have a corresponding field
+                    # in the new schema
+                    common_fields = [
+                        f[1] for f in actual_fields if
+                        find_field_spec_for_pragma(table_fields, f)]
+                    sql = "INSERT INTO {0} ({1}) SELECT {1} FROM {2};".format(
+                        tablename, ", ".join(common_fields), backup)
+                    cur.execute(sql)
+                    sql = "DROP TABLE {0};".format(backup)
+                    cur.execute(sql)
 
 def words(spec):
     return re.findall(r'\w+', spec)
@@ -175,6 +208,41 @@ def match_constraint(field_spec, fkey_record):
             match.group(1).upper() == fkey_record[3].upper() and 
             match.group(2).upper() == fkey_record[2].upper() and
             match.group(3).upper() == fkey_record[4].upper())
+
+sqlite_pragma_columns = [
+    'column_ID', 'name', 'type', 'notnull', 'default', 'pk_member'
+]
+
+def altered_fields(table_fields, actual_fields):
+    altered = []
+    for actual in actual_fields:
+        matching_spec = find_field_spec_for_pragma(table_fields, actual)
+        if not field_spec_matches_pragma(matching_spec, actual):
+            altered.append(matching_spec)
+    return altered
+
+def find_field_spec_for_pragma(table_fields, pragma_rec):
+    for field in table_fields:
+        if words(field)[0].upper() == pragma_rec[1].upper():
+            return field
+    return None
+
+def field_spec_matches_pragma(field_spec, pragma_rec):
+    global sqlite_pragma_columns
+    if field_spec is None or pragma_rec is None:
+        return False
+    field = dict(zip(
+        sqlite_pragma_columns, 
+        [x.upper() if isinstance(x, str) else x for x in pragma_rec]))
+    spec = words(field_spec.upper())
+    return (spec[0] == field['name'] and
+            all([w in spec for w in words(field['type'])]) and
+            (field['notnull'] == 0 or ('NOT' in spec and 'NULL' in spec)) and
+            (field['default'] is None or 
+             ('DEFAULT' in spec and str(field['default']) in spec)) and
+            (field['pk_member'] == (
+                1 if 'PRIMARY' in spec and 'KEY' in spec else 0))
+    )
 
 def addGame(scores, gamedate = None, gameid = None):
     if gamedate is None:
