@@ -32,17 +32,12 @@ class RegenTables(handler.BaseHandler):
         self.set_header('Content-Type', 'application/json')
         with db.getCur() as cur:
             cur.execute("SELECT PlayerId, Priority FROM CurrentPlayers")
-            rows = cur.fetchall()
-            players = list(map(lambda x: x[0], rows))
-            numplayers = len(players)
-            priorities = dict(rows)
+            priorities = dict(cur.fetchall())
+            players = list(priorities.keys())
             playergames = playerGames(players, cur)
             tables = bestArrangement(players, playergames, priorities)
             cur.execute("DELETE FROM CurrentTables")
-            comma = False
-            for player in tables:
-                comma = True
-                cur.execute("INSERT INTO CurrentTables(PlayerId) VALUES(?)", (player,))
+            cur.execute("INSERT INTO CurrentTables(PlayerId) VALUES" + ",".join(["(?)"] * len(players)), tables)
             self.write('{"status":0}')
 
 class CurrentPlayers(handler.BaseHandler):
