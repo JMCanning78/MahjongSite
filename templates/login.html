@@ -11,6 +11,9 @@
 	{% except %}{% end %}
 
 	<form action="/login" method="post">
+		{% if uri %}
+			<input type="hidden" name="next" value="{{ uri }}" />
+		{% end %}
 		<input autocapitalize="off" autocorrect="off" autofocus="autofocus" id="email-field" name="email" placeholder="EMAIL" type="text" /><br/>
 
 		<input id="password-field" name="password" placeholder="PASSWORD" type="password" /><br/>

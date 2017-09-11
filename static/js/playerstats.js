@@ -25,7 +25,7 @@ $(function() {
 			height = rect.height || 500,
 			outerRadius = Math.min(height, width) / 2 - 10,
 			innerRadius = outerRadius / 3,
-			labelInnerRadius = outerRadius * 0.50,
+			labelInnerRadius = outerRadius * 0.5,
 			path = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius),
 			label = d3.arc().innerRadius(labelInnerRadius).outerRadius(
 				outerRadius),
@@ -62,7 +62,7 @@ $(function() {
 		var columns = []
 		for (prop in data[0]) {
 			columns.push(prop)
-		};
+		}
 
 		// Build a table for the legend that shows all the ranks and counts
 		var rows = legend_selection.selectAll("tr").data(data).enter().

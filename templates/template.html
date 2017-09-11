@@ -30,14 +30,14 @@
 		<div id="navbar">
 			<a href="/">Home</a>
 			{% if not current_user %}
-				<a href="/login">Login</a>
+				<a href="/login?next={{ request.uri }}">Login</a>
 			{% else %}
 				{% if is_admin %}
 					<a href="/admin">Admin</a>
 				{% end %}
 				<a href="/settings">Settings</a>
 				<a href="/invite">Invite</a>
-				<a href="/logout">Logout</a>
+				<a href="/logout?next={{ request.uri }}">Logout</a>
 			{% end %}
 		</div>
 		<div id="content">

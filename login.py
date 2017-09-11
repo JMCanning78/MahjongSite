@@ -250,15 +250,18 @@ class ResetPasswordLinkHandler(handler.BaseHandler):
 
 class LoginHandler(handler.BaseHandler):
     def get(self):
+        uri = self.get_argument("next", None)
         if self.current_user is not None:
-            self.render("message.html", message = "You're already logged in, would you like to <a href=\"/logout\">Logout?</a>")
-            return
+            if uri is None:
+                return self.render("message.html", message = "You're already logged in, would you like to <a href=\"/logout\">Logout?</a>")
+            else:
+                return self.redirect(uri)
 
-        self.render("login.html")
+        self.render("login.html", uri = uri)
     def post(self):
         email = self.get_argument('email', None)
         password = self.get_argument('password', None)
-        next = self.get_argument("next", "/")
+        uri = self.get_argument('next', '/')
 
         if not email or not password or email == "" or password == "":
             self.render("login.html", message = "Please enter an email and password")
@@ -274,7 +277,7 @@ class LoginHandler(handler.BaseHandler):
 
                 if pbkdf2_sha256.verify(password, passhash):
                     self.set_secure_cookie("user", str(userID))
-                    log.info("Successful login for {0} (ID = {1}".format(
+                    log.info("Successful login for {0} (ID = {1})".format(
                         email, userID))
                     cur.execute("SELECT EXISTS(SELECT * FROM Admins WHERE Id = ?)", (userID,))
                     if cur.fetchone()[0] == 1:
@@ -287,18 +290,19 @@ class LoginHandler(handler.BaseHandler):
                         self.set_secure_cookie("stylesheet", res[0])
 
                     if userID != None:
-                        self.redirect(next)
+                        self.redirect(uri)
                         return
         log.info("Invalid login attempt for {0}".format(email))
         self.render("login.html", message = "Incorrect email and password")
 
 class LogoutHandler(handler.BaseHandler):
     def get(self):
+        uri = self.get_argument('next', '/')
         userID = handler.stringify(self.get_secure_cookie("user"))
         log.info("Explicit logout for user ID {0}".format(userID))
         self.clear_cookie("user")
         self.clear_cookie("admin")
-        self.redirect("/")
+        self.redirect(uri)
 
 class SettingsHandler(handler.BaseHandler):
     @tornado.web.authenticated
