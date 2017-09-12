@@ -318,19 +318,25 @@ def addGame(scores, gamedate = None, gameid = None):
 
     players = [score['player'] for score in scores]
     unusedPoints = (getUnusedPointsPlayerID() in players or 
-                    unusedPointsPlayerName in players)
+                    unusedPointsPlayerName in players or
+                    -1 in players)
+    realPlayerCount = len(scores) - (1 if unusedPoints else 0)
     
-    if len(scores) != 4 and len(scores) != 5:
+    if not (4 <= realPlayerCount and realPlayerCount <= 5):
         return {"status":1, "error":"Please enter 4 or 5 scores"}
 
     total = 0
+    uniqueIDs = set()
     for score in scores:
         total += score['score']
+        uniqueIDs.add(score['player'])
 
         if score['player'] == "":
             return {"status":1, "error":"Please enter all player names"}
 
-    realPlayerCount = len(scores) - (1 if unusedPoints else 0)
+    if len(uniqueIDs) < len(scores):
+        return {"status":1, "error": "All players must be distinct"}
+
     targetTotal = realPlayerCount * 25000
     if total != targetTotal:
         return {"status": 1, 
@@ -352,9 +358,10 @@ def addGame(scores, gamedate = None, gameid = None):
         else:
             cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
 
-        for i in range(0, len(scores)):
+        for i in range(len(scores)):
             score = scores[i]
-
+            if score['player'] == -1:
+                score['player'] = getUnusedPointsPlayerID()
             cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
                         (score['player'], score['player']))
             player = cur.fetchone()

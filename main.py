@@ -33,6 +33,7 @@ import seating
 import timers
 import login
 import admin
+import addgame
 import leaderboard
 import playerstats
 
@@ -51,18 +52,6 @@ class MainHandler(handler.BaseHandler):
 
         self.render("index.html", admin = admin, no_user = no_user)
 
-class AddGameHandler(handler.BaseHandler):
-    @tornado.web.authenticated
-    def get(self):
-        self.render("addgame.html")
-    @tornado.web.authenticated
-    def post(self):
-        scores = self.get_argument('scores', None)
-
-        scores = json.loads(scores)
-
-        self.write(json.dumps(db.addGame(scores)))
-
 class HistoryHandler(handler.BaseHandler):
     def get(self, page):
         if page is None:
@@ -75,13 +64,29 @@ class HistoryHandler(handler.BaseHandler):
             dates = cur.fetchall()
             gamecount = len(dates)
             if gamecount > 0:
-                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
+                cur.execute("SELECT Scores.GameId,"
+                            " strftime('%Y-%m-%d', Scores.Date), Rank,"
+                            " Players.Name, Scores.RawScore / 1000.0,"
+                            " Scores.Score, Scores.Chombos, Players.Id"
+                            " FROM Scores INNER JOIN Players ON"
+                            "   Players.Id = Scores.PlayerId"
+                            " WHERE Scores.Date BETWEEN ? AND ?"
+                            " GROUP BY Scores.Id ORDER BY Scores.Date DESC;",
+                            (dates[min(page * PERPAGE + PERPAGE - 1,
+                                       gamecount - 1)][0],
+                             dates[min(page * PERPAGE, gamecount - 1)][0]))
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    if row[0] not in games:
-                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
-                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                    gID = row[0]
+                    if gID not in games:
+                        games[gID] = {'date':row[1], 'scores':{}, 
+                                      'id':gID, 'unusedPoints': 0}
+                    if row[7] == db.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = row[4]
+                    else:
+                        games[gID]['scores'][row[2]] = (
+                            row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
                 games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
@@ -116,16 +121,31 @@ class PlayerHistory(handler.BaseHandler):
             games = [i[0] for i in cur.fetchall()]
             gamecount = len(games)
             if gamecount > 0:
-                thesegames = games[min(page * PERPAGE, gamecount - 1):min(page * PERPAGE + PERPAGE, gamecount)]
+                thesegames = games[min(page * PERPAGE, gamecount - 1):
+                                   min(page * PERPAGE + PERPAGE, gamecount)]
                 placeholder= '?' # For SQLite. See DBAPI paramstyle
                 placeholders= ', '.join(placeholder for i in range(len(thesegames)))
-                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.GameId IN (" + placeholders + ") GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
+                cur.execute(
+                    "SELECT Scores.GameId,"
+                    " strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name,"
+                    " Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos,"
+                    " Players.Id"
+                    " FROM Scores INNER JOIN Players"
+                    "  ON Players.Id = Scores.PlayerId"
+                    " WHERE Scores.GameId IN (" + placeholders + ")"
+                    " GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    if row[0] not in games:
-                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
-                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                    gID = row[0]
+                    if gID not in games:
+                        games[gID] = {'date':row[1], 'scores':{}, 
+                                      'id':gID, 'unusedPoints': 0}
+                    if row[7] == db.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = row[4]
+                    else:
+                        games[gID]['scores'][row[2]] = (
+                            row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
                 games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
@@ -168,7 +188,7 @@ class Application(tornado.web.Application):
                 (r"/verify/([^/]+)", login.VerifyHandler),
                 (r"/reset", login.ResetPasswordHandler),
                 (r"/reset/([^/]+)", login.ResetPasswordLinkHandler),
-                (r"/addgame", AddGameHandler),
+                (r"/addgame", addgame.AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", leaderboard.LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", leaderboard.LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),

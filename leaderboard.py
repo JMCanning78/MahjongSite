@@ -19,6 +19,7 @@ class LeaderDataHandler(handler.BaseHandler):
                        / 100 AS AvgScore,
                      COUNT(Scores.Score) AS GameCount, 0
                    FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
+                   WHERE Players.Id != ?
                    GROUP BY strftime('%Y', Date),Players.Id
                    ORDER BY AvgScore DESC;"""
             ],
@@ -32,6 +33,7 @@ class LeaderDataHandler(handler.BaseHandler):
                        / 100 AS AvgScore,
                      COUNT(Scores.Score) AS GameCount, 0
                    FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
+                   WHERE Players.Id != ?
                 GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id
                 ORDER BY AvgScore DESC;"""
             ],
@@ -43,6 +45,7 @@ class LeaderDataHandler(handler.BaseHandler):
                      COUNT(Scores.Score) AS GameCount, 0
                    FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
                      LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
+                   WHERE Players.Id != ?
                    GROUP BY Scores.Quarter,Players.Id
                    HAVING COUNT(Scores.Score) < COALESCE(Quarters.GameCount, {0})
                    ORDER BY AvgScore DESC;""".format(settings.DROPGAMES),
@@ -53,7 +56,7 @@ class LeaderDataHandler(handler.BaseHandler):
                      COUNT(Scores.Score) AS GameCount, 1
                    FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
                      LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
-                   WHERE Scores.Id NOT IN
+                   WHERE Players.Id != ? AND Scores.Id NOT IN
                      (SELECT Id FROM Scores GROUP BY PlayerId, Scores.Quarter
                                             HAVING Score = MIN(Score))
                    GROUP BY Scores.Quarter,Players.Id
@@ -72,7 +75,7 @@ class LeaderDataHandler(handler.BaseHandler):
             leaderboards = {}
             rows = []
             for query in queries[period]:
-                cur.execute(query)
+                cur.execute(query, (db.getUnusedPointsPlayerID(),))
                 rows += cur.fetchall()
             places={}
             last_place={}
