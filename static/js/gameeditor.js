@@ -53,14 +53,16 @@ $(function() {
         }
 
         function gameComplete(total) {
-                var playersSelected = true;
+                var ready = true;
                 $(".playercomplete").each(function(index, elem) {
-                        playersSelected = playersSelected && $(this).val() !== "";
+                        ready = ready && $(this).val() !== "";
                 });
 
-                playersSelected = playersSelected && (total === 25000 * 4 || total === 25000 * 5);
-                $("#submit").prop("disabled", !playersSelected);
-                return playersSelected;
+                ready = ready && (total === 25000 * 4 || total === 25000 * 5) &&
+                        checkUnusedPoints();
+
+                $("#submit").prop("disabled", !ready);
+                return ready;
         }
 
         function completeChange(e) {
@@ -90,7 +92,7 @@ $(function() {
     
         window.checkUnusedPoints = function () {
             var unusedPoints = $("#unusedPoints"),
-		unusedPointsIncrement = unusedPoints.attr("step"),
+		unusedPointsIncrement = parseInt(unusedPoints.attr("step")),
                 entry = parseInt(unusedPoints.val()) || 0,
                 good = (unusedPointsIncrement == 0) ||
                         (entry % unusedPointsIncrement) == 0;

@@ -316,23 +316,32 @@ def addGame(scores, gamedate = None, gameid = None):
     if scores is None:
         return {"status":1, "error":"Please enter some scores"}
 
-    players = [score['player'] for score in scores]
-    unusedPoints = (getUnusedPointsPlayerID() in players or 
-                    unusedPointsPlayerName in players or
-                    -1 in players)
-    realPlayerCount = len(scores) - (1 if unusedPoints else 0)
+    hasUnusedPoints = False
+    unusedPoints = 0
+    unusedPointsPlayerID = getUnusedPointsPlayerID()
+    total = 0
+    uniqueIDs = set()
+    for score in scores:
+        if score['player'] in (
+                -1, unusedPointsPlayerID, unusedPointsPlayerName):
+            score['player'] = unusedPointsPlayerID
+            hasUnusedPoints = True
+            unusedPoints = score['score']
+        uniqueIDs.add(score['player'])
+        total += score['score']
+        
+    realPlayerCount = len(scores) - (1 if hasUnusedPoints else 0)
     
     if not (4 <= realPlayerCount and realPlayerCount <= 5):
         return {"status":1, "error":"Please enter 4 or 5 scores"}
 
-    total = 0
-    uniqueIDs = set()
-    for score in scores:
-        total += score['score']
-        uniqueIDs.add(score['player'])
+    if hasUnusedPoints and unusedPoints % unusedPointsIncrement() != 0:
+        return {"status":1, 
+                "error":"Unused points must be a multiple of {0}".format(
+                    unusedPointsIncrement())}
 
-        if score['player'] == "":
-            return {"status":1, "error":"Please enter all player names"}
+    if "" in uniqueIDs:
+        return {"status":1, "error":"Please enter all player names"}
 
     if len(uniqueIDs) < len(scores):
         return {"status":1, "error": "All players must be distinct"}
@@ -344,7 +353,7 @@ def addGame(scores, gamedate = None, gameid = None):
 
     # Sort scores for ranking, ensuring unused points player is last, if present
     scores.sort(
-        key=lambda x: (x['player'] != getUnusedPointsPlayerID(), x['score']),
+        key=lambda x: (x['player'] != unusedPointsPlayerID, x['score']),
         reverse=True)
 
     with getCur() as cur:
@@ -360,8 +369,6 @@ def addGame(scores, gamedate = None, gameid = None):
 
         for i in range(len(scores)):
             score = scores[i]
-            if score['player'] == -1:
-                score['player'] = getUnusedPointsPlayerID()
             cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
                         (score['player'], score['player']))
             player = cur.fetchone()
@@ -373,7 +380,7 @@ def addGame(scores, gamedate = None, gameid = None):
                 player = cur.fetchone()
             player = player[0]
 
-            adjscore = 0 if score['player'] == getUnusedPointsPlayerID() else (
+            adjscore = 0 if score['player'] == unusedPointsPlayerID else (
                 util.getScore(score['score'], realPlayerCount, i + 1) - 
                         score['chombos'] * 8)
             cur.execute(
