@@ -121,7 +121,7 @@ class EditQuarterHandler(handler.BaseHandler):
                         (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                rows = [(q, settings.DROPGAMES, 0)]
+                rows = [(q, settings.DROPGAMES, db.unusedPointsIncrement())]
             if len(rows) > 1:
                 self.render("message.html",
                             message = "Multiple entries in database for Quarter {0}".format(q),
@@ -154,10 +154,11 @@ class QuartersHandler(handler.BaseHandler):
         with db.getCur() as cur:
             cur.execute(
                 "SELECT DISTINCT Scores.Quarter, Gamecount, "
-                " UnusedPointsIncrement"
+                " COALESCE(UnusedPointsIncrement, ?)"
                 " FROM Scores LEFT OUTER JOIN Quarters"
                 " ON Scores.Quarter = Quarters.Quarter"
-                " ORDER BY Scores.Quarter DESC")
+                " ORDER BY Scores.Quarter DESC",
+                (db.unusedPointsIncrement(),))
             rows = cur.fetchall()
             
             self.render("quarters.html", 
