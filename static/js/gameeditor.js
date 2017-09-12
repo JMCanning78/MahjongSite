@@ -72,10 +72,7 @@ $(function() {
 
         function getTotalPoints() {
                 var total = 0;
-                $(".playerpoints").each(function(index, elem) {
-                        total += parseInt($(this).val()) || 0;
-                });
-                $("#unusedPoints").each(function(index, elem) {
+                $(".playerpoints, #unusedPoints").each(function(index, elem) {
                         total += parseInt($(this).val()) || 0;
                 });
                 return total;
