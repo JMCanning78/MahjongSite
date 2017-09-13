@@ -260,7 +260,7 @@ def unusedPointsIncrement(quarter=None):
         quarter = quarterString()
     try:
         with getCur() as cur:
-            cur.execute("SELECT UnusedPointsIncrement FROM Quarters"
+            cur.execute("SELECT COALESCE(UnusedPointsIncrement,0) FROM Quarters"
                         " WHERE Quarter <= ? ORDER BY Quarter DESC"
                         " LIMIT 1",
                         (quarter,))
