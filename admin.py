@@ -82,6 +82,7 @@ class DeleteGameHandler(handler.BaseHandler):
             if cur.fetchone()[0] == 0:
                 self.render("message.html", message = "Game not found", title = "Delete Game")
             else:
+                db.make_backup()
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
                 self.redirect("/history")
 
@@ -110,58 +111,85 @@ class EditGameHandler(handler.BaseHandler):
                 return
             gameid = row[0]
 
+        db.make_backup()
         self.write(json.dumps(db.addGame(scores, gamedate, gameid)))
 
-class AddQuarterHandler(handler.BaseHandler):
+class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
-    def get(self):
+    def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT DISTINCT Quarter FROM Scores")
+            cur.execute("SELECT Quarter, Gamecount, UnusedPointsIncrement "
+                        "FROM Quarters WHERE Quarter = ? ORDER BY Quarter DESC",
+                        (q,))
             rows = cur.fetchall()
-            rows = [row[0] for row in rows]
             if len(rows) == 0:
-                self.render("message.html", message = "No scores in database", title = "Add Quarter Gamecount")
+                rows = [(q, settings.DROPGAMES, db.unusedPointsIncrement())]
+            if len(rows) > 1:
+                self.render("message.html",
+                            message = "Multiple entries in database for Quarter {0}".format(q),
+                            title = "Database Error",
+                            next = "Manage Quarters",
+                            next_url = "/admin/quarters")
             else:
-                self.render("addquarter.html", quarters=rows, dropgames=settings.DROPGAMES)
+                self.render("editquarter.html", quarters=rows)
+
     @handler.is_admin
-    def post(self):
-        quarter = self.get_argument('quarter', None)
+    def post(self, q):
+        quarter = q
         gamecount = self.get_argument('gamecount', None)
+        unusedPointsIncrement = self.get_argument('unusedPointsIncrement', None)
         with db.getCur() as cur:
             cur.execute("DELETE FROM Quarters WHERE Quarter = ?;", (quarter,))
-            cur.execute("INSERT INTO Quarters(Quarter, Gamecount) VALUES (?,?);", (quarter, gamecount))
+            cur.execute("INSERT INTO Quarters(Quarter, Gamecount, "
+                        "UnusedPointsIncrement) VALUES (?,?,?);",
+                        (quarter, gamecount, unusedPointsIncrement))
 
-        self.render("message.html", message = "Quarter updated", title = "Add Quarter Gamecount")
+        self.render("message.html",
+                    message = "Quarter {0} updated".format(quarter),
+                    title = "Quarter Updated",
+                    next = "Update more quarters",
+                    next_url = "/admin/quarters")
 
 class QuartersHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self):
         with db.getCur() as cur:
-            cur.execute("SELECT Quarter, Gamecount FROM Quarters")
+            cur.execute(
+                "SELECT DISTINCT Scores.Quarter, Gamecount, "
+                " COALESCE(UnusedPointsIncrement, ?)"
+                " FROM Scores LEFT OUTER JOIN Quarters"
+                " ON Scores.Quarter = Quarters.Quarter"
+                " ORDER BY Scores.Quarter DESC",
+                (db.unusedPointsIncrement(),))
             rows = cur.fetchall()
-            if len(rows) == 0:
-                self.render("quarters.html", message = "No quarters found")
-            else:
-                self.render("quarters.html", quarters=rows)
+
+            self.render("quarters.html",
+                        message = "No quarters found" if len(rows) == 0 else "",
+                        quarters=rows)
 
 class DeleteQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
-            row = cur.fetchone()
-            if row == None:
-                self.render("message.html", message = "Quarter not found", title = "Delete Quarter Gamecounts")
+            cur.execute("SELECT Quarter, Gamecount FROM Quarters "
+                        "WHERE Quarter = ? ORDER BY Quarter DESC", (q,))
+            rows = cur.fetchall()
+            if len(rows) == 0:
+                self.render("message.html",
+                            message = "Quarter {0} not found".format(q),
+                            title = "Quarter Not Found",
+                            next = "Manage quarters",
+                            next_url = "/admin/quarters")
+            elif len(rows) == 1:
+                cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (q,))
+                self.render("message.html",
+                            message = "Quarter {0} deleted".format(q),
+                            title = "Quarter Deleted",
+                            next = "Manage quarters",
+                            next_url = "/admin/quarters")
             else:
-                self.render("quarters.html", quarter=row[0])
-    @handler.is_admin
-    def get(self, q):
-        with db.getCur() as cur:
-            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
-            row = cur.fetchone()
-            if row == None:
-                self.render("message.html", message = "Quarter not found", title = "Delete Quarter Gamecounts")
-            else:
-                cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (row[0],))
-                self.render("message.html", message = "Quarter deleted", title = "Delete Quarter Gamecount")
+                self.render("quarters.html",
+                            message = ("Error: Multiple quarters named {0} "
+                                       "found. See Adminstrator.").format(q),
+                            quarters=rows)
 

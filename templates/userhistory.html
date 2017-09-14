@@ -43,6 +43,13 @@
 					<td>{{ score[1][3] }}</td>
 				</tr>
 				{% end %}
+				{% if game['unusedPoints'] > 0 %}
+				<tr>
+				  <td colspan="5" class="unusedPointsValue">
+				    Unused points:&nbsp; {{ game['unusedPoints'] }}K
+				  </td>
+				</tr>
+				{% end %}
 			</tbody>
 		</table>
 		{% end %}

@@ -118,7 +118,6 @@ class PlayerStatsHandler(handler.BaseHandler):
                     cur.execute(query, args)
             self.redirect("/playerstats/" + name)
 
-
 quarterSuffixes = {'1': 'st', '2': 'nd', '3': 'rd', '4': 'th'}
 
 def parseQuarter(qstring):

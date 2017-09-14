@@ -180,7 +180,8 @@ class PlayersList(tornado.web.RequestHandler):
     def get(self):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
-            cur.execute("SELECT Name FROM Players ORDER BY Name")
+            cur.execute("SELECT Name FROM Players WHERE Id != ? ORDER BY Name",
+                        (db.getUnusedPointsPlayerID(),))
             self.write(json.dumps(list(map(lambda x:x[0], cur.fetchall()))))
 
 POPULATION = 256

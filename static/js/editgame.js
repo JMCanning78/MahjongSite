@@ -8,11 +8,10 @@
 		$("#submit").click(window.submitGame.bind(this,
 			'/admin/edit/' + window.gameid,
 			function() {
-				$("#gamedate").remove();
 				$("#message").text("GAME EDITED");
 				$("#content").append($("<a href='/admin/edit/" + window.gameid + "' class='button'>EDIT AGAIN</a>"));
 			}, {
-				gamedate: scores[0][4]
+				'gamedate': scores[0][4]
 			}));
 
 		window.populatedEditor = function() {

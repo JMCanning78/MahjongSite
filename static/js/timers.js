@@ -6,8 +6,10 @@ $(function() {
 	});
 
 	function startTimer(id) {
-		$.post("/timers/start", {"id":id}, function(data) {
-			if(data.status !== 0)
+		$.post("/timers/start", {
+			"id": id
+		}, function(data) {
+			if (data.status !== 0)
 				console.log(data);
 			else
 				getTimers();
@@ -23,11 +25,12 @@ $(function() {
 			updateTimers();
 		});
 	}
+
 	function updateTimers() {
 		$(".timer").each(function(i, timer) {
 			var time = $(timer).data("time");
 			var duration = new Date($(timer).data("duration") * 60 * 1000);
-			if(time === undefined)
+			if (time === undefined)
 				time = new Date(new Date().getTime() + duration.getTime());
 			else
 				time = new Date(time.replace(/ /g, "T"));
@@ -48,8 +51,8 @@ $(function() {
 	});
 	$("#add").click(function() {
 		var data = {
-			"name":$("#name").val(),
-			"duration":$("#duration").val(),
+			"name": $("#name").val(),
+			"duration": $("#duration").val(),
 		};
 		$.post("/timers/add", data, function(data) {
 			if (data.status !== 0)

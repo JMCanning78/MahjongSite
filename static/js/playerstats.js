@@ -36,14 +36,16 @@ $(function() {
 				return d.count
 			})(
 				nonzero),
-			g = svg_selection.html("").append("g"). // Remove any error message
-		attr("transform", // Make group node in svg w/ transform
+			g = svg_selection.html(""). // Remove any error message
+		append("g"). // Make group node in svg
+		attr("class", "rankpiechart"). // for pie chart
+		attr("transform", // w/ transform
 			"translate(" + width / 2 + "," + height / 2 + ")");
 		// Create pie slices for each rank with a non-zero count
 		g.selectAll(".arc").data(arcs).enter().
 		append("g").classed("arc", true).append("path").attr("d", path).
 		attr("class", function(d) {
-			return "rank_" + d.data.rank + "_path"
+			return "rank_" + d.data.rank + "_path rank_path"
 		});
 		// Label each slice near the outer edge with that rank's count
 		g.selectAll("text").data(arcs).enter().
@@ -57,7 +59,7 @@ $(function() {
 			return d.data.count
 		}).
 		attr("class", function(d) {
-			return "rank_" + d.data.rank + "_count"
+			return "rank_" + d.data.rank + "_count rank_count"
 		});
 		var columns = []
 		for (prop in data[0]) {
@@ -78,9 +80,9 @@ $(function() {
 		}).
 		enter().append("td").
 		attr("class", function(d) {
-			return d.column + "_" + d.value + "_label"
-		}).
-		text(function(d) {
+			return d.column + "_" + d.value + "_label " +
+				d.column + "_label"
+		}).text(function(d) {
 			return d.value
 		});
 	}

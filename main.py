@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+__doc__ = """
+Main program to run a web server for a Mahjong club's web site.
+Launch this program (with an optional port number argument) on the
+web server after configuring the mysettings.py file.  If no scores 
+database is found, an empty one will be created.  The first user
+account will be given admin privileges to configure other options.
+The web log is written to standard output (redirect as desired).
+"""
+
 import sys
 import os.path
 import os
@@ -24,11 +33,12 @@ import seating
 import timers
 import login
 import admin
+import addgame
 import leaderboard
 import playerstats
 
 # import and define tornado-y things
-from tornado.options import define, options
+from tornado.options import options
 cookie_secret = util.randString(32)
 
 class MainHandler(handler.BaseHandler):
@@ -42,18 +52,6 @@ class MainHandler(handler.BaseHandler):
 
         self.render("index.html", admin = admin, no_user = no_user)
 
-class AddGameHandler(handler.BaseHandler):
-    @tornado.web.authenticated
-    def get(self):
-        self.render("addgame.html")
-    @tornado.web.authenticated
-    def post(self):
-        scores = self.get_argument('scores', None)
-
-        scores = json.loads(scores)
-
-        self.write(json.dumps(db.addGame(scores)))
-
 class HistoryHandler(handler.BaseHandler):
     def get(self, page):
         if page is None:
@@ -66,13 +64,29 @@ class HistoryHandler(handler.BaseHandler):
             dates = cur.fetchall()
             gamecount = len(dates)
             if gamecount > 0:
-                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.Date BETWEEN ? AND ? GROUP BY Scores.Id ORDER BY Scores.Date ASC;", (dates[min(page * PERPAGE + PERPAGE - 1, gamecount - 1)][0], dates[min(page * PERPAGE, gamecount - 1)][0]))
+                cur.execute("SELECT Scores.GameId,"
+                            " strftime('%Y-%m-%d', Scores.Date), Rank,"
+                            " Players.Name, Scores.RawScore / 1000.0,"
+                            " Scores.Score, Scores.Chombos, Players.Id"
+                            " FROM Scores INNER JOIN Players ON"
+                            "   Players.Id = Scores.PlayerId"
+                            " WHERE Scores.Date BETWEEN ? AND ?"
+                            " GROUP BY Scores.Id ORDER BY Scores.Date DESC;",
+                            (dates[min(page * PERPAGE + PERPAGE - 1,
+                                       gamecount - 1)][0],
+                             dates[min(page * PERPAGE, gamecount - 1)][0]))
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    if row[0] not in games:
-                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
-                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                    gID = row[0]
+                    if gID not in games:
+                        games[gID] = {'date':row[1], 'scores':{}, 
+                                      'id':gID, 'unusedPoints': 0}
+                    if row[7] == db.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = row[4]
+                    else:
+                        games[gID]['scores'][row[2]] = (
+                            row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
                 games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
@@ -107,16 +121,31 @@ class PlayerHistory(handler.BaseHandler):
             games = [i[0] for i in cur.fetchall()]
             gamecount = len(games)
             if gamecount > 0:
-                thesegames = games[min(page * PERPAGE, gamecount - 1):min(page * PERPAGE + PERPAGE, gamecount)]
+                thesegames = games[min(page * PERPAGE, gamecount - 1):
+                                   min(page * PERPAGE + PERPAGE, gamecount)]
                 placeholder= '?' # For SQLite. See DBAPI paramstyle
                 placeholders= ', '.join(placeholder for i in range(len(thesegames)))
-                cur.execute("SELECT Scores.GameId, strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE Scores.GameId IN (" + placeholders + ") GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
+                cur.execute(
+                    "SELECT Scores.GameId,"
+                    " strftime('%Y-%m-%d', Scores.Date), Rank, Players.Name,"
+                    " Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos,"
+                    " Players.Id"
+                    " FROM Scores INNER JOIN Players"
+                    "  ON Players.Id = Scores.PlayerId"
+                    " WHERE Scores.GameId IN (" + placeholders + ")"
+                    " GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    if row[0] not in games:
-                        games[row[0]] = {'date':row[1], 'scores':{}, 'id':row[0]}
-                    games[row[0]]['scores'][row[2]] = (row[3], row[4], round(row[5], 2), row[6])
+                    gID = row[0]
+                    if gID not in games:
+                        games[gID] = {'date':row[1], 'scores':{}, 
+                                      'id':gID, 'unusedPoints': 0}
+                    if row[7] == db.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = row[4]
+                    else:
+                        games[gID]['scores'][row[2]] = (
+                            row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
                 games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
@@ -146,8 +175,8 @@ class PointCalculator(handler.BaseHandler):
         self.render("pointcalculator.html")
 
 class Application(tornado.web.Application):
-    def __init__(self):
-        db.init()
+    def __init__(self, force=False):
+        db.init(force=force)
 
         handlers = [
                 (r"/", MainHandler),
@@ -159,7 +188,7 @@ class Application(tornado.web.Application):
                 (r"/verify/([^/]+)", login.VerifyHandler),
                 (r"/reset", login.ResetPasswordHandler),
                 (r"/reset/([^/]+)", login.ResetPasswordLinkHandler),
-                (r"/addgame", AddGameHandler),
+                (r"/addgame", addgame.AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", leaderboard.LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", leaderboard.LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
@@ -184,7 +213,7 @@ class Application(tornado.web.Application):
                 (r"/pointcalculator", PointCalculator),
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),
-                (r"/admin/addquarter", admin.AddQuarterHandler),
+                (r"/admin/editquarter/([^/]*)", admin.EditQuarterHandler),
                 (r"/admin/quarters", admin.QuartersHandler),
                 (r"/admin/deletequarter/([^/]*)", admin.DeleteQuarterHandler),
                 (r"/admin/delete/([0-9]*)", admin.DeleteGameHandler),
@@ -207,21 +236,66 @@ def periodicCleanup():
         cur.execute("DELETE FROM Players WHERE Id NOT IN (SELECT PlayerId FROM Scores)")
 
 def main():
-    if len(sys.argv) > 1:
-        try:
-            socket = int(sys.argv[1])
-        except:
-            socket = sys.argv[1]
-    else:
-        socket = "/tmp/mahjong.sock"
-
-    if hasattr(settings, 'EMAILSERVER'):
-        qm = QueMail.get_instance()
-        qm.init(settings.EMAILSERVER, settings.EMAILUSER, settings.EMAILPASSWORD, settings.EMAILPORT, True)
-        qm.start()
+    default_socket = "/tmp/mahjong.sock"
+    socket = None
+    force = False
+    i = 1
+    errors = []
+    usage = ["usage: {0} [-f|--force] [tornado-options] [Port|Socket]",
+             "positional arguments:",
+             "  Port|Socket   Port number or unix socket to listen on",
+             "                (default: {0})".format(default_socket),
+             "",
+             "optional arguments:",
+             "  -f|--force    Force database schema updates without prompting",
+             "                (default: {0})".format(force),
+             "  -h|--help     show help information and exit",
+             "",
+             "tornado options:",
+             ]
+    usage = __doc__ + "\n" + "\n".join(usage)
+    while i < len(sys.argv):
+        if sys.argv[i].isdigit():
+            if socket is None:
+                socket = int(sys.argv[i])
+            else:
+                errors.append('Multiple port or socket arguments specified '
+                              '"{0}"'.format(sys.argv[i]))
+        elif sys.argv[i].startswith('-'):
+            if sys.argv[i] in ['-f', '--force']:
+                force = True
+                del sys.argv[i]
+                continue
+            elif sys.argv[i] in ['-h', '--help']:
+                print(usage)  # and don't exit so tornado help will print
+                if sys.argv[i] == '-h':
+                    sys.argv[i] = '--help' # tornado doesn't accept -h option
+            else:
+                pass  # Leave tornado options in place for later parsing
+        else:
+            if socket is None:
+                socket = sys.argv[i]
+            else:
+                errors.append('Multiple port or socket arguments specified '
+                              '"{0}"'.format(sys.argv[i]))
+        i += 1
+        
+    if socket is None:
+        socket = default_socket
 
     tornado.options.parse_command_line()
-    http_server = tornado.httpserver.HTTPServer(Application(), max_buffer_size=24*1024**3)
+    if errors:
+        print("\n  ".join(["Errors:"] + errors))
+        sys.exit(-1)
+        
+    if hasattr(settings, 'EMAILSERVER'):
+        qm = QueMail.get_instance()
+        qm.init(settings.EMAILSERVER, settings.EMAILUSER,
+                settings.EMAILPASSWORD, settings.EMAILPORT, True)
+        qm.start()
+
+    http_server = tornado.httpserver.HTTPServer(Application(force=force),
+                                                max_buffer_size=24*1024**3)
     if isinstance(socket, int):
         http_server.add_sockets(tornado.netutil.bind_sockets(socket))
     else:
@@ -230,7 +304,7 @@ def main():
     signal.signal(signal.SIGINT, sigint_handler)
 
     tornado.ioloop.PeriodicCallback(periodicCleanup, 60 * 60 * 1000).start() # run periodicCleanup once an hour
-    # start it up
+    # start up web server
     tornado.ioloop.IOLoop.instance().start()
 
     if qm is not None:
