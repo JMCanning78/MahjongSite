@@ -85,6 +85,9 @@
 						player.id = player.name.replace(/ /g, "-");
 					});
 					$(people).html(Mustache.render(currentPlayersTemplate, data));
+					$(".priority").change(function() {
+						prioritizePlayer($(this).parent().data("name"), this.checked);
+					});
 					$(".deletebutton").click(function() {
 						removePlayer($(this).parent().data("name"));
 					});
