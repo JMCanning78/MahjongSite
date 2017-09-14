@@ -4,6 +4,7 @@
 		<link href="{{ static_url("css/addgame.css") }}" type="text/css" rel="stylesheet" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
 		<script src="{{ static_url("js/gameeditor.js") }}"></script>
+		<script src="{{ static_url("js/addgame.js") }}"></script>
 {% end %}
 {% block content %}
 	<h3 id="message">Total: 0</h3>
@@ -14,9 +15,9 @@
 	<div id="players">
 	</div>
 	{% if unusedPointsIncrement > 0 %}
-	<input id="unusedPoints" type="number" 
+	<input id="unusedPoints" type="number"
 	       step="{{ unusedPointsIncrement }}" min="0"
-	       placeholder="UNUSED POINTS" onkeyup="checkUnusedPoints()">
+	       placeholder="UNUSED POINTS">
 	</input>
 	{% end %}
 	<button id="submit" disabled>Add</button>

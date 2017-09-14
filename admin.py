@@ -82,6 +82,7 @@ class DeleteGameHandler(handler.BaseHandler):
             if cur.fetchone()[0] == 0:
                 self.render("message.html", message = "Game not found", title = "Delete Game")
             else:
+                db.make_backup()
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
                 self.redirect("/history")
 
@@ -110,6 +111,7 @@ class EditGameHandler(handler.BaseHandler):
                 return
             gameid = row[0]
 
+        db.make_backup()
         self.write(json.dumps(db.addGame(scores, gamedate, gameid)))
 
 class EditQuarterHandler(handler.BaseHandler):
@@ -130,7 +132,7 @@ class EditQuarterHandler(handler.BaseHandler):
                             next_url = "/admin/quarters")
             else:
                 self.render("editquarter.html", quarters=rows)
-                
+
     @handler.is_admin
     def post(self, q):
         quarter = q
@@ -160,8 +162,8 @@ class QuartersHandler(handler.BaseHandler):
                 " ORDER BY Scores.Quarter DESC",
                 (db.unusedPointsIncrement(),))
             rows = cur.fetchall()
-            
-            self.render("quarters.html", 
+
+            self.render("quarters.html",
                         message = "No quarters found" if len(rows) == 0 else "",
                         quarters=rows)
 
@@ -173,20 +175,20 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         "WHERE Quarter = ? ORDER BY Quarter DESC", (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                self.render("message.html", 
+                self.render("message.html",
                             message = "Quarter {0} not found".format(q),
                             title = "Quarter Not Found",
                             next = "Manage quarters",
                             next_url = "/admin/quarters")
             elif len(rows) == 1:
                 cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (q,))
-                self.render("message.html", 
+                self.render("message.html",
                             message = "Quarter {0} deleted".format(q),
                             title = "Quarter Deleted",
                             next = "Manage quarters",
                             next_url = "/admin/quarters")
             else:
-                self.render("quarters.html", 
+                self.render("quarters.html",
                             message = ("Error: Multiple quarters named {0} "
                                        "found. See Adminstrator.").format(q),
                             quarters=rows)

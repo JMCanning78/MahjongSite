@@ -25,6 +25,7 @@
 				elem.each(function(_, complete) {
 					$(complete).next(".clearplayercomplete").click(function(clearbutton) {
 						$(complete).val("");
+						$(complete).trigger("change");
 					});
 				});
 			}

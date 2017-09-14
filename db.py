@@ -6,6 +6,8 @@ import random
 import datetime
 import re
 import collections
+import shutil
+import os
 
 import util
 import settings
@@ -27,8 +29,8 @@ class getCur():
 
 schema = collections.OrderedDict({
     'Players': [
-        'Id INTEGER PRIMARY KEY AUTOINCREMENT', 
-        'Name TEXT', 
+        'Id INTEGER PRIMARY KEY AUTOINCREMENT',
+        'Name TEXT',
         'MeetupName TEXT'
     ],
     'Scores': [
@@ -114,6 +116,14 @@ def init(force=False):
             checked.add(table)
         count += 1
 
+def make_backup():
+    backupdb = datetime.datetime.now().strftime(settings.DBDATEFORMAT) + "-" + os.path.split(settings.DBFILE)[1]
+    backupdb = os.path.join(settings.DBBACKUPS, backupdb)
+    print("Making backup of database {0} to {1}".format(settings.DBFILE, backupdb))
+    if not os.path.isdir(settings.DBBACKUPS):
+        os.mkdir(settings.DBBACKUPS)
+    shutil.copyfile(settings.DBFILE, backupdb)
+
 fkey_pattern = re.compile(
     r'.*FOREIGN\s+KEY\s*\((\w+)\)\s*REFERENCES\s+(\w+)\s*\((\w+)\).*',
     re.IGNORECASE)
@@ -134,7 +144,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
     For schema changes beyond just adding fields, it renames the old table
     to a "backup" table, and then copies its content into a freshly built
     new version of the table.
-    For really complex schema changs, move the old database aside and 
+    For really complex schema changs, move the old database aside and
     either build from scratch or manually alter it.
     """
     table_fields = schema[tablename]
@@ -150,7 +160,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
             fields_to_add = missing_fields(table_fields, actual_fields)
             fkeys_to_add = missing_constraints(table_fields, actual_fkeys)
             altered = altered_fields(table_fields, actual_fields)
-            if (len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and 
+            if (len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and
                 len(altered) == 0):
                 # Only new fields to add
                 if force or util.prompt(
@@ -166,6 +176,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
                          "to add {1}, impose {2}, or correct {3}))").format(
                              tablename, fields_to_add, fkeys_to_add,
                              altered)):
+                    make_backup()
                     backup = tablename + backupname
                     sql = "ALTER TABLE {0} RENAME TO {1};".format(
                         tablename, backup)
@@ -202,10 +213,10 @@ def missing_constraints(table_fields, actual_fkeys):
                     actual_fkeys))) ]
 
 def match_constraint(field_spec, fkey_record):
-    global fkey_pattern               
+    global fkey_pattern
     match = fkey_pattern.match(field_spec)
-    return (match and 
-            match.group(1).upper() == fkey_record[3].upper() and 
+    return (match and
+            match.group(1).upper() == fkey_record[3].upper() and
             match.group(2).upper() == fkey_record[2].upper() and
             match.group(3).upper() == fkey_record[4].upper())
 
@@ -232,13 +243,13 @@ def field_spec_matches_pragma(field_spec, pragma_rec):
     if field_spec is None or pragma_rec is None:
         return False
     field = dict(zip(
-        sqlite_pragma_columns, 
+        sqlite_pragma_columns,
         [x.upper() if isinstance(x, str) else x for x in pragma_rec]))
     spec = words(field_spec.upper())
     return (spec[0] == field['name'] and
             all([w in spec for w in words(field['type'])]) and
             (field['notnull'] == 0 or ('NOT' in spec and 'NULL' in spec)) and
-            (field['default'] is None or 
+            (field['default'] is None or
              ('DEFAULT' in spec and str(field['default']) in spec)) and
             (field['pk_member'] == (
                 1 if 'PRIMARY' in spec and 'KEY' in spec else 0))
@@ -292,9 +303,9 @@ def getUnusedPointsPlayerID():
                         (unusedPointsPlayerName,))
             _unusedPointsPlayer = cur.lastrowid
     return _unusedPointsPlayer
-        
+
 dateFormat = "%Y-%m-%d"
-    
+
 def addGame(scores, gamedate = None, gameid = None):
     """Add raw scores for a particular game to the database.
     The scores should be a list of dictionaries.
@@ -329,14 +340,14 @@ def addGame(scores, gamedate = None, gameid = None):
             unusedPoints = score['score']
         uniqueIDs.add(score['player'])
         total += score['score']
-        
+
     realPlayerCount = len(scores) - (1 if hasUnusedPoints else 0)
-    
+
     if not (4 <= realPlayerCount and realPlayerCount <= 5):
         return {"status":1, "error":"Please enter 4 or 5 scores"}
 
     if hasUnusedPoints and unusedPoints % unusedPointsIncrement() != 0:
-        return {"status":1, 
+        return {"status":1,
                 "error":"Unused points must be a multiple of {0}".format(
                     unusedPointsIncrement())}
 
@@ -348,7 +359,7 @@ def addGame(scores, gamedate = None, gameid = None):
 
     targetTotal = realPlayerCount * 25000
     if total != targetTotal:
-        return {"status": 1, 
+        return {"status": 1,
                 "error": "Scores do not add up to " + str(targetTotal)}
 
     # Sort scores for ranking, ensuring unused points player is last, if present
@@ -369,7 +380,7 @@ def addGame(scores, gamedate = None, gameid = None):
 
         for i in range(len(scores)):
             score = scores[i]
-            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
+            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?",
                         (score['player'], score['player']))
             player = cur.fetchone()
             if player is None or len(player) == 0:
@@ -381,12 +392,12 @@ def addGame(scores, gamedate = None, gameid = None):
             player = player[0]
 
             adjscore = 0 if score['player'] == unusedPointsPlayerID else (
-                util.getScore(score['score'], realPlayerCount, i + 1) - 
+                util.getScore(score['score'], realPlayerCount, i + 1) -
                         score['chombos'] * 8)
             cur.execute(
                 "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
                 " RawScore, Chombos, Score, Date, Quarter) "
-                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                (gameid, player, i + 1, len(scores), 
+                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (gameid, player, i + 1, len(scores),
                  score['score'], score['chombos'], adjscore, gamedate, quarter))
     return {"status":0}
