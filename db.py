@@ -160,6 +160,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
             fields_to_add = missing_fields(table_fields, actual_fields)
             fkeys_to_add = missing_constraints(table_fields, actual_fkeys)
             altered = altered_fields(table_fields, actual_fields)
+            deleted = deleted_fields(table_fields, actual_fields)
             if (len(fields_to_add) > 0 and len(fkeys_to_add) == 0 and
                 len(altered) == 0):
                 # Only new fields to add
@@ -173,7 +174,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
                 # Fields have changed significantly; try copying old into new
                 if force or util.prompt(
                         ("SCHEMA CHANGE: Backup and recreate table {0} "
-                         "to add {1}, impose {2}, or correct {3}))").format(
+                         "to add {1}, impose {2}, correct {3}, and delete {4}))").format(
                              tablename, fields_to_add, fkeys_to_add,
                              altered)):
                     make_backup()
@@ -228,9 +229,17 @@ def altered_fields(table_fields, actual_fields):
     altered = []
     for actual in actual_fields:
         matching_spec = find_field_spec_for_pragma(table_fields, actual)
-        if not field_spec_matches_pragma(matching_spec, actual):
+        if matching_spec and not field_spec_matches_pragma(matching_spec, actual):
             altered.append(matching_spec)
     return altered
+
+def deleted_fields(table_fields, actual_fields):
+    deleted = []
+    for actual in actual_fields:
+        matching_spec = find_field_spec_for_pragma(table_fields, actual)
+        if not matching_spec:
+            deleted.append(actual[1] + ' ' + actual[2])
+    return deleted
 
 def find_field_spec_for_pragma(table_fields, pragma_rec):
     for field in table_fields:
