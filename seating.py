@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import meetup.api
 import json
@@ -266,7 +267,7 @@ def playerGames(players, c):
 
     playergames = dict()
     now = datetime.datetime.now()
-    now = str(now.year) + " " + str((now.month - 1) / 3)
+    now = str(now.year) + " " + str(int((now.month - 1) / 3))
 
     for i in range(numplayers):
         for j in range(i + 1, numplayers):
