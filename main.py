@@ -3,7 +3,7 @@
 __doc__ = """
 Main program to run a web server for a Mahjong club's web site.
 Launch this program (with an optional port number argument) on the
-web server after configuring the mysettings.py file.  If no scores 
+web server after configuring the mysettings.py file.  If no scores
 database is found, an empty one will be created.  The first user
 account will be given admin privileges to configure other options.
 The web log is written to standard output (redirect as desired).
@@ -80,7 +80,7 @@ class HistoryHandler(handler.BaseHandler):
                 for row in rows:
                     gID = row[0]
                     if gID not in games:
-                        games[gID] = {'date':row[1], 'scores':{}, 
+                        games[gID] = {'date':row[1], 'scores':{},
                                       'id':gID, 'unusedPoints': 0}
                     if row[7] == db.getUnusedPointsPlayerID():
                         games[gID]['unusedPoints'] = row[4]
@@ -139,7 +139,7 @@ class PlayerHistory(handler.BaseHandler):
                 for row in rows:
                     gID = row[0]
                     if gID not in games:
-                        games[gID] = {'date':row[1], 'scores':{}, 
+                        games[gID] = {'date':row[1], 'scores':{},
                                       'id':gID, 'unusedPoints': 0}
                     if row[7] == db.getUnusedPointsPlayerID():
                         games[gID]['unusedPoints'] = row[4]
@@ -209,7 +209,7 @@ class Application(tornado.web.Application):
                 (r"/timers.json", timers.GetTimersHandler),
                 (r"/timers/add", timers.AddTimer),
                 (r"/timers/start", timers.StartTimer),
-                (r"/timers/clear", timers.ClearTimers),
+                (r"/timers/delete", timers.DeleteTimer),
                 (r"/pointcalculator", PointCalculator),
                 (r"/admin", admin.AdminPanelHandler),
                 (r"/admin/users", admin.ManageUsersHandler),
@@ -279,7 +279,7 @@ def main():
                 errors.append('Multiple port or socket arguments specified '
                               '"{0}"'.format(sys.argv[i]))
         i += 1
-        
+
     if socket is None:
         socket = default_socket
 
@@ -287,7 +287,7 @@ def main():
     if errors:
         print("\n  ".join(["Errors:"] + errors))
         sys.exit(-1)
-        
+
     if hasattr(settings, 'EMAILSERVER'):
         qm = QueMail.get_instance()
         qm.init(settings.EMAILSERVER, settings.EMAILUSER,

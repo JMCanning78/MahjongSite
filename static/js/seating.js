@@ -79,22 +79,23 @@
 		}
 
 		function getCurrentPlayers() {
-			$.getJSON('/seating/currentplayers.json', function(data) {
-				if (data.players) {
-					data.players.forEach(function(player) {
-						player.id = player.name.replace(/ /g, "-");
-					});
-					$(people).html(Mustache.render(currentPlayersTemplate, data));
-					$(".priority").change(function() {
-						prioritizePlayer($(this).parent().data("name"), this.checked);
-					});
-					$(".deletebutton").click(function() {
-						removePlayer($(this).parent().data("name"));
-					});
-				}
-				else if (data.message)
-					$(people).html("<h1>" + data.message + "</h1>");
-			}).fail(xhrError);
+			if (window.current_user !== undefined)
+				$.getJSON('/seating/currentplayers.json', function(data) {
+					if (data.players) {
+						data.players.forEach(function(player) {
+							player.id = player.name.replace(/ /g, "-");
+						});
+						$(people).html(Mustache.render(currentPlayersTemplate, data));
+						$(".priority").change(function() {
+							prioritizePlayer($(this).parent().data("name"), this.checked);
+						});
+						$(".deletebutton").click(function() {
+							removePlayer($(this).parent().data("name"));
+						});
+					}
+					else if (data.message)
+						$(people).html("<h1>" + data.message + "</h1>");
+				}).fail(xhrError);
 		}
 
 

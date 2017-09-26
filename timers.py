@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import tornado.web
 
 import handler
 import db
@@ -16,7 +17,7 @@ class GetTimersHandler(handler.BaseHandler):
             self.write(json.dumps({"timers":[{"id":row[0], "name":row[1],"time":row[2],"duration":row[3]} for row in cur.fetchall()]}))
 
 class AddTimer(handler.BaseHandler):
-    #@torando.web.authenticated
+    @tornado.web.authenticated
     def post(self):
         ret = {"status":"error","message":"Unknown error occurred"}
         name = self.get_argument("name", None)
@@ -28,7 +29,7 @@ class AddTimer(handler.BaseHandler):
         self.write(ret)
 
 class StartTimer(handler.BaseHandler):
-    #@torando.web.authenticated
+    @tornado.web.authenticated
     def post(self):
         ret = {"status":"error","message":"Unknown error occurred"}
         id = self.get_argument("id", None)
@@ -43,12 +44,20 @@ class StartTimer(handler.BaseHandler):
             ret["message"] = "Success"
         self.write(ret)
 
-class ClearTimers(handler.BaseHandler):
-    #@torando.web.authenticated
+class DeleteTimer(handler.BaseHandler):
+    @tornado.web.authenticated
     def post(self):
-        ret = {"status":"error","message":"Unknown error occurred"}
+        id = self.get_argument("id", None)
+        ret = {"status":1,"message":"Unknown error occurred"}
         with db.getCur() as cur:
-            cur.execute("DELETE FROM Timers")
-            ret["status"] = 0
-            ret["message"] = "Success"
+            if id == "all":
+                cur.execute("DELETE FROM Timers")
+                ret["status"] = 0
+                ret["message"] = "Timers cleared"
+            elif id is not None:
+                cur.execute("DELETE FROM Timers WHERE Id = ?", (id,))
+                ret["status"] = 0
+                ret["message"] = "Timer deleted"
+            else:
+                ret["message"] = "Please choose a timer"
         self.write(ret)

@@ -16,11 +16,26 @@ $(function() {
 		});
 	}
 
+	function deleteTimer(id) {
+		$.post("/timers/delete", {
+			"id": id
+		}, function(data) {
+			if (data.status !== 0)
+				console.log(data);
+			else
+				getTimers();
+		});
+	}
+
 	function getTimers() {
 		$.getJSON("/timers.json", function(data) {
+			data.current_user = window.current_user;
 			$("#timers").html(Mustache.render(timerTemplate, data));
 			$(".start").click(function() {
 				startTimer($(this).parent().data("id"));
+			});
+			$(".delete").click(function() {
+				deleteTimer($(this).parent().data("id"));
 			});
 			updateTimers();
 		});
@@ -42,12 +57,7 @@ $(function() {
 	window.setInterval(updateTimers, 1000);
 
 	$("#clear").click(function() {
-		$.post("/timers/clear", {}, function(data) {
-			if (data.status !== 0)
-				console.log(data);
-			else
-				getTimers();
-		});
+		deleteTimer("all");
 	});
 	$("#add").click(function() {
 		var data = {
@@ -63,6 +73,9 @@ $(function() {
 				$("#duration").val("");
 			}
 		}, 'json');
+	});
+	$("#start").click(function() {
+		startTimer();
 	});
 	$("#start").click(function() {
 		startTimer();

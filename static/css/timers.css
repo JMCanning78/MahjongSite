@@ -11,6 +11,10 @@
 }
 .timer > button {
 	margin-bottom:0;
+	width:49%;
+}
+.timer > h3 {
+	min-height:1em;
 }
 
 @media (max-width:600px) {

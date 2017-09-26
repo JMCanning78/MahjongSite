@@ -88,6 +88,12 @@ schema = collections.OrderedDict({
         'Value SETTING NOT NULL',
         'FOREIGN KEY(UserId) REFERENCES Users(Id)'
     ],
+    'Timers': [
+        'Id INTEGER PRIMARY KEY',
+        'Name TEXT',
+        'Duration INTEGER',
+        'Time DATETIME'
+    ]
 })
 
 def init(force=False):
