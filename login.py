@@ -293,7 +293,7 @@ class LoginHandler(handler.BaseHandler):
                         self.redirect(uri)
                         return
         log.info("Invalid login attempt for {0}".format(email))
-        self.render("login.html", message = "Incorrect email and password")
+        self.render("login.html", message = "Incorrect email and password", uri = uri)
 
 class LogoutHandler(handler.BaseHandler):
     def get(self):
