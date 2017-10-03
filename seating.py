@@ -68,7 +68,7 @@ class AddMeetupPlayers(handler.BaseHandler):
                         event = result
                 rsvps = client.GetRsvps({'event_id':event['id']})
                 with db.getCur() as cur:
-                    members = [member['member']['name'] for member in rsvps.results]
+                    members = [member['member']['name'] for member in rsvps.results if member['response'] == 'yes']
                     if len(members) > 0:
                         cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
                             COALESCE(MeetupName, Name) IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
