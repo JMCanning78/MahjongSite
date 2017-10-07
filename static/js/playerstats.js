@@ -61,10 +61,7 @@ $(function() {
 		attr("class", function(d) {
 			return "rank_" + d.data.rank + "_count rank_count"
 		});
-		var columns = []
-		for (prop in data[0]) {
-			columns.push(prop)
-		}
+		var columns = ["rank", "count"];
 
 		// Build a table for the legend that shows all the ranks and counts
 		var rows = legend_selection.selectAll("tr").data(data).enter().
