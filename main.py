@@ -71,7 +71,8 @@ class HistoryHandler(handler.BaseHandler):
                             " FROM Scores INNER JOIN Players ON"
                             "   Players.Id = Scores.PlayerId"
                             " WHERE Scores.Date BETWEEN ? AND ?"
-                            " GROUP BY Scores.Id ORDER BY Scores.Date DESC;",
+                            " GROUP BY Scores.Id"
+                            " ORDER BY Scores.Date DESC, Scores.GameId DESC;",
                             (dates[min(page * PERPAGE + PERPAGE - 1,
                                        gamecount - 1)][0],
                              dates[min(page * PERPAGE, gamecount - 1)][0]))
