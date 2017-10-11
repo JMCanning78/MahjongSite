@@ -1,3 +1,8 @@
 #!/bin/sh
 
-js-beautify -tnprb end-expand static/js/*
+if [ $# -eq 0 ] ; then
+	js-beautify -tnr --brace-style=end-expand static/js/*.js
+else
+	js-beautify -tnr --brace-style=end-expand $*
+fi
+
