@@ -1,12 +1,8 @@
 #!/bin/sh
 
 if [ $# -eq 0 ] ; then
-    for f in static/js/*.js ; do
-	js-beautify -tnr --brace-style=end-expand $f
-    done
+	js-beautify -tnr --brace-style=end-expand static/js/*.js
 else
-    for f in $* ; do
-	js-beautify -tnr --brace-style=end-expand $f
-    done
+	js-beautify -tnr --brace-style=end-expand $*
 fi
 
