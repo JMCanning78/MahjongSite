@@ -70,12 +70,13 @@ class HistoryHandler(handler.BaseHandler):
                             " Scores.Score, Scores.Chombos, Players.Id"
                             " FROM Scores INNER JOIN Players ON"
                             "   Players.Id = Scores.PlayerId"
-                            " WHERE Scores.Date BETWEEN ? AND ?"
+                            " WHERE Scores.Date BETWEEN ? AND ? AND Players.Id != ?"
                             " GROUP BY Scores.Id"
                             " ORDER BY Scores.Date DESC, Scores.GameId DESC;",
                             (dates[min(page * PERPAGE + PERPAGE - 1,
                                        gamecount - 1)][0],
-                             dates[min(page * PERPAGE, gamecount - 1)][0]))
+                             dates[min(page * PERPAGE, gamecount - 1)][0],
+                             db.getUnusedPointsPlayerID()))
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
