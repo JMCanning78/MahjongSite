@@ -18,5 +18,12 @@
 	<input type="text" id="gamedate"></input>
 	<div id="players">
 	</div>
+	<input id="unusedPoints" type="number"
+	       step="{{ unusedPointsIncrement }}" min="0"
+	       {% if unusedPoints %}
+	       value="{{ unusedPoints }}"
+	       {% end %}
+	       placeholder="UNUSED POINTS">
+	</input>
 	<button id="submit" disabled>Edit</button>
 {% end %}

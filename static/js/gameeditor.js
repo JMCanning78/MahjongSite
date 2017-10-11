@@ -147,7 +147,7 @@ $(function() {
 		}, 'json');
 	}
 
-	$("#unusedpoints").change(checkUnusedPoints);
+	$("#unusedPoints").change(checkUnusedPoints).keyup(checkUnusedPoints);
 
 	var tablesTemplate;
 	$("#seating").click(function() {

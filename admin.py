@@ -90,12 +90,20 @@ class EditGameHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT Rank, Players.Name, Scores.RawScore, Scores.Chombos, Scores.Date FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ? ORDER BY Rank", (q,))
+            cur.execute("SELECT Rank, Players.Name, Scores.RawScore, Scores.Chombos, Scores.Date, Players.Id FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ? ORDER BY Rank", (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
                 self.render("message.html", message = "Game not found", title = "Edit Game")
             else:
-                self.render("editgame.html", id=q, scores=json.dumps(rows).replace("'", "\\'").replace("\\\"", "\\\\\""))
+                unusedPoints = None
+                # UnusedPointsPlayer always sorted last in rank
+                if rows[-1][5] == db.getUnusedPointsPlayerID():
+                    unusedPoints = rows[-1][2]
+                self.render("editgame.html", id=q,
+                            scores=json.dumps(rows).replace("'", "\\'")
+                            .replace("\\\"", "\\\\\""), 
+                            unusedPoints=unusedPoints,
+                            unusedPointsIncrement=db.unusedPointsIncrement())
     @handler.is_admin_ajax
     def post(self, q):
         scores = self.get_argument('scores', None)
