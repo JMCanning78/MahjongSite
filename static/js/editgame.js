@@ -5,14 +5,17 @@
 			"showAnim": "slideDown"
 		}).val(scores[0][4]);
 
-		$("#submit").click(window.submitGame.bind(this,
-			'/admin/edit/' + window.gameid,
-			function() {
-				$("#message").text("GAME EDITED");
-				$("#content").append($("<a href='/admin/edit/" + window.gameid + "' class='button'>EDIT AGAIN</a>"));
-			}, {
-				'gamedate': scores[0][4]
-			}));
+		$("#submit").click(function() {
+			window.submitGame(
+				'/admin/edit/' + window.gameid,
+				function() {
+					$("#message").text("GAME EDITED");
+					$("#content").append($("<a href='/admin/edit/" + window.gameid + "' class='button'>EDIT AGAIN</a>"));
+				}, {
+					'gamedate': $("#gamedate").val()
+				}
+			);
+		});
 
 		window.populatedEditor = function() {
 			for (var i = 0; i < scores.length; ++i) {
