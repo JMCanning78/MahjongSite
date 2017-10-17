@@ -11,6 +11,7 @@ import os
 
 import util
 import settings
+import leaderboard
 
 class getCur():
     con = None
@@ -410,10 +411,13 @@ def addGame(scores, gamedate = None, gameid = None):
             adjscore = 0 if score['player'] == unusedPointsPlayerID else (
                 util.getScore(score['score'], realPlayerCount, i + 1) -
                         score['chombos'] * 8)
+
             cur.execute(
                 "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
                 " RawScore, Chombos, Score, Date, Quarter) "
                 " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (gameid, player, i + 1, len(scores),
                  score['score'], score['chombos'], adjscore, gamedate, quarter))
+
+            leaderboard.clearCache()
     return {"status":0}

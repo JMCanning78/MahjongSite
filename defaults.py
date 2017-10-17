@@ -10,11 +10,15 @@ CLUBNAME = "{0} Richi Mahjong".format(CLUBCITY)
 DBFILE = "scores.db"
 DBBACKUPS = "backups"
 DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
+MEMCACHE = ""
 
 # PREFERENCES
 #   DROPGAMES is the default number of games a player must complete in a
 #   quarter in order to have the lowest score dropped from the average.
 DROPGAMES = 9
+#   MAXDROPGAMES is the maximum number of games a player can drop in a quarter
+#   Note that the higher this number is, the longer it will take to generate the quarterly leaderboard
+MAXDROPGAMES = 4
 #   LINKVALIDDAYS is the number of days links for invitations and
 #   password resets should remain valid.  They expire after LINKVALIDDAYS
 #   has passed.
