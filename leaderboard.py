@@ -68,6 +68,8 @@ class LeaderDataHandler(handler.BaseHandler):
         if settings.MEMCACHE != "":
             mc=memcache.Client([settings.MEMCACHE])
             leaderboards = mc.get("leaderboards_" + period)
+        else:
+            leaderboards = None
 
         if leaderboards is None:
             with db.getCur() as cur:
