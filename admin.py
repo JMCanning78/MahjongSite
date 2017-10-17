@@ -101,7 +101,7 @@ class EditGameHandler(handler.BaseHandler):
                     unusedPoints = rows[-1][2]
                 self.render("editgame.html", id=q,
                             scores=json.dumps(rows).replace("'", "\\'")
-                            .replace("\\\"", "\\\\\""), 
+                            .replace("\\\"", "\\\\\""),
                             unusedPoints=unusedPoints,
                             unusedPointsIncrement=db.unusedPointsIncrement())
     @handler.is_admin_ajax
@@ -151,6 +151,7 @@ class EditQuarterHandler(handler.BaseHandler):
             cur.execute("INSERT INTO Quarters(Quarter, Gamecount, "
                         "UnusedPointsIncrement) VALUES (?,?,?);",
                         (quarter, gamecount, unusedPointsIncrement))
+            leaderboard.clearCache()
 
         self.render("message.html",
                     message = "Quarter {0} updated".format(quarter),
