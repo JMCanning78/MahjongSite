@@ -184,7 +184,7 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
                         ("SCHEMA CHANGE: Backup and recreate table {0} "
                          "to add {1}, impose {2}, correct {3}, and delete {4}))").format(
                              tablename, fields_to_add, fkeys_to_add,
-                             altered)):
+                             altered, deleted)):
                     make_backup()
                     backup = tablename + backupname
                     sql = "ALTER TABLE {0} RENAME TO {1};".format(
