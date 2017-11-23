@@ -35,11 +35,11 @@ class StartTimer(handler.BaseHandler):
         id = self.get_argument("id", None)
         with db.getCur() as cur:
             if id == "all":
-                cur.execute("UPDATE Timers SET Time = datetime('now','localtime', '+' || Duration || ' minutes')")
+                cur.execute("UPDATE Timers SET Time = datetime('now', '+' || Duration || ' minutes')")
             elif id is not None:
-                cur.execute("UPDATE Timers SET Time = datetime('now','localtime', '+' || Duration || ' minutes') WHERE Id = ?", (id,))
+                cur.execute("UPDATE Timers SET Time = datetime('now', '+' || Duration || ' minutes') WHERE Id = ?", (id,))
             else:
-                cur.execute("UPDATE Timers SET Time = datetime('now','localtime', '+' || Duration || ' minutes') WHERE Time IS NULL OR Time < datetime('now', 'localtime');")
+                cur.execute("UPDATE Timers SET Time = datetime('now', '+' || Duration || ' minutes') WHERE Time IS NULL OR Time < datetime('now');")
             ret["status"] = 0
             ret["message"] = "Success"
         self.write(ret)

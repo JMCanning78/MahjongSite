@@ -48,7 +48,7 @@ $(function() {
 			if (time === undefined)
 				time = new Date(new Date().getTime() + duration.getTime());
 			else
-				time = new Date(time.replace(/ /g, "T"));
+				time = new Date(time.replace(/ /g, "T") + "Z");
 			var remaining = new Date(Math.max(time - new Date(), 0));
 			$(timer).children(".remaining").text(remaining.toUTCString().split(" ")[4] + "/" + duration.toUTCString().split(" ")[4]);
 		});
