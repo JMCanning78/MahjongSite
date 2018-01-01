@@ -3,6 +3,7 @@
 import db
 import util
 import leaderboard
+import settings
 
 def updateGame(cur, gameid):
     cur.execute("SELECT PlayerId,RawScore,Chombos,Id,Date FROM Scores WHERE GameId = ? ORDER BY GameId", (gameid,))
@@ -15,14 +16,17 @@ def updateGame(cur, gameid):
     total = 0
     for score in scores:
         total += score['score']
-    if total != len(scores) * 25000:
-        print("Scores for game " + gameid + " do not add up to " + len(scores) * 25000)
+    expectedtotal = len(scores) * settings.SCOREPERPLAYER
+    if total != expectedtotal:
+        print("Scores for game " + gameid + " do not add up to " +
+              str(expectedtotal))
         return
 
     cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
     for i in range(0, len(scores)):
         score = scores[i]
 
+        # TODO: Fix this to use db.addGame for all the scores in the game
         adjscore = util.getScore(score['score'], len(scores), i + 1) - score['chombos'] * 8
         gamedate = score['date']
 

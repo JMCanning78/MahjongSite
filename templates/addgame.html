@@ -8,9 +8,9 @@
 {% end %}
 {% block content %}
 	<h3 id="message">Total: 0</h3>
-	<p class="player5help">When scores total more than 100,000,
+	<p class="player5help">When scores total more than {{ fourplayertotal }},
 	  a fifth player position will be added.</p>
-	<p class="player4help">When scores total exactly 100,000,
+	<p class="player4help">When scores total exactly {{ fourplayertotal }},
 	  the fifth player position will be removed.</p>
 	<div id="players">
 	</div>

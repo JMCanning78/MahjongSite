@@ -349,14 +349,20 @@ def addGame(scores, gamedate = None, gameid = None):
     unusedPointsPlayerID = getUnusedPointsPlayerID()
     total = 0
     uniqueIDs = set()
+    pointHistogram = {}
     for score in scores:
+        uniqueIDs.add(score['player'])
+        total += score['score']
+        score['points'] = score['score'] - (
+            settings.CHOMBOPENALTY * score['chombos'] * 1000)
         if score['player'] in (
                 -1, unusedPointsPlayerID, unusedPointsPlayerName):
             score['player'] = unusedPointsPlayerID
             hasUnusedPoints = True
             unusedPoints = score['score']
-        uniqueIDs.add(score['player'])
-        total += score['score']
+        else:
+            pointHistogram[score['points']] = (
+                pointHistogram.get(score['points'], 0) + 1)
 
     realPlayerCount = len(scores) - (1 if hasUnusedPoints else 0)
 
@@ -374,14 +380,14 @@ def addGame(scores, gamedate = None, gameid = None):
     if len(uniqueIDs) < len(scores):
         return {"status":1, "error": "All players must be distinct"}
 
-    targetTotal = realPlayerCount * 25000
+    targetTotal = realPlayerCount * settings.SCOREPERPLAYER
     if total != targetTotal:
         return {"status": 1,
                 "error": "Scores do not add up to " + str(targetTotal)}
 
     # Sort scores for ranking, ensuring unused points player is last, if present
     scores.sort(
-        key=lambda x: (x['player'] != unusedPointsPlayerID, x['score']),
+        key=lambda x: (x['player'] != unusedPointsPlayerID, x['points']),
         reverse=True)
 
     with getCur() as cur:
@@ -395,8 +401,22 @@ def addGame(scores, gamedate = None, gameid = None):
         else:
             cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
 
+        umas = {4:[15,5,-5,-15],
+                5:[15,5,0,-5,-15]}
+        rank = 1
+        pointHistogram[None] = 0
+        last_points = None
         for i in range(len(scores)):
             score = scores[i]
+            if score['points'] != last_points:
+                rank += pointHistogram[last_points]
+                last_points = score['points']
+            score['rank'] = rank
+            uma = 0
+            if score['player'] != unusedPointsPlayerID:
+                for j in range(rank-1, rank-1 + pointHistogram[last_points]):
+                    uma += umas[realPlayerCount][j]
+                uma /= pointHistogram[last_points]
             cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?",
                         (score['player'], score['player']))
             player = cur.fetchone()
@@ -409,14 +429,13 @@ def addGame(scores, gamedate = None, gameid = None):
             player = player[0]
 
             adjscore = 0 if score['player'] == unusedPointsPlayerID else (
-                util.getScore(score['score'], realPlayerCount, i + 1) -
-                        score['chombos'] * 8)
+                (score['points'] - settings.SCOREPERPLAYER) / 1000.0 + uma)
 
             cur.execute(
                 "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
                 " RawScore, Chombos, Score, Date, Quarter) "
                 " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (gameid, player, i + 1, len(scores),
+                (gameid, player, score['rank'], len(scores),
                  score['score'], score['chombos'], adjscore, gamedate, quarter))
 
             leaderboard.clearCache()
