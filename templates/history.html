@@ -34,13 +34,14 @@
 			</thead>
 			{% end %}
 			<tbody>
-				{% for score in game['scores'].items() %}
+				{% for score in sorted(game['scores'],
+				                   key=lambda s: s[0]) %}
 				<tr>
-					<td>{{ score [0] }}</td>
-					<td><a href="/playerstats/{{ score [1][0] }}">{{ score [1][0] }}</a></td>
-					<td>{{ score[1][1] }}K{% if score[1][3] != 0 %} (-{{ score[1][3] * 8 }}K){% end %}</td>
-					<td>{{ score[1][2] }}</td>
-					<td>{{ score[1][3] }}</td>
+					<td>{{ score[0] }}</td>
+					<td><a href="/playerstats/{{ score[1] }}">{{ score[1] }}</a></td>
+					<td>{{ score[2] }}K{% if score[4] != 0 %} (-{{ score[4] * ChomboPenalty }}K){% end %}</td>
+					<td>{{ score[3] }}</td>
+					<td>{{ score[4] }}</td>
 				</tr>
 				{% end %}
 				{% if game['unusedPoints'] > 0 %}

@@ -13,18 +13,24 @@ DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
 MEMCACHE = ""
 
 # PREFERENCES
+# Game play related
 #   DROPGAMES is the default number of games a player must complete in a
 #   quarter in order to have the lowest score dropped from the average.
 DROPGAMES = 9
 #   MAXDROPGAMES is the maximum number of games a player can drop in a quarter
-#   Note that the higher this number is, the longer it will take to generate the quarterly leaderboard
+#   Note that the higher this number is, the longer it will take to generate
+#   the quarterly leaderboard
 MAXDROPGAMES = 4
 #   DEFAULT_RATING is the starting rating for players with no games
 DEFAULT_RATING = 1200
-#   LINKVALIDDAYS is the number of days links for invitations and
-#   password resets should remain valid.  They expire after LINKVALIDDAYS
-#   has passed.
-LINKVALIDDAYS = 7
+#   SCOREPERPLAYER sets the initial score each player has at the start of
+#   each round.  It is used to determine what the total raw scores should
+#   sum to at the end of each round and how to calculate points from those
+#   sums
+SCOREPERPLAYER = 25000
+#   CHOMBOPENALTY is the number of points deducted for a chombo (error).  This
+#   is counted in normalized points, e.g. a score of 8000 counts as 8 points
+CHOMBOPENALTY = 8
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,
@@ -47,3 +53,7 @@ EMAILPORT = 587
 EMAILUSER = "email@address.com"
 EMAILFROM = "{0} <{1}>".format(CLUBNAME, EMAILUSER)
 EMAILPASSWORD = ""
+#   LINKVALIDDAYS is the number of days links for invitations and
+#   password resets should remain valid.  They expire after LINKVALIDDAYS
+#   has passed.
+LINKVALIDDAYS = 7

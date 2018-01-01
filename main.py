@@ -81,18 +81,19 @@ class HistoryHandler(handler.BaseHandler):
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    gID = row[0]
+                    gID, date, rank, name, rawscore, points, chombos, pID = row
                     if gID not in games:
-                        games[gID] = {'date':row[1], 'scores':{},
+                        games[gID] = {'date':date, 'scores':[],
                                       'id':gID, 'unusedPoints': 0}
-                    if row[7] == scores.getUnusedPointsPlayerID():
-                        games[gID]['unusedPoints'] = row[4]
+                    if pID == db.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = rawscore
                     else:
-                        games[gID]['scores'][row[2]] = (
-                            row[3], row[4], round(row[5], 2), row[6])
+                        games[gID]['scores'].append(
+                            (rank, name, rawscore, round(points, 2), chombos))
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
-                games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
+                games = sorted(games.values(),
+                               key=lambda x: (x['date'], x['id']), reverse=True)
                 if page != 0:
                     prev = page
                 else:
@@ -101,7 +102,10 @@ class HistoryHandler(handler.BaseHandler):
                     nex = page + 2
                 else:
                     nex = None
-                self.render("history.html", error=None, games=games, curpage=page + 1, pages=pages, gamecount=gamecount, nex = nex, prev = prev)
+                self.render("history.html", error=None, games=games,
+                            curpage=page + 1, pages=pages, gamecount=gamecount,
+                            nex=nex, prev=prev,
+                            ChomboPenalty=settings.CHOMBOPENALTY)
             else:
                 self.render("message.html", message="No games entered thusfar", title="Game History")
 
