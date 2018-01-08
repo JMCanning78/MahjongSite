@@ -84,6 +84,7 @@ class DeleteGameHandler(handler.BaseHandler):
             else:
                 db.make_backup()
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
+                leaderboard.clearCache()
                 self.redirect("/history")
 
 class EditGameHandler(handler.BaseHandler):
