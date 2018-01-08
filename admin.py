@@ -6,6 +6,7 @@ import handler
 import db
 import util
 import settings
+import leaderboard
 
 class AdminPanelHandler(handler.BaseHandler):
     @handler.is_admin
