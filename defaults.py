@@ -19,6 +19,8 @@ DROPGAMES = 9
 #   MAXDROPGAMES is the maximum number of games a player can drop in a quarter
 #   Note that the higher this number is, the longer it will take to generate the quarterly leaderboard
 MAXDROPGAMES = 4
+#   DEFAULT_RATING is the starting rating for players with no games
+DEFAULT_RATING = 1200
 #   LINKVALIDDAYS is the number of days links for invitations and
 #   password resets should remain valid.  They expire after LINKVALIDDAYS
 #   has passed.

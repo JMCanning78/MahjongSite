@@ -33,7 +33,7 @@ import seating
 import timers
 import login
 import admin
-import addgame
+import scores
 import leaderboard
 import playerstats
 
@@ -76,7 +76,7 @@ class HistoryHandler(handler.BaseHandler):
                             (dates[min(page * PERPAGE + PERPAGE - 1,
                                        gamecount - 1)][0],
                              dates[min(page * PERPAGE, gamecount - 1)][0],
-                             db.getUnusedPointsPlayerID()))
+                             scores.getUnusedPointsPlayerID()))
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
@@ -84,7 +84,7 @@ class HistoryHandler(handler.BaseHandler):
                     if gID not in games:
                         games[gID] = {'date':row[1], 'scores':{},
                                       'id':gID, 'unusedPoints': 0}
-                    if row[7] == db.getUnusedPointsPlayerID():
+                    if row[7] == scores.getUnusedPointsPlayerID():
                         games[gID]['unusedPoints'] = row[4]
                     else:
                         games[gID]['scores'][row[2]] = (
@@ -143,7 +143,7 @@ class PlayerHistory(handler.BaseHandler):
                     if gID not in games:
                         games[gID] = {'date':row[1], 'scores':{},
                                       'id':gID, 'unusedPoints': 0}
-                    if row[7] == db.getUnusedPointsPlayerID():
+                    if row[7] == scores.getUnusedPointsPlayerID():
                         games[gID]['unusedPoints'] = row[4]
                     else:
                         games[gID]['scores'][row[2]] = (
@@ -190,7 +190,7 @@ class Application(tornado.web.Application):
                 (r"/verify/([^/]+)", login.VerifyHandler),
                 (r"/reset", login.ResetPasswordHandler),
                 (r"/reset/([^/]+)", login.ResetPasswordLinkHandler),
-                (r"/addgame", addgame.AddGameHandler),
+                (r"/addgame", scores.AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", leaderboard.LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", leaderboard.LeaderDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),

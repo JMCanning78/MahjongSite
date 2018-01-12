@@ -7,6 +7,7 @@ import db
 import util
 import settings
 import leaderboard
+import scores
 
 class AdminPanelHandler(handler.BaseHandler):
     @handler.is_admin
@@ -99,13 +100,13 @@ class EditGameHandler(handler.BaseHandler):
             else:
                 unusedPoints = None
                 # UnusedPointsPlayer always sorted last in rank
-                if rows[-1][5] == db.getUnusedPointsPlayerID():
+                if rows[-1][5] == scores.getUnusedPointsPlayerID():
                     unusedPoints = rows[-1][2]
                 self.render("editgame.html", id=q,
                             scores=json.dumps(rows).replace("'", "\\'")
                             .replace("\\\"", "\\\\\""),
                             unusedPoints=unusedPoints,
-                            unusedPointsIncrement=db.unusedPointsIncrement())
+                            unusedPointsIncrement=scores.unusedPointsIncrement())
     @handler.is_admin_ajax
     def post(self, q):
         scores = self.get_argument('scores', None)
@@ -122,7 +123,7 @@ class EditGameHandler(handler.BaseHandler):
             gameid = row[0]
 
         db.make_backup()
-        self.write(json.dumps(db.addGame(scores, gamedate, gameid)))
+        self.write(json.dumps(scores.addGame(scores, gamedate, gameid)))
 
 class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
@@ -133,7 +134,7 @@ class EditQuarterHandler(handler.BaseHandler):
                         (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                rows = [(q, settings.DROPGAMES, db.unusedPointsIncrement())]
+                rows = [(q, settings.DROPGAMES, scores.unusedPointsIncrement())]
             if len(rows) > 1:
                 self.render("message.html",
                             message = "Multiple entries in database for Quarter {0}".format(q),
@@ -171,7 +172,7 @@ class QuartersHandler(handler.BaseHandler):
                 " FROM Scores LEFT OUTER JOIN Quarters"
                 " ON Scores.Quarter = Quarters.Quarter"
                 " ORDER BY Scores.Quarter DESC",
-                (db.unusedPointsIncrement(),))
+                (scores.unusedPointsIncrement(),))
             rows = cur.fetchall()
 
             self.render("quarters.html",

@@ -15,11 +15,6 @@ def sendEmail(toaddr, subject, body):
     qm = QueMail.get_instance()
     qm.send(Email(subject=subject, text=body, adr_to=toaddr, adr_from=fromaddr, mime_type='html'))
 
-def getScore(score, numplayers, rank):
-    umas = {4:[15,5,-5,-15],
-            5:[15,5,0,-5,-15]}
-    return score / 1000.0 - 25 + umas[numplayers][rank - 1]
-
 def prompt(msg, default=None):
     resp = None
     accepted_responses = ['y', 'Y', 'yes', 'Yes', 'n', 'N', 'no', 'No']

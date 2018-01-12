@@ -4,14 +4,15 @@
 import meetup.api
 import json
 import tornado.web
-import db
 import random
 import datetime
 import math
 from operator import itemgetter
 
+import db
 import handler
 import settings
+import scores
 
 def meetup_ready():
     return (settings.MEETUP_APIKEY and settings.MEETUP_GROUPNAME and
@@ -182,7 +183,7 @@ class PlayersList(tornado.web.RequestHandler):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
             cur.execute("SELECT Name FROM Players WHERE Id != ? ORDER BY Name",
-                        (db.getUnusedPointsPlayerID(),))
+                        (scores.getUnusedPointsPlayerID(),))
             self.write(json.dumps(list(map(lambda x:x[0], cur.fetchall()))))
 
 POPULATION = 256
