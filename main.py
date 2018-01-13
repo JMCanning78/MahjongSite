@@ -36,6 +36,7 @@ import admin
 import scores
 import leaderboard
 import playerstats
+import ratings
 
 # import and define tornado-y things
 from tornado.options import options
@@ -193,6 +194,8 @@ class Application(tornado.web.Application):
                 (r"/addgame", scores.AddGameHandler),
                 (r"/leaderboard(/[^/]*)?", leaderboard.LeaderboardHandler),
                 (r"/leaderdata(/[^/]*)?", leaderboard.LeaderDataHandler),
+                (r"/ratings", ratings.RatingsHandler),
+                (r"/ratingsdata", ratings.RatingsDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
                 (r"/playerhistory/(.*?)(/[0-9]+)?", PlayerHistory),
                 (r"/playerstats/(.*)", playerstats.PlayerStatsHandler),

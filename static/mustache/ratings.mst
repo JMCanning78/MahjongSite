@@ -1,0 +1,17 @@
+<div class="ratings">
+	<h2>PLAYER RATINGS</h2>
+	<table>
+		<tr class="rating_col_header">
+			<th>NAME</th>
+			<th>RATING</th>
+			<th>GAME COUNT</th>
+		</tr>
+		{{#players}}
+			<tr class="rating_row">
+				<td><a href="/playerstats/{{ name }}">{{ name }}</a></td>
+				<td>{{ rating }}</td>
+				<td>{{ count }}</td>
+			</tr>
+		{{/players}}
+	</table>
+</div>

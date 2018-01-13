@@ -3,39 +3,36 @@
 import db
 import util
 import leaderboard
+import scores
 
-def updateGame(cur, gameid):
-    cur.execute("SELECT PlayerId,RawScore,Chombos,Id,Date FROM Scores WHERE GameId = ? ORDER BY GameId", (gameid,))
-    scores = []
-    for row in cur.fetchall():
-        scores += [{"player":row[0], "score": row[1], "chombos": row[2], "id": row[3], 'date': row[4]}]
+def updateGame(gameid):
+    game = scores.getScores(gameid)
 
-    scores.sort(key=lambda x: x['score'], reverse=True)
+    unusedPointsPlayerID = scores.getUnusedPointsPlayerID()
+    hasUnusedPoints = False
+    for score in game:
+        if score['PlayerId'] in (-1, unusedPointsPlayerID):
+            hasUnusedPoints = True
 
-    total = 0
-    for score in scores:
-        total += score['score']
-    if total != len(scores) * 25000:
-        print("Scores for game " + gameid + " do not add up to " + len(scores) * 25000)
-        return
+    realPlayerCount = len(game) - (1 if hasUnusedPoints else 0)
 
-    cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
-    for i in range(0, len(scores)):
-        score = scores[i]
+    with db.getCur() as cur:
+        print("Updating " + str(realPlayerCount) + " players in " + str(gameid))
+        for rank in range(realPlayerCount):
+            score = game[rank]
+            score['DeltaRating'] = scores.deltaRating(game, rank, realPlayerCount)
+            cur.execute("UPDATE Scores SET DeltaRating = ? WHERE Id = ?", (score['DeltaRating'], score['Id']))
 
-        adjscore = util.getScore(score['score'], len(scores), i + 1) - score['chombos'] * 8
-        gamedate = score['date']
-
-        cur.execute("INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, RawScore, Chombos, Score, Date, Quarter) VALUES(?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y', ?) || ' ' || case ((strftime('%m', ?) - 1) / 3) when 0 then '1st' when 1 then '2nd' when 2 then '3rd' when 3 then '4th' end)", (gameid, score['player'], i + 1, len(scores), score['score'], score['chombos'], adjscore, gamedate, gamedate, gamedate))
-
-        leaderboard.clearCache()
+    return game
 
 def main():
     with db.getCur() as cur:
-        cur.execute("SELECT GameId FROM Scores WHERE Quarter = '2017 2nd' AND Chombos > 0")
+        cur.execute("SELECT DISTINCT GameId FROM Scores ORDER BY Date ASC")
         games = cur.fetchall()
-        for game in games:
-            updateGame(cur, game[0])
+
+    for game in games:
+        gameid = game[0]
+        updateGame(gameid)
 
 
 if __name__ == "__main__":
