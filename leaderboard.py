@@ -1,56 +1,59 @@
 #!/usr/bin/env python3
 
 import json
-import memcache
 
 import db
 import handler
 import settings
 import scores
 
-columns = ['Date', 'Name', 'AvgScore', 'GameCount', 'DropGames']
+columns = ['Period', 'Date', 'PlayerId', 'AvgScore', 'GameCount', 'DropGames']
 periods = {
     "annual":[
         """SELECT
-             strftime('%Y', Scores.Date), Players.Name,
+            'annual',
+             strftime('%Y', Scores.Date),
+             PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
              0
-           FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
-           WHERE Players.Id != ?
-           GROUP BY strftime('%Y', Date),Players.Id
+           FROM Scores
+           WHERE PlayerId != ?
+           GROUP BY strftime('%Y', Date),PlayerId
            ORDER BY AvgScore DESC;"""
     ],
     "biannual":[
         """SELECT
+            'biannual',
              strftime('%Y', Scores.Date) || ' ' ||
                case ((strftime('%m', Date) - 1) / 6) when 0 then '1st'
                  when 1 then '2nd' end,
-             Players.Name,
+             PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
              0
-           FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
-           WHERE Players.Id != ?
-        GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),Players.Id
+           FROM Scores
+           WHERE PlayerId != ?
+        GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),PlayerId
         ORDER BY AvgScore DESC;"""
     ],
     "quarter":[
         """SELECT
-             Scores.Quarter, Players.Name,
+            'quarter',
+             Scores.Quarter,
+             PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
              {DROPGAMES}
            FROM Scores
-             LEFT JOIN Players ON Players.Id = Scores.PlayerId
              LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
-           WHERE Players.Id != ? AND Scores.Id NOT IN
+           WHERE PlayerId != ? AND Scores.Id NOT IN
              (SELECT Id FROM Scores as s WHERE s.PlayerId = Scores.PlayerId AND s.Quarter = Scores.Quarter
                  ORDER BY s.Score ASC LIMIT {DROPGAMES})
-           GROUP BY Scores.Quarter,Players.Id
+           GROUP BY Scores.Quarter,PlayerId
            HAVING COUNT(Scores.Score) + {DROPGAMES} >= COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES}
                AND COUNT(Scores.Score) + {DROPGAMES} < COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1)
            ORDER BY AvgScore DESC;""".format(DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMES)
@@ -71,45 +74,55 @@ class LeaderDataHandler(handler.BaseHandler):
         if period not in periods:
             period = "quarter"
 
-        if settings.MEMCACHE != "":
-            mc=memcache.Client([settings.MEMCACHE])
-            leaderboards = mc.get("leaderboards_" + period)
-        else:
-            mc = None
-            leaderboards = None
+        rows = []
+        with db.getCur() as cur:
+            displaycols = ['Name', 'Place'] + columns
+            cur.execute("SELECT {columns} FROM Leaderboards"
+                    " JOIN Players ON PlayerId = Players.Id"
+                    " WHERE Period = ? ORDER BY Date DESC, Place ASC".format(
+                        columns=",".join(displaycols)
+                    ),
+                    (period,)
+                )
+            rows = [dict(zip(displaycols, row)) for row in cur.fetchall()]
 
-        if leaderboards is None:
-            with db.getCur() as cur:
-                leaderboards = {}
-                rows = []
-                for query in periods[period]:
-                    cur.execute(query, (scores.getUnusedPointsPlayerID(),))
-                    rows += [dict(zip(columns, row)) for row in cur.fetchall()]
-                places={}
-                last_place={}
-                rows.sort(key=lambda row: row['AvgScore'], reverse=True) # sort by score
-                for row in rows:
-                    if row['Date'] not in leaderboards:
-                        leaderboards[row['Date']] = []
-                        places[row['Date']] = 1
-                    leaderboard = leaderboards[row['Date']]
-                    leaderboard += [
-                        {'place': places[row['Date']],
-                         'name':row['Name'],
-                         'score':row['AvgScore'],
-                         'count':str(row['GameCount']) + ("" if row['DropGames'] == 0 else " (+" + str(row['DropGames']) + ")"),
-                         'dropped':row['DropGames']}]
-                    places[row['Date']] += 1
-                leaders = sorted(list(leaderboards.items()), reverse=True)
-                leaderboards = []
-                for name, leaderscores in leaders:
-                    leaderboards += [{'name':name, 'scores':leaderscores}]
-                leaderboards=json.dumps({'leaderboards':leaderboards})
-                if mc is not None:
-                    mc.set("leaderboards_" + period, leaderboards)
-        self.write(leaderboards)
+        leaderboards = {}
+        for row in rows:
+            date = row['Date']
+            if date not in leaderboards:
+                leaderboards[date] = []
 
-def clearCache():
-    if settings.MEMCACHE != "":
-        mc=memcache.Client([settings.MEMCACHE])
-        mc.delete_multi(list(map(lambda period:"leaderboards_" + period, periods.keys())))
+            leaderboards[date] += [row]
+
+        leaderboards = sorted(leaderboards.items(), reverse=True)
+        leaderboards = [{'Date': date, 'Scores': scores} for date, scores in leaderboards]
+
+        self.write(json.dumps({'leaderboards':list(leaderboards)}))
+
+def genLeaderboard():
+    with db.getCur() as cur:
+        leadercols = ['Place'] + columns
+        leaderrows = []
+        for period, queries in periods.items():
+            rows = []
+            for query in queries:
+                cur.execute(query, (scores.getUnusedPointsPlayerID(),))
+                rows += [dict(zip(columns, row)) for row in cur.fetchall()]
+
+            rows.sort(key=lambda row: row['AvgScore'], reverse=True) # sort by score
+            places = {}
+            for row in rows:
+                if row['Date'] not in places:
+                    places[row['Date']] = 1
+                row['Place'] = places[row['Date']]
+                places[row['Date']] += 1
+
+                leaderrow = [row[col] for col in leadercols]
+                leaderrows += [leaderrow]
+
+        cur.execute("DELETE FROM Leaderboards")
+        query = "INSERT INTO Leaderboards({columns}) VALUES({colvals})".format(
+                columns=",".join(leadercols),
+                colvals=",".join(["?"] * len(leadercols))
+            )
+        cur.executemany(query, leaderrows)

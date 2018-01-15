@@ -86,7 +86,7 @@ class DeleteGameHandler(handler.BaseHandler):
             else:
                 db.make_backup()
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
-                leaderboard.clearCache()
+                leaderboard.genLeaderboard()
                 self.redirect("/history")
 
 class EditGameHandler(handler.BaseHandler):
@@ -154,7 +154,8 @@ class EditQuarterHandler(handler.BaseHandler):
             cur.execute("INSERT INTO Quarters(Quarter, Gamecount, "
                         "UnusedPointsIncrement) VALUES (?,?,?);",
                         (quarter, gamecount, unusedPointsIncrement))
-            leaderboard.clearCache()
+
+        leaderboard.genLeaderboard()
 
         self.render("message.html",
                     message = "Quarter {0} updated".format(quarter),
@@ -199,6 +200,7 @@ class DeleteQuarterHandler(handler.BaseHandler):
                             title = "Quarter Deleted",
                             next = "Manage quarters",
                             next_url = "/admin/quarters")
+                leaderboard.genLeaderboard()
             else:
                 self.render("quarters.html",
                             message = ("Error: Multiple quarters named {0} "

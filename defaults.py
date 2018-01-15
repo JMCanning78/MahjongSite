@@ -10,7 +10,6 @@ CLUBNAME = "{0} Richi Mahjong".format(CLUBCITY)
 DBFILE = "scores.db"
 DBBACKUPS = "backups"
 DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
-MEMCACHE = ""
 
 # PREFERENCES
 #   DROPGAMES is the default number of games a player must complete in a

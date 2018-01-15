@@ -164,7 +164,7 @@ def addGame(scores, gamedate = None, gameid = None):
                 (gameid, player, i + 1, len(scores),
                  score['score'], score['chombos'], adjscore, gamedate, quarter, rating))
 
-            leaderboard.clearCache()
+            leaderboard.genLeaderboard()
     return {"status":0}
 
 adjEvent = 0.5

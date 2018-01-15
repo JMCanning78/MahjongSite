@@ -96,6 +96,16 @@ schema = collections.OrderedDict({
         'Name TEXT',
         'Duration INTEGER',
         'Time DATETIME'
+    ],
+    'Leaderboards': [
+        'Period TEXT',
+        'Date TEXT',
+        'PlayerId INTEGER',
+        'Place INTEGER',
+        'AvgScore REAL',
+        'GameCount INTEGER',
+        'DropGames INTEGER',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
     ]
 })
 

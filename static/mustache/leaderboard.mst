@@ -1,21 +1,21 @@
 {{#leaderboards}}
 	<div class="leaderboard">
-	        <h2>LEADERBOARD <span id="lbname">{{ name }}</span></h2>
+		<h2>LEADERBOARD <span id="lbname">{{ Date }}</span></h2>
 		<table>
-		    <tr class="leaderbd_col_header">
-			<th class="ordering">PLACE</th>
-			<th>NAME</th>
-			<th>AVG SCORE</th>
-			<th>GAME COUNT</th>
-		    </tr>
-		    {{#scores}}
-                                <tr class="leaderbd_row">
-					<td>{{ place }}</td>
-					<td><a href="/playerstats/{{ name }}">{{ name }}</a></td>
-					<td>{{ score }}</td>
-					<td>{{ count }}</td>
+			<tr class="leaderbd_col_header">
+				<th class="ordering">PLACE</th>
+				<th>NAME</th>
+				<th>AVG SCORE</th>
+				<th>GAME COUNT</th>
+			</tr>
+			{{#Scores}}
+				<tr class="leaderbd_row">
+					<td>{{ Place }}</td>
+					<td><a href="/playerstats/{{ Name }}">{{ Name }}</a></td>
+					<td>{{ AvgScore }}</td>
+					<td>{{ GameCount }}{{#DropGames}} (+{{ DropGames }}){{/DropGames}}</td>
 				</tr>
-			{{/scores}}
+			{{/Scores}}
 		</table>
 	</div>
 {{/leaderboards}}

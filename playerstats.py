@@ -118,7 +118,6 @@ class PlayerStatsHandler(handler.BaseHandler):
                 args += [player, player]
                 with db.getCur() as cur:
                     cur.execute(query, args)
-                    leaderboard.clearCache()
             self.redirect("/playerstats/" + name)
 
 quarterSuffixes = {'1': 'st', '2': 'nd', '3': 'rd', '4': 'th'}
