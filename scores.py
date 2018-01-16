@@ -7,6 +7,7 @@ import datetime
 
 import db
 import settings
+import leaderboard
 
 umas = {4:[15,5,-5,-15],
         5:[15,5,0,-5,-15]}
@@ -92,20 +93,23 @@ def addGame(scores, gamedate = None, gameid = None):
     total = 0
     uniqueIDs = set()
     for score in scores:
-        if score['player'] in (
-                -1, unusedPointsPlayerID, unusedPointsPlayerName):
-            score['player'] = unusedPointsPlayerID
+        isUnusedPlayerId = ('PlayerId' in score and score['PlayerId'] in (-1, unusedPointsPlayerID))
+        isUnusedPlayerName = ('Name' in score and score['Name'] == unusedPointsPlayerName)
+        if isUnusedPlayerName or isUnusedPlayerId:
+            score['PlayerId'] = unusedPointsPlayerID
+            score['Name'] = unusedPointsPlayerName
             hasUnusedPoints = True
-            unusedPoints = score['score']
-        uniqueIDs.add(score['player'])
-        total += score['score']
+            unusedPoints = score['Score']
+        uniqueIDs.add(score['Name'] if 'Name' in score else score['PlayerId'])
+        total += score['Score']
+        score['Date'] = gamedate
 
     realPlayerCount = len(scores) - (1 if hasUnusedPoints else 0)
 
     if not (4 <= realPlayerCount and realPlayerCount <= 5):
         return {"status":1, "error":"Please enter 4 or 5 scores"}
 
-    if hasUnusedPoints and unusedPoints % db.unusedPointsIncrement() != 0:
+    if hasUnusedPoints and unusedPoints % unusedPointsIncrement() != 0:
         return {"status":1,
                 "error":"Unused points must be a multiple of {0}".format(
                     unusedPointsIncrement())}
@@ -123,7 +127,7 @@ def addGame(scores, gamedate = None, gameid = None):
 
     # Sort scores for ranking, ensuring unused points player is last, if present
     scores.sort(
-        key=lambda x: (x['player'] != unusedPointsPlayerID, x['score']),
+        key=lambda x: ('PlayerId' not in x or x['PlayerId'] != unusedPointsPlayerID, x['Score']),
         reverse=True)
 
     with db.getCur() as cur:
@@ -135,34 +139,35 @@ def addGame(scores, gamedate = None, gameid = None):
 
         for i in range(len(scores)):
             score = scores[i]
-            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?",
-                        (score['player'], score['player']))
-            player = cur.fetchone()
-            if player is None or len(player) == 0:
-                cur.execute("INSERT INTO Players(Name) VALUES(?)",
-                            (score['player'],))
+            if 'PlayerId' not in score:
                 cur.execute("SELECT Id FROM Players WHERE Name = ?",
-                            (score['player'],))
+                            (score['Name'],))
                 player = cur.fetchone()
-            player = player[0]
 
-            score['player'] = player
-            score['rating'] = playerRatingBeforeDate(player, gamedate)
+                if player is not None and len(player) > 0:
+                    score['PlayerId'] = player[0]
+                else:
+                    cur.execute("INSERT INTO Players(Name) VALUES(?)",
+                                (score['Name'],))
+                    score['PlayerId'] = cur.lastrowid
+            score['Rating'] = playerRatingBeforeDate(score['PlayerId'], gamedate)
 
         for i in range(len(scores)):
             score = scores[i]
-            rating = deltaRating(scores, i, realPlayerCount, gameid)
 
-            adjscore = 0 if score['player'] == unusedPointsPlayerID else (
-                getScore(score['score'], realPlayerCount, i) -
-                        score['chombos'] * 8)
+            if score['PlayerId'] == unusedPointsPlayerID:
+                adjscore = 0
+                rating = 0
+            else:
+                adjscore = getScore(score['Score'], realPlayerCount, i) - score['Chombos'] * 8
+                rating = deltaRating(scores, i, realPlayerCount)
 
             cur.execute(
                 "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
                 " RawScore, Chombos, Score, Date, Quarter, DeltaRating) "
-                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (gameid, player, i + 1, len(scores),
-                 score['score'], score['chombos'], adjscore, gamedate, quarter, rating))
+                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (gameid, score['PlayerId'], i + 1, len(scores),
+                 score['Score'], score['Chombos'], adjscore, gamedate, quarter, rating))
 
             leaderboard.clearCache()
     return {"status":0}
