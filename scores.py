@@ -4,6 +4,7 @@ import json
 import handler
 import tornado.web
 import datetime
+import collections
 
 import db
 import settings
@@ -61,21 +62,23 @@ def getUnusedPointsPlayerID():
             _unusedPointsPlayer = cur.lastrowid
     return _unusedPointsPlayer
 
-def getScore(score, numplayers, rank):
-    return score / 1000.0 - 25 + umas[numplayers][rank]
+def getScore(score, uma):
+    return (score - settings.SCOREPERPLAYER) / 1000.0 + uma
 
 dateFormat = "%Y-%m-%d"
 
 def addGame(scores, gamedate = None, gameid = None):
-    """Add raw scores for a particular game to the database.
+    """Add or replace game scores for a particular game in the database.
     The scores should be a list of dictionaries.
-    Each dictionary should have a 'player' name or ID, a raw 'score', and
-    a 'chombos' count.
+    Each dictionary should have either a 'PlayerId' or 'Name',
+    a raw 'Score', and a 'Chombos' count.
     One of the players may be the UnusedPointsPlayer to represent points
     that were not claimed at the end of play.
     The gamedate defaults to today.  A new gameid is created if none is given.
     If a player name is not found in database, a new record is created for
     them.
+    Returns a dictionary with a 'status' and a 'message' field.  Status of 0
+    means success.
     """
     global dateFormat, unusedPointsPlayerName
     if gamedate is None:
@@ -92,14 +95,21 @@ def addGame(scores, gamedate = None, gameid = None):
     unusedPointsPlayerID = getUnusedPointsPlayerID()
     total = 0
     uniqueIDs = set()
+    pointHistogram = collections.defaultdict(lambda : 0)
     for score in scores:
-        isUnusedPlayerId = ('PlayerId' in score and score['PlayerId'] in (-1, unusedPointsPlayerID))
-        isUnusedPlayerName = ('Name' in score and score['Name'] == unusedPointsPlayerName)
+        isUnusedPlayerId = ('PlayerId' in score and
+                            score['PlayerId'] in (-1, unusedPointsPlayerID))
+        isUnusedPlayerName = ('Name' in score and
+                              score['Name'] == unusedPointsPlayerName)
+        score['points'] = score['Score'] - (
+            settings.CHOMBOPENALTY * score['Chombos'] * 1000)
         if isUnusedPlayerName or isUnusedPlayerId:
             score['PlayerId'] = unusedPointsPlayerID
             score['Name'] = unusedPointsPlayerName
             hasUnusedPoints = True
             unusedPoints = score['Score']
+        else:
+            pointHistogram[score['points']] += 1
         uniqueIDs.add(score['Name'] if 'Name' in score else score['PlayerId'])
         total += score['Score']
         score['Date'] = gamedate
@@ -120,14 +130,15 @@ def addGame(scores, gamedate = None, gameid = None):
     if len(uniqueIDs) < len(scores):
         return {"status":1, "error": "All players must be distinct"}
 
-    targetTotal = realPlayerCount * 25000
+    targetTotal = realPlayerCount * settings.SCOREPERPLAYER
     if total != targetTotal:
         return {"status": 1,
-                "error": "Scores do not add up to " + str(targetTotal)}
+                "error": "Scores add up to {}, not {}".format(
+                    total, targetTotal)}
 
     # Sort scores for ranking, ensuring unused points player is last, if present
     scores.sort(
-        key=lambda x: ('PlayerId' not in x or x['PlayerId'] != unusedPointsPlayerID, x['Score']),
+        key=lambda x: ('PlayerId' not in x or x['PlayerId'] != unusedPointsPlayerID, x['points']),
         reverse=True)
 
     with db.getCur() as cur:
@@ -137,8 +148,19 @@ def addGame(scores, gamedate = None, gameid = None):
         else:
             cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
 
-        for i in range(len(scores)):
-            score = scores[i]
+        rank = 1
+        pointHistogram[None] = 0
+        last_points = None
+        for score in scores:
+            if score['points'] != last_points:
+                rank += pointHistogram[last_points]
+                last_points = score['points']
+            score['rank'] = rank
+            score['uma'] = 0
+            if score.get('PlayerId', None) != unusedPointsPlayerID:
+                for j in range(rank-1, rank-1 + pointHistogram[last_points]):
+                    score['uma'] += umas[realPlayerCount][j]
+                score['uma'] /= pointHistogram[last_points]
             if 'PlayerId' not in score:
                 cur.execute("SELECT Id FROM Players WHERE Name = ?",
                             (score['Name'],))
@@ -152,22 +174,22 @@ def addGame(scores, gamedate = None, gameid = None):
                     score['PlayerId'] = cur.lastrowid
             score['Rating'] = playerRatingBeforeDate(score['PlayerId'], gamedate)
 
-        for i in range(len(scores)):
-            score = scores[i]
+        for i, score in enumerate(scores):
 
             if score['PlayerId'] == unusedPointsPlayerID:
                 adjscore = 0
                 rating = 0
             else:
-                adjscore = getScore(score['Score'], realPlayerCount, i) - score['Chombos'] * 8
+                adjscore = getScore(score['points'], score['uma'])
                 rating = deltaRating(scores, i, realPlayerCount)
 
             cur.execute(
                 "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
                 " RawScore, Chombos, Score, Date, Quarter, DeltaRating) "
                 " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (gameid, score['PlayerId'], i + 1, len(scores),
-                 score['Score'], score['Chombos'], adjscore, gamedate, quarter, rating))
+                (gameid, score['PlayerId'], score['rank'], realPlayerCount,
+                 score['Score'], score['Chombos'], adjscore, gamedate, quarter,
+                 rating))
 
             leaderboard.clearCache()
     return {"status":0}
@@ -193,16 +215,22 @@ def deltaRating(scores, rank, realPlayerCount):
     avgOppRating = totalOppRating / (realPlayerCount - 1)
 
     with db.getCur() as cur:
-        cur.execute("SELECT COALESCE(COUNT(*), 0) FROM Scores WHERE PlayerId = ? AND Date < ?", (scores[rank]['PlayerId'], gamedate))
+        cur.execute("SELECT COALESCE(COUNT(*), 0) FROM Scores"
+                    "  WHERE PlayerId = ? AND Date < ?",
+                    (scores[rank]['PlayerId'], gamedate))
         gameCount = cur.fetchone()[0]
         adjPlayer = max(1 - (gameCount * 0.008), 0.2)
 
-    return (umas[realPlayerCount][rank] + adjEvent * (avgOppRating - scores[rank]['Rating']) / 40) * adjPlayer
+    return (scores[rank]['uma'] +
+            adjEvent * (avgOppRating - scores[rank]['Rating'])
+            / 40) * adjPlayer
 
 def getScores(gameid):
     with db.getCur() as cur:
-        columns = ["Id","PlayerId","Score","RawScore","Chombos","Date","DeltaRating"]
-        cur.execute("SELECT {0} FROM Scores WHERE GameId = ? ORDER BY GameId".format(",".join(columns)), (gameid,))
+        columns = ["Id","PlayerId","Score","RawScore","Chombos","Date",
+                   "DeltaRating","Rank"]
+        cur.execute("SELECT {0} FROM Scores WHERE GameId = ?".format(
+            ",".join(columns)), (gameid,))
         scores = []
         for row in cur.fetchall():
             score = dict(zip(columns, row))

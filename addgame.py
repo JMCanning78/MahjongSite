@@ -10,7 +10,7 @@ class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         self.render("addgame.html", 
-                    unusedPointsIncrement=db.unusedPointsIncrement(),
+                    unusedPointsIncrement=scores.unusedPointsIncrement(),
                     fourplayertotal='{:,d}'.format(4 * settings.SCOREPERPLAYER))
     @tornado.web.authenticated
     def post(self):

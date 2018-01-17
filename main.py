@@ -71,13 +71,10 @@ class HistoryHandler(handler.BaseHandler):
                             " Scores.Score, Scores.Chombos, Players.Id"
                             " FROM Scores INNER JOIN Players ON"
                             "   Players.Id = Scores.PlayerId"
-                            " WHERE Scores.Date BETWEEN ? AND ? AND Players.Id != ?"
-                            " GROUP BY Scores.Id"
-                            " ORDER BY Scores.Date DESC, Scores.GameId DESC;",
+                            " WHERE Scores.Date BETWEEN ? AND ?;",
                             (dates[min(page * PERPAGE + PERPAGE - 1,
                                        gamecount - 1)][0],
-                             dates[min(page * PERPAGE, gamecount - 1)][0],
-                             scores.getUnusedPointsPlayerID()))
+                             dates[min(page * PERPAGE, gamecount - 1)][0]))
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
@@ -85,7 +82,7 @@ class HistoryHandler(handler.BaseHandler):
                     if gID not in games:
                         games[gID] = {'date':date, 'scores':[],
                                       'id':gID, 'unusedPoints': 0}
-                    if pID == db.getUnusedPointsPlayerID():
+                    if pID == scores.getUnusedPointsPlayerID():
                         games[gID]['unusedPoints'] = rawscore
                     else:
                         games[gID]['scores'].append(
