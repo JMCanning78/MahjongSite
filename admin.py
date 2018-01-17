@@ -67,16 +67,11 @@ class DemoteUserHandler(handler.BaseHandler):
 class DeleteGameHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
-        with db.getCur() as cur:
-            cur.execute("SELECT Rank, Players.Name, Scores.RawScore / 1000.0, Scores.Score, Scores.Chombos FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ?", (q,))
-            rows = cur.fetchall()
-            if len(rows) == 0:
-                self.render("message.html", message = "Game not found", title = "Delete Game")
-            else:
-                gamescores = {}
-                for row in rows:
-                    gamescores[row[0]] = (row[1], row[2], round(row[3], 2), row[4])
-                self.render("deletegame.html", id=q, scores=gamescores)
+        game = scores.getScores(q, getNames = True)
+        if len(game) == 0:
+            self.render("message.html", message = "Game not found", title = "Delete Game")
+        else:
+            self.render("deletegame.html", id=q, game=game)
     @handler.is_admin
     def post(self, q):
         with db.getCur() as cur:

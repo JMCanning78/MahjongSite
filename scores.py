@@ -221,27 +221,42 @@ def deltaRating(scores, rank, realPlayerCount):
         gameCount = cur.fetchone()[0]
         adjPlayer = max(1 - (gameCount * 0.008), 0.2)
 
-    return (scores[rank]['uma'] +
+    return (scores[rank]['uma'] * 2 +
             adjEvent * (avgOppRating - scores[rank]['Rating'])
             / 40) * adjPlayer
 
-def getScores(gameid):
+def getScores(gameid, getNames = False, unusedPoints = False):
     with db.getCur() as cur:
-        columns = ["Id","PlayerId","Score","RawScore","Chombos","Date",
+        columns = ["Scores.Id","PlayerId","Score","RawScore","Chombos","Date",
                    "DeltaRating","Rank"]
-        cur.execute("SELECT {0} FROM Scores WHERE GameId = ?".format(
-            ",".join(columns)), (gameid,))
-        scores = []
-        for row in cur.fetchall():
-            score = dict(zip(columns, row))
-            scores += [score]
+        tables = ["Scores"]
+
+        if getNames:
+            columns += ['Name']
+            tables += ["JOIN Players ON PlayerId = Players.Id"]
+
+        conditions = ["GameId = ?"]
+        bindings = [gameid]
+
+        if not unusedPoints:
+            conditions += ["PlayerId != ?"]
+            bindings += [getUnusedPointsPlayerID()]
+
+        query = "SELECT {columns} FROM {tables} WHERE {conditions}".format(
+            columns=",".join(columns),
+            tables=" ".join(tables),
+            conditions=" AND ".join(conditions))
+        cur.execute(query, bindings)
+
+        scores = [dict(zip(columns, row)) for row in cur.fetchall()]
         return scores
 
 class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         self.render("addgame.html",
-                    unusedPointsIncrement=unusedPointsIncrement())
+                    unusedPointsIncrement=unusedPointsIncrement(),
+                    fourplayertotal='{:,d}'.format(4 * settings.SCOREPERPLAYER))
     @tornado.web.authenticated
     def post(self):
         scores = self.get_argument('scores', None)
