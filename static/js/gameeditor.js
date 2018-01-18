@@ -113,7 +113,7 @@ $(function() {
 		for (var i = 0; i < points.length; ++i) {
 			scores.push({
 				"Name": players[i],
-				"Score": points[i],
+				"RawScore": points[i],
 				"Chombos": chombos[i]
 			})
 		};
@@ -122,7 +122,7 @@ $(function() {
 			if (val != "" && parseInt(val) > 0) {
 				scores.push({
 					"PlayerId": -1,
-					"Score": parseInt(val),
+					"RawScore": parseInt(val),
 					"Chombos": 0
 				});
 			};
