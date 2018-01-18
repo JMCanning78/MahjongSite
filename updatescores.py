@@ -9,7 +9,7 @@ import settings
 def updateGame(gameid):
     print("Updating game", gameid)
     game = scores.getScores(gameid)
-    status = scores.addGame(game, ignoreRawScore = True)
+    status = scores.addGame(game)
     if status['status'] != 0:
         print(status)
     return game
