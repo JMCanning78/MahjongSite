@@ -8,7 +8,7 @@ import settings
 
 def updateGame(gameid):
     print("Updating game", gameid)
-    game = scores.getScores(gameid)
+    game = scores.getScores(gameid, unusedPoints = True)
     status = scores.addGame(game)
     if status['status'] != 0:
         print(status)
