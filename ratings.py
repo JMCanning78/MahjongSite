@@ -17,7 +17,7 @@ class RatingsDataHandler(handler.BaseHandler):
         columns = ["name", "rating", "count"]
         query = """SELECT
             Players.Name,
-            ROUND(SUM(Scores.DeltaRating) * 100) / 100 + {DEFAULT_RATING} AS Rating,
+            ROUND((SUM(Scores.DeltaRating) + {DEFAULT_RATING}) * 100) / 100 AS Rating,
             COUNT(*) AS GameCount
           FROM Scores LEFT JOIN Players ON Players.Id = Scores.PlayerId
           WHERE Players.Id != ?

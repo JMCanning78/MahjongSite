@@ -112,18 +112,18 @@ $(function() {
 		});
 		for (var i = 0; i < points.length; ++i) {
 			scores.push({
-				"player": players[i],
-				"score": points[i],
-				"chombos": chombos[i]
+				"Name": players[i],
+				"RawScore": points[i],
+				"Chombos": chombos[i]
 			})
 		};
 		$("#unusedPoints").each(function() {
 			var val = $(this).val();
 			if (val != "" && parseInt(val) > 0) {
 				scores.push({
-					"player": -1,
-					"score": parseInt(val),
-					"chombos": 0
+					"PlayerId": -1,
+					"RawScore": parseInt(val),
+					"Chombos": 0
 				});
 			};
 		});

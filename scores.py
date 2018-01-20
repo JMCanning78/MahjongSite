@@ -4,9 +4,11 @@ import json
 import handler
 import tornado.web
 import datetime
+import collections
 
 import db
 import settings
+import leaderboard
 
 umas = {4:[15,5,-5,-15],
         5:[15,5,0,-5,-15]}
@@ -60,29 +62,23 @@ def getUnusedPointsPlayerID():
             _unusedPointsPlayer = cur.lastrowid
     return _unusedPointsPlayer
 
-def getScore(score, numplayers, rank):
-    return score / 1000.0 - 25 + umas[numplayers][rank]
+def getScore(score, uma):
+    return (score - settings.SCOREPERPLAYER) / 1000.0 + uma
 
 dateFormat = "%Y-%m-%d"
 
-def addGame(scores, gamedate = None, gameid = None):
-    """Add raw scores for a particular game to the database.
+def rankGame(scores):
+    """Calculates rank, point penalties, and umas for a given game.
+    Also validates game player names and point totals.
     The scores should be a list of dictionaries.
-    Each dictionary should have a 'player' name or ID, a raw 'score', and
-    a 'chombos' count.
+    Each dictionary should have either a 'PlayerId' or 'Name',
+    a 'RawScore', and a 'Chombos' count.
     One of the players may be the UnusedPointsPlayer to represent points
     that were not claimed at the end of play.
-    The gamedate defaults to today.  A new gameid is created if none is given.
-    If a player name is not found in database, a new record is created for
-    them.
+    Modifies the scores dictionaries adding the calculated fields.
+    Returns a dictionary with a 'status' and a 'message' field.  Status of 0
+    means success.
     """
-    global dateFormat, unusedPointsPlayerName
-    if gamedate is None:
-        gamedate = datetime.datetime.now().strftime(dateFormat)
-        quarter = quarterString()
-    else:
-        quarter = quarterString(datetime.datetime.strptime(gamedate, dateFormat))
-
     if scores is None:
         return {"status":1, "error":"Please enter some scores"}
 
@@ -91,24 +87,28 @@ def addGame(scores, gamedate = None, gameid = None):
     unusedPointsPlayerID = getUnusedPointsPlayerID()
     total = 0
     uniqueIDs = set()
+    pointHistogram = collections.defaultdict(lambda : 0)
     for score in scores:
-        if score['player'] in (
-                -1, unusedPointsPlayerID, unusedPointsPlayerName):
-            score['player'] = unusedPointsPlayerID
+        isUnusedPlayerId = ('PlayerId' in score and
+                            score['PlayerId'] in (-1, unusedPointsPlayerID))
+        isUnusedPlayerName = ('Name' in score and
+                              score['Name'] == unusedPointsPlayerName)
+        score['points'] = score['RawScore'] - (
+            settings.CHOMBOPENALTY * score['Chombos'] * 1000)
+        if isUnusedPlayerName or isUnusedPlayerId:
+            score['PlayerId'] = unusedPointsPlayerID
+            score['Name'] = unusedPointsPlayerName
             hasUnusedPoints = True
-            unusedPoints = score['score']
-        uniqueIDs.add(score['player'])
-        total += score['score']
+            unusedPoints = score['RawScore']
+        else:
+            pointHistogram[score['points']] += 1
+        uniqueIDs.add(score['Name'] if 'Name' in score else score['PlayerId'])
+        total += score['RawScore']
 
     realPlayerCount = len(scores) - (1 if hasUnusedPoints else 0)
 
     if not (4 <= realPlayerCount and realPlayerCount <= 5):
         return {"status":1, "error":"Please enter 4 or 5 scores"}
-
-    if hasUnusedPoints and unusedPoints % db.unusedPointsIncrement() != 0:
-        return {"status":1,
-                "error":"Unused points must be a multiple of {0}".format(
-                    unusedPointsIncrement())}
 
     if "" in uniqueIDs:
         return {"status":1, "error":"Please enter all player names"}
@@ -116,15 +116,78 @@ def addGame(scores, gamedate = None, gameid = None):
     if len(uniqueIDs) < len(scores):
         return {"status":1, "error": "All players must be distinct"}
 
-    targetTotal = realPlayerCount * 25000
+    if hasUnusedPoints and unusedPoints % unusedPointsIncrement() != 0:
+        return {"status":1,
+                "error":"Unused points must be a multiple of {0}".format(
+                    unusedPointsIncrement())}
+
+    targetTotal = realPlayerCount * settings.SCOREPERPLAYER
     if total != targetTotal:
         return {"status": 1,
-                "error": "Scores do not add up to " + str(targetTotal)}
+                "error": "Scores add up to {}, not {}".format(
+                    total, targetTotal)}
 
     # Sort scores for ranking, ensuring unused points player is last, if present
     scores.sort(
-        key=lambda x: (x['player'] != unusedPointsPlayerID, x['score']),
+        key=lambda x: ('PlayerId' not in x or x['PlayerId'] != unusedPointsPlayerID, x['points']),
         reverse=True)
+
+    rank = 1
+    pointHistogram[None] = 0
+    last_points = None
+    for score in scores:
+        if score['points'] != last_points:
+            rank += pointHistogram[last_points]
+            last_points = score['points']
+        score['Rank'] = rank
+        score['uma'] = 0
+        if score.get('PlayerId', None) != unusedPointsPlayerID:
+            for j in range(rank-1, rank-1 + pointHistogram[last_points]):
+                score['uma'] += umas[realPlayerCount][j]
+            score['uma'] /= pointHistogram[last_points]
+            score['Score'] = getScore(score['points'], score['uma'])
+        else:
+            score['Score'] = 0
+
+    return {"status": 0, "realPlayerCount": realPlayerCount, "hasUnusedPoints": hasUnusedPoints}
+
+def addGame(scores, gamedate = None, gameid = None):
+    """Add or replace game scores for a particular game in the database.
+    The scores should be a list of dictionaries.
+    Each dictionary should have either a 'PlayerId' or 'Name',
+    a 'RawScore', and a 'Chombos' count.
+    One of the players may be the UnusedPointsPlayer to represent points
+    that were not claimed at the end of play.
+    The gamedate defaults to today.  A new gameid is created if none is given.
+    If a player name is not found in database, a new record is created for
+    them.
+    Returns a dictionary with a 'status' and a 'message' field.  Status of 0
+    means success.
+    """
+    global dateFormat, unusedPointsPlayerName
+
+    if scores is None:
+        return {"status":1, "error":"Please enter some scores"}
+
+    if gamedate is None:
+        if 'Date' in scores[0]:
+            gamedate = scores[0]['Date']
+        else:
+            gamedate = datetime.datetime.now().strftime(dateFormat)
+    if gameid is None:
+        if 'GameId' in scores[0]:
+            gameid = scores[0]['GameId']
+
+    quarter = quarterString(datetime.datetime.strptime(gamedate, dateFormat))
+
+    status = rankGame(scores)
+    if status['status'] == 0:
+        hasUnusedPoints = status['hasUnusedPoints']
+        realPlayerCount = status['realPlayerCount']
+    elif status['status'] == 1:
+        return status
+
+    unusedPointsPlayerID = getUnusedPointsPlayerID()
 
     with db.getCur() as cur:
         if gameid is None:
@@ -133,38 +196,38 @@ def addGame(scores, gamedate = None, gameid = None):
         else:
             cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
 
-        for i in range(len(scores)):
-            score = scores[i]
-            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?",
-                        (score['player'], score['player']))
-            player = cur.fetchone()
-            if player is None or len(player) == 0:
-                cur.execute("INSERT INTO Players(Name) VALUES(?)",
-                            (score['player'],))
+        columns = ["GameId", "PlayerId", "Rank", "PlayerCount",
+            "RawScore", "Chombos", "Score", "Date", "Quarter", "DeltaRating"]
+
+        rows = []
+        for score in scores:
+            if 'PlayerId' not in score:
                 cur.execute("SELECT Id FROM Players WHERE Name = ?",
-                            (score['player'],))
+                            (score['Name'],))
                 player = cur.fetchone()
-            player = player[0]
 
-            score['player'] = player
-            score['rating'] = playerRatingBeforeDate(player, gamedate)
+                if player is not None and len(player) > 0:
+                    score['PlayerId'] = player[0]
+                else:
+                    cur.execute("INSERT INTO Players(Name) VALUES(?)",
+                                (score['Name'],))
+                    score['PlayerId'] = cur.lastrowid
 
-        for i in range(len(scores)):
-            score = scores[i]
-            rating = deltaRating(scores, i, realPlayerCount, gameid)
+            score['GameId'] = gameid
+            score['PlayerCount'] = realPlayerCount
+            score['Date'] = gamedate
+            score['Quarter'] = quarter
+            score['DeltaRating'] = deltaRating(scores, score)
 
-            adjscore = 0 if score['player'] == unusedPointsPlayerID else (
-                getScore(score['score'], realPlayerCount, i) -
-                        score['chombos'] * 8)
+            row = [score[col] for col in columns]
+            rows += [row]
 
-            cur.execute(
-                "INSERT INTO Scores(GameId, PlayerId, Rank, PlayerCount, "
-                " RawScore, Chombos, Score, Date, Quarter, DeltaRating) "
-                " VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (gameid, player, i + 1, len(scores),
-                 score['score'], score['chombos'], adjscore, gamedate, quarter, rating))
+        query = "INSERT INTO Scores({columns}) VALUES({values})".format(
+                columns=",".join(columns),
+                values=",".join(["?"] * len(columns)))
+        cur.executemany(query, rows)
 
-            leaderboard.genLeaderboard()
+    leaderboard.genLeaderboard()
     return {"status":0}
 
 adjEvent = 0.5
@@ -175,40 +238,74 @@ def playerRatingBeforeDate(playerId, gamedate):
         return cur.fetchone() [0]
     return settings.DEFAULT_RATING
 
-def deltaRating(scores, rank, realPlayerCount):
+def deltaRating(scores, player):
     gamedate = scores[0]['Date']
+    unusedPointsPlayerID = getUnusedPointsPlayerID()
+    if player['PlayerId'] == unusedPointsPlayerID:
+        return 0
 
     totalOppRating = 0
-    for i in range(realPlayerCount):
-        score = scores[i]
+    realPlayerCount = len(scores)
+    for score in scores:
+        if 'PlayerId' not in score: # score player's first game
+            score['Rating'] = settings.DEFAULT_RATING
+        elif score['PlayerId'] == unusedPointsPlayerID:
+            realPlayerCount -= 1
+            continue
+
         if 'Rating' not in score:
             score['Rating'] = playerRatingBeforeDate(score['PlayerId'], gamedate)
-        if i != rank:
+
+        if 'PlayerId' not in score or score['PlayerId'] != player['PlayerId']:
             totalOppRating += score['Rating']
     avgOppRating = totalOppRating / (realPlayerCount - 1)
 
     with db.getCur() as cur:
-        cur.execute("SELECT COALESCE(COUNT(*), 0) FROM Scores WHERE PlayerId = ? AND Date < ?", (scores[rank]['PlayerId'], gamedate))
+        cur.execute("SELECT COALESCE(COUNT(*), 0) FROM Scores"
+                    "  WHERE PlayerId = ? AND Date < ?",
+                    (player['PlayerId'], gamedate))
         gameCount = cur.fetchone()[0]
         adjPlayer = max(1 - (gameCount * 0.008), 0.2)
 
-    return (umas[realPlayerCount][rank] + adjEvent * (avgOppRating - scores[rank]['Rating']) / 40) * adjPlayer
+    return (player['uma'] * 2 +
+            adjEvent * (avgOppRating - player['Rating'])
+            / 40) * adjPlayer
 
-def getScores(gameid):
+def getScores(gameid, getNames = False, unusedPoints = False):
     with db.getCur() as cur:
-        columns = ["Id","PlayerId","Score","RawScore","Chombos","Date","DeltaRating"]
-        cur.execute("SELECT {0} FROM Scores WHERE GameId = ? ORDER BY GameId".format(",".join(columns)), (gameid,))
-        scores = []
-        for row in cur.fetchall():
-            score = dict(zip(columns, row))
-            scores += [score]
+        columns = ["Id","PlayerId","GameId","Score","RawScore","Chombos","Date",
+                   "DeltaRating","Rank"]
+        queryColumns = ["Scores.Id","PlayerId","GameId","Score","RawScore","Chombos","Date",
+                   "DeltaRating","Rank"]
+        tables = ["Scores"]
+
+        if getNames:
+            columns += ['Name']
+            queryColumns += ['Name']
+            tables += ["JOIN Players ON PlayerId = Players.Id"]
+
+        conditions = ["GameId = ?"]
+        bindings = [gameid]
+
+        if not unusedPoints:
+            conditions += ["PlayerId != ?"]
+            bindings += [getUnusedPointsPlayerID()]
+
+        query = "SELECT {columns} FROM {tables} WHERE {conditions}".format(
+            columns=",".join(queryColumns),
+            tables=" ".join(tables),
+            conditions=" AND ".join(conditions))
+        cur.execute(query, bindings)
+
+        scores = [dict(zip(columns, row)) for row in cur.fetchall()]
         return scores
 
 class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         self.render("addgame.html",
-                    unusedPointsIncrement=unusedPointsIncrement())
+                    unusedPointsIncrement=unusedPointsIncrement(),
+                    fourplayertotal='{:,d}'.format(4 * settings.SCOREPERPLAYER))
     @tornado.web.authenticated
     def post(self):
         scores = self.get_argument('scores', None)

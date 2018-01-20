@@ -20,13 +20,13 @@
 			<th>Chombos</th>
 		</thead>
 		<tbody>
-			{% for score in scores.items() %}
+			{% for score in game %}
 				<tr>
-					<td>{{ score [0] }}</td>
-					<td><a href="/playerstats/{{ score [1][0] }}">{{ score [1][0] }}</a></td>
-					<td>{{ score[1][1] }}K{% if score[1][3] != 0 %} (-{{ score[1][3] * 8 }}K){% end %}</td>
-					<td>{{ score[1][2] }}</td>
-					<td>{{ score[1][3] }}</td>
+					<td>{{ score['Rank'] }}</td>
+					<td><a href="/playerstats/{{ score['Name'] }}">{{ score ['Name'] }}</a></td>
+					<td>{{ score['RawScore'] }}</td>
+					<td>{{ score['Score'] }}</td>
+					<td>{{ score['Chombos'] }}</td>
 				</tr>
 			{% end %}
 		</tbody>
