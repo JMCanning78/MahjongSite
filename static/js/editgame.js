@@ -7,6 +7,7 @@
 
 		$("#submit").click(function() {
 			$("#submit").attr("disabled", true);
+			var prevText = $("#submit").text();
 			$("#submit").text("Editing...");
 
 			window.submitGame(
@@ -20,6 +21,7 @@
 				},
 				function() {
 					$("#submit").attr("disabled", false);
+					$("#submit").text(prevText);
 				}
 			);
 		});
