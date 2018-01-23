@@ -97,8 +97,7 @@ $(function() {
 		return good;
 	}
 
-	window.submitGame = function(endpoint, callback, senddata) {
-		console.log(senddata);
+	window.submitGame = function(endpoint, callback, senddata, errorcallback) {
 		senddata = senddata || {};
 		var scores = [];
 		var points = $(".playerpoints").map(function() {
@@ -131,6 +130,9 @@ $(function() {
 		$.post(endpoint, senddata, function(data) {
 			if (data.status !== 0) {
 				$("#message").text(data.error);
+				if(typeof errorcallback === "function") {
+					errorcallback(data);
+				}
 			}
 			else {
 				if (typeof callback === 'function')

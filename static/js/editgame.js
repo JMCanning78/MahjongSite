@@ -6,13 +6,20 @@
 		}).val(scores[0][4]);
 
 		$("#submit").click(function() {
+			$("#submit").attr("disabled", true);
+			$("#submit").text("Editing...");
+
 			window.submitGame(
 				'/admin/edit/' + window.gameid,
 				function() {
 					$("#message").text("GAME EDITED");
 					$("#content").append($("<a href='/admin/edit/" + window.gameid + "' class='button'>EDIT AGAIN</a>"));
-				}, {
+				},
+				{
 					'gamedate': $("#gamedate").val()
+				},
+				function() {
+					$("#submit").attr("disabled", false);
 				}
 			);
 		});
