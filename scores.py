@@ -19,7 +19,16 @@ def quarterString(time=None):
     if time is None:
         time = datetime.datetime.now()
     return time.strftime("%Y ") + ["1st", "2nd", "3rd", "4th"][
-        (time.month - 1) // 3]
+        (time.month - 1) * 4 // 12]
+
+def quarterDate(quarter=None):
+    """Returns a datetime object for the quarter string passed
+    return value defaults to today"""
+    if quarter is None:
+        return datetime.datetime.now()
+    year = int(quarter[0:4])
+    month = (int(quarter[5:6]) - 1) * 12 // 4 + 1
+    return datetime.datetime(year=year, month=month, day=1)
 
 def unusedPointsIncrement(quarter=None):
     """Get the UnusedPointsIncrement value for the given quarter.
@@ -227,7 +236,7 @@ def addGame(scores, gamedate = None, gameid = None):
                 values=",".join(["?"] * len(columns)))
         cur.executemany(query, rows)
 
-    leaderboard.genLeaderboard()
+    leaderboard.genLeaderboard(gamedate)
     return {"status":0}
 
 adjEvent = 0.5

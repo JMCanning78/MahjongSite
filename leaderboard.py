@@ -9,10 +9,10 @@ import scores
 
 columns = ['Period', 'Date', 'PlayerId', 'AvgScore', 'GameCount', 'DropGames']
 periods = {
-    "annual":[
-        """SELECT
+    "annual":{
+        "queries":["""SELECT
             'annual',
-             strftime('%Y', Scores.Date),
+             {datefmt},
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
@@ -20,15 +20,15 @@ periods = {
              0
            FROM Scores
            WHERE PlayerId != ?
-           GROUP BY strftime('%Y', Date),PlayerId
-           ORDER BY AvgScore DESC;"""
-    ],
-    "biannual":[
-        """SELECT
+           AND {datetest}
+           GROUP BY {datefmt},PlayerId
+           ORDER BY AvgScore DESC;"""],
+       "datefmt": "strftime('%Y', {date})",
+       },
+    "biannual":{
+        "queries":["""SELECT
             'biannual',
-             strftime('%Y', Scores.Date) || ' ' ||
-               case ((strftime('%m', Date) - 1) / 6) when 0 then '1st'
-                 when 1 then '2nd' end,
+             {datefmt},
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
@@ -36,13 +36,19 @@ periods = {
              0
            FROM Scores
            WHERE PlayerId != ?
-        GROUP BY strftime('%Y', Date) || ' ' || ((strftime('%m', Date) - 1) / 6),PlayerId
-        ORDER BY AvgScore DESC;"""
-    ],
-    "quarter":[
-        """SELECT
+           AND {datetest}
+        GROUP BY {datefmt},PlayerId
+        ORDER BY AvgScore DESC;"""],
+        "datefmt":"""strftime('%Y', {date}) || ' ' ||
+               case ((strftime('%m', {date}) - 1) / 12 * 2)
+                   when 0 then '1st'
+                   when 1 then '2nd'
+                end"""
+    },
+    "quarter":{
+        "queries":["""SELECT
             'quarter',
-             Scores.Quarter,
+             {{datefmt}},
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
@@ -53,12 +59,20 @@ periods = {
            WHERE PlayerId != ? AND Scores.Id NOT IN
              (SELECT Id FROM Scores as s WHERE s.PlayerId = Scores.PlayerId AND s.Quarter = Scores.Quarter
                  ORDER BY s.Score ASC LIMIT {DROPGAMES})
-           GROUP BY Scores.Quarter,PlayerId
+           AND {{datetest}}
+           GROUP BY {{datefmt}},PlayerId
            HAVING COUNT(Scores.Score) + {DROPGAMES} >= COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES}
                AND COUNT(Scores.Score) + {DROPGAMES} < COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1)
            ORDER BY AvgScore DESC;""".format(DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMES)
-        for i in range(settings.MAXDROPGAMES)
-    ]
+        for i in range(settings.MAXDROPGAMES)],
+        "datefmt":"""strftime('%Y', {date}) || ' ' ||
+               case ((strftime('%m', {date}) - 1) / 12 * 4)
+                   when 0 then '1st'
+                   when 1 then '2nd'
+                   when 2 then '3rd'
+                   when 3 then '4th'
+               end"""
+        }
 }
 
 class LeaderboardHandler(handler.BaseHandler):
@@ -99,14 +113,26 @@ class LeaderDataHandler(handler.BaseHandler):
 
         self.write(json.dumps({'leaderboards':list(leaderboards)}))
 
-def genLeaderboard():
+def genLeaderboard(leaderDate = None):
+    """Recalculates the leaderboard for the given datetime object.
+    If leaderDate is None, then recalculates all leaderboards."""
     with db.getCur() as cur:
         leadercols = ['Place'] + columns
         leaderrows = []
-        for period, queries in periods.items():
+
+        for periodname, period in periods.items():
             rows = []
+            queries = period['queries']
+            datefmt = period['datefmt']
+            bindings = []
+            if leaderDate is not None:
+                datetest = "(" + datefmt + ") = (" + datefmt.format(date="?") + ")"
+                bindings = [leaderDate] * datefmt.count("{date}")
+
+            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND Date = {datefmt}".format(datefmt=datefmt.format(date="?")), [periodname] + bindings)
+
             for query in queries:
-                cur.execute(query, (scores.getUnusedPointsPlayerID(),))
+                cur.execute(query.format(datetest=datetest, datefmt=datefmt).format(date="Scores.Date"), [scores.getUnusedPointsPlayerID()] + bindings)
                 rows += [dict(zip(columns, row)) for row in cur.fetchall()]
 
             rows.sort(key=lambda row: row['AvgScore'], reverse=True) # sort by score
@@ -120,7 +146,6 @@ def genLeaderboard():
                 leaderrow = [row[col] for col in leadercols]
                 leaderrows += [leaderrow]
 
-        cur.execute("DELETE FROM Leaderboards")
         query = "INSERT INTO Leaderboards({columns}) VALUES({colvals})".format(
                 columns=",".join(leadercols),
                 colvals=",".join(["?"] * len(leadercols))

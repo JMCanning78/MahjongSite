@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import datetime
 
 import handler
 import db
@@ -74,15 +75,19 @@ class DeleteGameHandler(handler.BaseHandler):
             self.render("deletegame.html", id=q, game=game)
     @handler.is_admin
     def post(self, q):
+        gamedate = None
         with db.getCur() as cur:
-            cur.execute("SELECT EXISTS(SELECT * FROM Scores WHERE GameId = ?)", (q,))
-            if cur.fetchone()[0] == 0:
-                self.render("message.html", message = "Game not found", title = "Delete Game")
-            else:
+            cur.execute("SELECT Date FROM Scores WHERE GameId = ?", (q,))
+            gamedate = cur.fetchone()
+            if gamedate is not None:
+                gamedate = gamedate[0]
                 db.make_backup()
                 cur.execute("DELETE FROM Scores WHERE GameId = ?", (q,))
-                leaderboard.genLeaderboard()
-                self.redirect("/history")
+        if gamedate is not None:
+            leaderboard.genLeaderboard(gamedate)
+            self.redirect("/history")
+        else:
+            self.render("message.html", message = "Game not found", title = "Delete Game")
 
 class EditGameHandler(handler.BaseHandler):
     @handler.is_admin
@@ -150,7 +155,7 @@ class EditQuarterHandler(handler.BaseHandler):
                         "UnusedPointsIncrement) VALUES (?,?,?);",
                         (quarter, gamecount, unusedPointsIncrement))
 
-        leaderboard.genLeaderboard()
+        leaderboard.genLeaderboard(scores.quarterDate(quarter))
 
         self.render("message.html",
                     message = "Quarter {0} updated".format(quarter),
@@ -182,23 +187,24 @@ class DeleteQuarterHandler(handler.BaseHandler):
             cur.execute("SELECT Quarter, Gamecount FROM Quarters "
                         "WHERE Quarter = ? ORDER BY Quarter DESC", (q,))
             rows = cur.fetchall()
-            if len(rows) == 0:
-                self.render("message.html",
-                            message = "Quarter {0} not found".format(q),
-                            title = "Quarter Not Found",
-                            next = "Manage quarters",
-                            next_url = "/admin/quarters")
-            elif len(rows) == 1:
+        if len(rows) == 0:
+            self.render("message.html",
+                        message = "Quarter {0} not found".format(q),
+                        title = "Quarter Not Found",
+                        next = "Manage quarters",
+                        next_url = "/admin/quarters")
+        elif len(rows) == 1:
+            with db.getCur() as cur:
                 cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (q,))
-                self.render("message.html",
-                            message = "Quarter {0} deleted".format(q),
-                            title = "Quarter Deleted",
-                            next = "Manage quarters",
-                            next_url = "/admin/quarters")
-                leaderboard.genLeaderboard()
-            else:
-                self.render("quarters.html",
-                            message = ("Error: Multiple quarters named {0} "
-                                       "found. See Adminstrator.").format(q),
-                            quarters=rows)
+            self.render("message.html",
+                        message = "Quarter {0} deleted".format(q),
+                        title = "Quarter Deleted",
+                        next = "Manage quarters",
+                        next_url = "/admin/quarters")
+            leaderboard.genLeaderboard(scores.quarterDate(quarter))
+        else:
+            self.render("quarters.html",
+                        message = ("Error: Multiple quarters named {0} "
+                                   "found. See Adminstrator.").format(q),
+                        quarters=rows)
 
