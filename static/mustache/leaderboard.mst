@@ -1,6 +1,6 @@
 {{#leaderboards}}
 	<div class="leaderboard">
-		<h2>LEADERBOARD <span id="lbname">{{ Date }}</span></h2>
+		<h2>LEADERBOARD <span class="lbname">{{ Date }}</span></h2>
 		<table>
 			<tr class="leaderbd_col_header">
 				<th class="ordering">PLACE</th>

@@ -23,20 +23,21 @@ $(function() {
 		$.getJSON("/leaderdata/" + period,
 			function(data) {
 				scores = data;
-				$("#leaderboards").html(Mustache.render(leaderboard, data));
-				$(".ordering").click(changeOrdering);
-				updateLeaderScores($("#min_games").val(), rank_visible());
+				$("#leaderboards").html(Mustache.render(leaderboard, data)).promise().done(function() {
+					$(".ordering").click(changeOrdering);
+					updateLeaderScores($("#min_games").val(), rank_visible());
+				});
 			});
 	}
 
 	function updateLeaderScores(min_games, rank_visible) {
 		$(".leaderboard").each(function(i, board) {
 			/* Get the scores for this board */
-			var boardname = $("#lbname", board).text();
+			var boardname = $(".lbname", board).text();
 			var bd_scores;
 			for (bd in scores['leaderboards']) {
-				if (scores['leaderboards'][bd]['name'] == boardname) {
-					bd_scores = scores['leaderboards'][bd]['scores'];
+				if (scores['leaderboards'][bd]['Date'] == boardname) {
+					bd_scores = scores['leaderboards'][bd]['Scores'];
 					break;
 				};
 			}
@@ -60,18 +61,18 @@ $(function() {
 				}
 				else {
 					$(row).slideDown('fast');
-					if (++last_place == bd_scores[i]['place']) {
+					if (++last_place == bd_scores[i]['Place']) {
 						row.children[0].innerText =
 							(rank_visible ? last_place :
-								bd_scores[i]['place']).toString();
+								bd_scores[i]['Place']).toString();
 					}
 					else if (rank_visible) {
 						row.children[0].innerText = last_place.toString();
 					}
 					else {
 						row.children[0].innerText = '... ' +
-							bd_scores[i]['place'].toString();
-						last_place = bd_scores[i]['place'];
+							bd_scores[i]['Place'].toString();
+						last_place = bd_scores[i]['Place'];
 					}
 				}
 			});
