@@ -11,7 +11,6 @@ import os
 
 import util
 import settings
-import leaderboard
 
 class getCur():
     con = None

@@ -42,7 +42,7 @@ class InviteHandler(handler.BaseHandler):
         return
         if self.current_user is not None:
             self.render("invite.html")
-        self.render("login.html")
+        self.render("login.html", uri = '/')
 
     @tornado.web.authenticated
     def post(self):
@@ -264,7 +264,9 @@ class LoginHandler(handler.BaseHandler):
         uri = self.get_argument('next', '/')
 
         if not email or not password or email == "" or password == "":
-            self.render("login.html", message = "Please enter an email and password")
+            self.render("login.html", 
+                        message = "Please enter an email and password",
+                        uri = uri)
             return
 
         with db.getCur() as cur:
@@ -293,7 +295,8 @@ class LoginHandler(handler.BaseHandler):
                         self.redirect(uri)
                         return
         log.info("Invalid login attempt for {0}".format(email))
-        self.render("login.html", message = "Incorrect email and password", uri = uri)
+        self.render("login.html",
+                    message = "Incorrect email and password", uri = uri)
 
 class LogoutHandler(handler.BaseHandler):
     def get(self):

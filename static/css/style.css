@@ -26,6 +26,12 @@ html, body {
 	margin-right:0.5em;
 }
 
+#navbar > a.userID {
+	width:0;
+	float:right;
+	padding-right:5em;
+}
+
 #content {
 	width:96%;
 	max-width:700px;

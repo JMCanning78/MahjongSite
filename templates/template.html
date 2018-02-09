@@ -40,9 +40,10 @@
 				{% if is_admin %}
 					<a href="/admin">Admin</a>
 				{% end %}
-				<a href="/settings">Settings</a>
 				<a href="/invite">Invite</a>
 				<a href="/logout?next={{ request.uri }}">Logout</a>
+				<a class="userID" href="/settings">
+				   {{ current_user_name }}</a>
 			{% end %}
 		</div>
 		<div id="content">
