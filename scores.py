@@ -202,7 +202,12 @@ def addGame(scores, gamedate = None, gameid = None):
         if gameid is None:
             cur.execute("SELECT COALESCE(GameId, 0) FROM Scores ORDER BY GameId DESC LIMIT 1")
             gameid = cur.fetchone()[0] + 1
+            olddate = gamedate
         else:
+            cur.execute("SELECT MAX(Date) FROM Scores WHERE GameId = ?"
+                        "  GROUP BY GameId", (gameid,))
+            result = cur.fetchone()
+            olddate = result[0]
             cur.execute("DELETE FROM Scores WHERE GameId = ?", (gameid,))
 
         columns = ["GameId", "PlayerId", "Rank", "PlayerCount",
@@ -237,6 +242,8 @@ def addGame(scores, gamedate = None, gameid = None):
         cur.executemany(query, rows)
 
     leaderboard.genLeaderboard(gamedate)
+    if olddate != gamedate:
+        leaderboard.genLeaderboard(olddate)
     return {"status":0}
 
 adjEvent = 0.5
