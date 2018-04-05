@@ -40,7 +40,7 @@ periods = {
         GROUP BY {datefmt},PlayerId
         ORDER BY AvgScore DESC;"""],
         "datefmt":"""strftime('%Y', {date}) || ' ' ||
-               case ((strftime('%m', {date}) - 1) / 12 * 2)
+               case ((strftime('%m', {date}) - 1) / 6)
                    when 0 then '1st'
                    when 1 then '2nd'
                 end"""
@@ -48,30 +48,33 @@ periods = {
     "quarter":{
         "queries":["""SELECT
             'quarter',
-             {{datefmt}},
+             Scores.Quarter,
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
              {DROPGAMES}
            FROM Scores
-             LEFT JOIN Quarters ON Scores.Quarter = Quarters.Quarter
+             LEFT OUTER JOIN Quarters ON Scores.Quarter = Quarters.Quarter
            WHERE PlayerId != ? AND Scores.Id NOT IN
-             (SELECT Id FROM Scores as s WHERE s.PlayerId = Scores.PlayerId AND s.Quarter = Scores.Quarter
-                 ORDER BY s.Score ASC LIMIT {DROPGAMES})
+             (SELECT Id FROM Scores as s
+               WHERE s.PlayerId = Scores.PlayerId AND s.Quarter = Scores.Quarter
+               ORDER BY s.Score ASC LIMIT {DROPGAMES})
            AND {{datetest}}
-           GROUP BY {{datefmt}},PlayerId
-           HAVING COUNT(Scores.Score) + {DROPGAMES} >= COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES}
-               AND COUNT(Scores.Score) + {DROPGAMES} < COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1)
-           ORDER BY AvgScore DESC;""".format(DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMES)
+           GROUP BY Scores.Quarter,PlayerId
+           HAVING COUNT(Scores.Score) + {DROPGAMES} BETWEEN
+             COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES} AND
+             COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1) - 1
+           ORDER BY AvgScore DESC;""".format(
+               DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMES)
         for i in range(settings.MAXDROPGAMES)],
-        "datefmt":"""strftime('%Y', {date}) || ' ' ||
-               case ((strftime('%m', {date}) - 1) / 12 * 4)
+        "datefmt": """strftime('%Y', {date}) || ' ' ||
+               case ((strftime('%m', {date}) - 1) / 3)
                    when 0 then '1st'
                    when 1 then '2nd'
                    when 2 then '3rd'
                    when 3 then '4th'
-               end"""
+                end"""
         }
 }
 
