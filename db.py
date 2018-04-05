@@ -82,7 +82,9 @@ schema = collections.OrderedDict({
     'Quarters': [
         'Quarter TEXT PRIMARY KEY NOT NULL',
         'GameCount INTEGER NOT NULL',
-        'UnusedPointsIncrement INTEGER DEFAULT 0'
+        'UnusedPointsIncrement INTEGER DEFAULT 0',
+        'QualifyingGames INTEGER NOT NULL DEFAULT 1',
+        'QualifyingDistinctDates INTEGER NOT NULL DEFAULT 1'
     ],
     'Settings': [
         'UserId INTEGER',

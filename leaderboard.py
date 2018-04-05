@@ -66,7 +66,7 @@ periods = {
              COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES} AND
              COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1) - 1
            ORDER BY AvgScore DESC;""".format(
-               DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMES)
+               DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMECOUNT)
         for i in range(settings.MAXDROPGAMES)],
         "datefmt": """strftime('%Y', {date}) || ' ' ||
                case ((strftime('%m', {date}) - 1) / 3)

@@ -13,11 +13,13 @@ import leaderboard
 umas = {4:[15,5,-5,-15],
         5:[15,5,0,-5,-15]}
 
-def quarterString(time=None):
+def quarterString(time=None, date=None):
     """Return the string for the calendar quarter for the given datetime object.
     Time defaults to current time"""
-    if time is None:
+    if time is None and date is None:
         time = datetime.datetime.now()
+    elif time is None:
+        time = datetime.datetime.strptime(date, '%Y-%m-%d')
     return time.strftime("%Y ") + ["1st", "2nd", "3rd", "4th"][
         (time.month - 1) * 4 // 12]
 
@@ -30,12 +32,12 @@ def quarterDate(quarter=None):
     month = (int(quarter[5:6]) - 1) * 12 // 4 + 1
     return datetime.datetime(year=year, month=month, day=1)
 
-def unusedPointsIncrement(quarter=None):
+def unusedPointsIncrement(quarter=None, date=None):
     """Get the UnusedPointsIncrement value for the given quarter.
     The quarter defaults to the most recent quarter in the database
     (but no later than today's date)."""
     if quarter is None:
-        quarter = quarterString()
+        quarter = quarterString(date=date)
     try:
         with db.getCur() as cur:
             cur.execute("SELECT COALESCE(UnusedPointsIncrement,0) FROM Quarters"
