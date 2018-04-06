@@ -1,0 +1,21 @@
+{% extends "template.html" %}
+
+{% block title %} - Confirmation{% end %}
+
+{% block head %}
+
+{% end %}
+
+{% block content %}
+	<h1 id="page-title">Confirmation</h1>
+
+	<p>{{ question }}</p>
+
+	<form action="{{ yesURL }}" method="{{ yesMethod }}">
+		<input type="submit" value="{{ yesLabel }}"/>
+	</form>
+
+	<form action="{{ noURL }}" method="{{ noMethod }}">
+		<input type="submit" value="{{ noLabel }}"/>
+	</form>
+{% end %}

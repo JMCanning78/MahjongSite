@@ -211,6 +211,37 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         next = "Manage quarters",
                         next_url = "/admin/quarters")
         elif len(rows) == 1:
+            print('The request to delete quarter {} has uri: {} and path: {}'
+                  .format(q, self.request.uri, self.request.path))
+
+            self.render(
+                "confirm.html",
+                question=("Are you sure you want to delete the {} Quarter?  "
+                          "This can impact other parts of the system "
+                          "such as membership records, unused points "
+                          "settings, qualification criteria, etc.").format(
+                              q),
+                yesURL="/admin/deletequarter/{}".format(q),
+                yesMethod="post", yesLabel="Yes",
+                noURL="/admin/quarters", noMethod="get", noLabel="No"
+            )
+        else:
+            self.render("quarters.html",
+                        message = ("Error: Multiple quarters named {0} "
+                                   "found. See Adminstrator.").format(q),
+                        quarters=rows)
+        
+    def post(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
+            rows = cur.fetchall()
+        if len(rows) == 0:
+            self.render("message.html",
+                        message = "Quarter {0} not found".format(q),
+                        title = "Quarter Not Found",
+                        next = "Manage quarters",
+                        next_url = "/admin/quarters")
+        elif len(rows) == 1:
             with db.getCur() as cur:
                 cur.execute("DELETE FROM Quarters WHERE Quarter = ?", (q,))
             self.render("message.html",
