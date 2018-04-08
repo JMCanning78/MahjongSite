@@ -137,7 +137,7 @@ class EditQuarterHandler(handler.BaseHandler):
     def get(self, q):
         settingsDescriptions = getSettingsDescriptions()
         helptext = '<ul>'
-        for field in quarterFields + ['DropGameCount']:
+        for field in ['DropGameCount'] + quarterFields:
             if field.upper() in settingsDescriptions:
                 helptext += '<li><b><em>{}</em></b>'.format(
                     splitCamelCase(field))
