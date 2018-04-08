@@ -107,7 +107,14 @@ schema = collections.OrderedDict({
         'GameCount INTEGER',
         'DropGames INTEGER',
         'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
-    ]
+    ],
+    'Memberships': [
+        'PlayerId INTEGER',
+        'QuarterId TEXT',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE',
+        'FOREIGN KEY(QuarterId) REFERENCES Quarters(Quarter)',
+        'UNIQUE(PlayerId, QuarterId)'
+        ],
 })
 
 def init(force=False):
@@ -218,6 +225,11 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
 
 def words(spec):
     return re.findall(r'\w+', spec)
+
+def table_field_names(tablename):
+    return [words(fs)[0] for fs in schema.get(tablename, []) 
+            if not words(fs)[0].upper() in [
+                    'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'PRIMARY', 'CHECK']]
 
 def missing_fields(table_fields, actual_fields):
     return [ field_spec for field_spec in table_fields if (

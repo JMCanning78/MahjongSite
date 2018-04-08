@@ -129,8 +129,7 @@ class EditGameHandler(handler.BaseHandler):
         db.make_backup()
         self.write(json.dumps(scores.addGame(gamescores, gamedate, gameid)))
 
-quarterFields = [x.split()[0] for x in db.schema['Quarters'] 
-                 if not x.startswith('FOREIGN')]
+quarterFields = db.table_field_names('Quarters')
         
 class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
