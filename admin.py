@@ -2,6 +2,9 @@
 
 import json
 import datetime
+import os
+import sys
+import collections
 
 import handler
 import db
@@ -132,6 +135,18 @@ quarterFields = [x.split()[0] for x in db.schema['Quarters']
 class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
+        settingsDescriptions = getSettingsDescriptions()
+        helptext = '<ul>'
+        for field in quarterFields + ['DropGameCount']:
+            if field.upper() in settingsDescriptions:
+                helptext += '<li><b><em>{}</em></b>'.format(
+                    splitCamelCase(field))
+                fieldhelp = settingsDescriptions[field.upper()]
+                if fieldhelp.startswith(field.upper()):
+                    helptext += fieldhelp[len(field):]
+                else:
+                    helptext += ' - ' + fieldhelp
+        helptext += '</ul>'
         with db.getCur() as cur:
             cur.execute(("SELECT {} FROM Quarters WHERE Quarter <= ?"
                          "  ORDER BY Quarter DESC").format(', '.join(
@@ -158,7 +173,8 @@ class EditQuarterHandler(handler.BaseHandler):
                     # Use most recent quarter before selected one as default
                     rows = [(q,) + rows[0][1:]] + rows
             self.render("editquarter.html", 
-                        quarters=[dict(zip(quarterFields, row)) for row in rows])
+                        quarters=[dict(zip(quarterFields, row)) for row in rows],
+                        help=helptext)
 
     @handler.is_admin
     def post(self, q):
@@ -211,9 +227,6 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         next = "Manage quarters",
                         next_url = "/admin/quarters")
         elif len(rows) == 1:
-            print('The request to delete quarter {} has uri: {} and path: {}'
-                  .format(q, self.request.uri, self.request.path))
-
             self.render(
                 "confirm.html",
                 question=("Are you sure you want to delete the {} Quarter?  "
@@ -221,8 +234,7 @@ class DeleteQuarterHandler(handler.BaseHandler):
                           "such as membership records, unused points "
                           "settings, qualification criteria, etc.").format(
                               q),
-                yesURL="/admin/deletequarter/{}".format(q),
-                yesMethod="post", yesLabel="Yes",
+                yesURL=self.request.path, yesMethod="post", yesLabel="Yes",
                 noURL="/admin/quarters", noMethod="get", noLabel="No"
             )
         else:
@@ -256,3 +268,33 @@ class DeleteQuarterHandler(handler.BaseHandler):
                                    "found. See Adminstrator.").format(q),
                         quarters=rows)
 
+def getSettingsDescriptions():
+    descriptions = collections.defaultdict(lambda : '')
+    prefix = "#   "
+    try:
+        defaults = os.path.join(os.path.dirname(sys.argv[0]), 'defaults.py') 
+        with open(defaults, 'r') as f:
+            in_description = None
+            for line in f:
+                line.strip()
+                if line.startswith(prefix):
+                    line = line[len(prefix):]
+                    words = line.split()
+                    if words and len(words[0]) > 1 and words[0].isupper():
+                        in_description = words[0]
+                    if in_description:
+                        descriptions[in_description] += line.replace('\n', ' ')
+                else:
+                    in_description = None
+    except:
+        print('Unable to read {} to get settings descriptions'.format(
+            defaults), file=sys.stderr)
+    return descriptions
+
+def splitCamelCase(word):
+    words = []
+    for i in range(len(word)):
+        if word[i].isupper() or len(words) == 0:
+            words.append('')
+        words[-1] += word[i]
+    return ' '.join(words)

@@ -146,3 +146,8 @@ button.clearplayercomplete {
 		width:100%;
 	}
 }
+
+.helptext {
+    font-weight:regular;
+    font-size: 0.8em
+}
