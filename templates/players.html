@@ -1,0 +1,94 @@
+{% extends "template.html" %}
+
+{% block title %} - Players{% end %}
+
+{% block head %}
+<script src="{{ static_url("js/players.js") }}"></script>
+<style type="text/css">
+table {
+	width:100%;
+	margin-top:1em;
+}
+</style>
+{% end %}
+
+{% block content %}
+  <p id="message">
+    {% try %}
+      {% if message %}{{ message }}{% end %}
+    {% except %}{% end %}</p>
+  <div id="content_controls">
+    <span id="visible_quarters_label">
+      Visible quarters
+      <table id="visible_quarters_control" class="checkbox_list">
+	<tbody>
+	  {% for qtr in quarters%}
+	    <tr>
+	      <td>
+		<label for="Qtr-{{ qtr }}-visible" data-quarter="{{ qtr }}">
+		  {{ qtr }}
+	        </label> 
+	      </td>
+	      <td> <input type="checkbox" class="visibleQtrFlag"
+			  id="Qtr-{{ qtr }}-visible"
+			  data-quarter="{{ qtr }}"
+			  {% if currentQtr == qtr %}checked{% end %}
+			  /> 
+	    </tr>
+	  {% end %}
+	</tbody>
+      </table>
+    </span>
+  </div>
+  
+  <h1>Players</h1>
+  <table class="players">
+    <tbody>
+      <tr>
+	<th colspan=2></th><th colspan={{ len(quarters) }}>Membership</th>
+      </tr>
+      <tr>
+	<th>Name</th>
+	<th>Meetup Name</th>
+	{% for qtr in quarters %}
+	  <th data-quarter="{{ qtr }}">{{ qtr }}</th>
+	{% end %}
+      </tr>
+      {% for playerId, player in players.items() %}
+        <tr data-playerId="{{ playerId }}">
+	  <td>
+	    {% if is_admin %}
+	      <input type=text value="{{ player['Name'] }}" />
+	    {% else %}
+	      <a href="/playerstats/{{ player['Name'] }}">
+		{{ player['Name'] }}</a>
+	    {% end %}
+	  </td>
+	  <td>
+	    {% if is_admin %}
+            <input type=text
+		   {% if player['MeetupName'] %}
+                     value="{{ player['MeetupName'] }}"
+		   {% end %}
+		   placeholder="Name on Meetup"/>
+	    {% else %}
+	      {% if player['MeetupName'] %}
+                {{ player['MeetupName'] }}
+	      {% end %}
+	    {% end %}
+	  </td>
+	  {% for qtr in quarters %}
+	    <td data-quarter="{{ qtr }}">
+	      <input type="checkbox" class="membershipFlag"
+			  id="Qtr-{{ qtr }}-visible"
+			  data-quarter="{{ qtr }}"
+			  {% if qtr in player['Memberships'] %}checked{% end %}
+		          {% if not is_admin %} disabled {% end %}
+			  /> 	    
+	    </td>
+          {% end %}
+	</tr>
+      {% end %}
+    </tbody>
+  </table>
+{% end %}

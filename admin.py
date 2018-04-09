@@ -200,6 +200,7 @@ class EditQuarterHandler(handler.BaseHandler):
 class QuartersHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self):
+        thisQtrDate = scores.quarterDate(scores.quarterString())
         with db.getCur() as cur:
             cur.execute(
                 ("SELECT DISTINCT Scores.Quarter, {} "
@@ -208,7 +209,13 @@ class QuartersHandler(handler.BaseHandler):
                  " ORDER BY Scores.Quarter DESC").format(
                      ', '.join(quarterFields[1:])))
             rows = cur.fetchall()
-
+            scoreQtrs = [row[0] for row in rows]
+            for i in range(settings.FORECASTQUARTERS + 1):
+                newQtr = scores.quarterString(
+                    thisQtrDate + datetime.timedelta(days=92 * i))
+                if newQtr not in scoreQtrs:
+                    rows = [(newQtr, ) + (None,) * (len(quarterFields) - 1)
+                    ] + rows
             self.render("quarters.html",
                         message = "No quarters found" if len(rows) == 0 else "",
                         quarters=[dict(zip(quarterFields, row)) for row in rows])

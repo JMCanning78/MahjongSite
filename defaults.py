@@ -3,7 +3,7 @@
 # LOCALE
 CLUBCITY = "Seattle"
 CLUBSTATE = "WA"
-CLUBNAME = "{0} Richi Mahjong".format(CLUBCITY)
+CLUBNAME = "{0} Riichi Mahjong".format(CLUBCITY)
 
 # DB
 #  DBFILE is the name of the file that contains the scores and player database.
@@ -43,6 +43,11 @@ QUALIFYINGGAMES = 8
 #   play that a player must complete in a quarter to qualify for the
 #   end-of-quarter tournament.
 QUALIFYINGDISTINCTDATES = 8
+
+# Adminstrative
+#   FORECASTQUARTERS is the number of quarters ahead of the current quarter
+#   to show in the Quarters Management dialog
+FORECASTQUARTERS = 3
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,
