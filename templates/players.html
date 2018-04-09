@@ -5,12 +5,38 @@
 {% block head %}
 <script src="{{ static_url("js/players.js") }}"></script>
 <style type="text/css">
-table {
-	width:100%;
-	margin-top:1em;
+#content_controls {
+        width: auto;
+        text-align: left;  
+}
+#visible_quarters_control table {
+	width: 100%;
+	margin-top: 1em;
 }
 #visible_quarters_control {
-        width:auto;
+        width: auto;
+        position: absolute;
+        left: 2.0em;
+        z-index: 1;
+}
+#visible_quarters_control td {
+        text-align: left;  
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+}
+#visible_quarters_control input {
+        width: 1.0em;
+}
+table.players td[data-quarter] {
+        /* TBD center the checkboxes in the table cell */
+}
+.tooltip {
+        width: auto;
+        position: absolute;
+        opacity: 1;
+        background: #333;
+        font-size: 0.8em;
+        z-index: 1;
 }
 </style>
 {% end %}
@@ -20,6 +46,8 @@ table {
     {% try %}
       {% if message %}{{ message }}{% end %}
     {% except %}{% end %}</p>
+
+  <h1>Players</h1>
   <div id="content_controls">
     <span id="visible_quarters_label" class="control">
       Visible quarters
@@ -29,14 +57,13 @@ table {
 	{% for qtr in quarters%}
 	  <tr>
 	    <td>
-	      <label for="Qtr-{{ qtr }}-visible" data-quarter="{{ qtr }}">
+	      <label data-quarter="{{ qtr }}">
+	      <input type="checkbox" class="visibleQtrFlag"
+		     id="Qtr-{{ qtr }}-visible"
+		     data-quarter="{{ qtr }}"
+		     {% if qtr in visibleQtrs %}checked{% end %} /> 
 		{{ qtr }}
 	      </label> 
-	    </td>
-	    <td> <input type="checkbox" class="visibleQtrFlag"
-			id="Qtr-{{ qtr }}-visible"
-			data-quarter="{{ qtr }}"
-			{% if qtr in visibleQtrs %}checked{% end %} /> 
 	    </td>
 	  </tr>
 	{% end %}
@@ -44,7 +71,6 @@ table {
     </table>
   </div>
   
-  <h1>Players</h1>
   <table class="players">
     <tbody>
       <tr>
@@ -83,11 +109,11 @@ table {
 	  {% for qtr in quarters %}
 	    <td data-quarter="{{ qtr }}">
 	      <input type="checkbox" class="membershipFlag"
-			  id="Qtr-{{ qtr }}-visible"
-			  data-quarter="{{ qtr }}"
-			  {% if qtr in player['Memberships'] %}checked{% end %}
-		          {% if not is_admin %} disabled {% end %}
-			  /> 	    
+		     id="Qtr-{{ qtr }}-visible"
+		     data-quarter="{{ qtr }}"
+		     {% if qtr in player['Memberships'] %}checked{% end %}
+		     {% if not is_admin %} disabled {% end %}
+		     /> 	    
 	    </td>
           {% end %}
 	</tr>

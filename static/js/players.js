@@ -18,4 +18,12 @@ $(function() {
     $("input.visibleQtrFlag").each(function () {
 	show_hide_quarter_column(this);
     });
+    $("input.membershipFlag").hover(
+	function () {
+	    $(this).after("<div class='tooltip'>" + $(this).data('quarter') +
+			  "</div>");
+	}, 
+	function () {
+	    $(this).parents("td").find("input.membershipFlag + .tooltip").remove();
+	});
 });
