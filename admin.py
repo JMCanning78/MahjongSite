@@ -202,20 +202,22 @@ class QuartersHandler(handler.BaseHandler):
     def get(self):
         thisQtrDate = scores.quarterDate(scores.quarterString())
         with db.getCur() as cur:
-            cur.execute(
-                ("SELECT DISTINCT Scores.Quarter, {} "
-                 " FROM Scores LEFT OUTER JOIN Quarters"
-                 " ON Scores.Quarter = Quarters.Quarter"
-                 " ORDER BY Scores.Quarter DESC").format(
-                     ', '.join(quarterFields[1:])))
+            sql = ("SELECT DISTINCT Scores.Quarter, {fields}"
+                   " FROM Scores LEFT OUTER JOIN Quarters"
+                   " ON Scores.Quarter = Quarters.Quarter "
+                   "UNION SELECT DISTINCT Quarter, {fields}"
+                   " FROM Quarters"
+                   " ORDER BY Scores.Quarter DESC").format(
+                       fields=', '.join(quarterFields[1:]))
+            cur.execute(sql)
             rows = cur.fetchall()
-            scoreQtrs = [row[0] for row in rows]
+            knownQtrs = [row[0] for row in rows]
             for i in range(settings.FORECASTQUARTERS + 1):
                 newQtr = scores.quarterString(
                     thisQtrDate + datetime.timedelta(days=92 * i))
-                if newQtr not in scoreQtrs:
-                    rows = [(newQtr, ) + (None,) * (len(quarterFields) - 1)
-                    ] + rows
+                if newQtr not in knownQtrs:
+                    rows.append((newQtr, ) + (None,) * (len(quarterFields) - 1))
+            rows.sort(key=lambda x: x[0], reverse=True)
             self.render("quarters.html",
                         message = "No quarters found" if len(rows) == 0 else "",
                         quarters=[dict(zip(quarterFields, row)) for row in rows])

@@ -9,6 +9,9 @@ table {
 	width:100%;
 	margin-top:1em;
 }
+#visible_quarters_control {
+        width:auto;
+}
 </style>
 {% end %}
 
@@ -18,27 +21,27 @@ table {
       {% if message %}{{ message }}{% end %}
     {% except %}{% end %}</p>
   <div id="content_controls">
-    <span id="visible_quarters_label">
+    <span id="visible_quarters_label" class="control">
       Visible quarters
-      <table id="visible_quarters_control" class="checkbox_list">
-	<tbody>
-	  {% for qtr in quarters%}
-	    <tr>
-	      <td>
-		<label for="Qtr-{{ qtr }}-visible" data-quarter="{{ qtr }}">
-		  {{ qtr }}
-	        </label> 
-	      </td>
-	      <td> <input type="checkbox" class="visibleQtrFlag"
-			  id="Qtr-{{ qtr }}-visible"
-			  data-quarter="{{ qtr }}"
-			  {% if currentQtr == qtr %}checked{% end %}
-			  /> 
-	    </tr>
-	  {% end %}
-	</tbody>
-      </table>
     </span>
+    <table id="visible_quarters_control" class="checkbox_list">
+      <tbody>
+	{% for qtr in quarters%}
+	  <tr>
+	    <td>
+	      <label for="Qtr-{{ qtr }}-visible" data-quarter="{{ qtr }}">
+		{{ qtr }}
+	      </label> 
+	    </td>
+	    <td> <input type="checkbox" class="visibleQtrFlag"
+			id="Qtr-{{ qtr }}-visible"
+			data-quarter="{{ qtr }}"
+			{% if qtr in visibleQtrs %}checked{% end %} /> 
+	    </td>
+	  </tr>
+	{% end %}
+      </tbody>
+    </table>
   </div>
   
   <h1>Players</h1>

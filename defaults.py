@@ -48,6 +48,9 @@ QUALIFYINGDISTINCTDATES = 8
 #   FORECASTQUARTERS is the number of quarters ahead of the current quarter
 #   to show in the Quarters Management dialog
 FORECASTQUARTERS = 3
+#   MEMBERSHIPQUARTERS is the initial number of quarters to show in the
+#   Players dialog starting with the current quarter.
+MEMBERSHIPQUARTERS = 4
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,

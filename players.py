@@ -36,8 +36,18 @@ class PlayersHandler(handler.BaseHandler):
                         " SELECT DISTINCT Quarter FROM Quarters"
                         " ORDER BY Quarter ASC")
             quarters = [row[0] for row in cur.fetchall()]
+            initialQtrsShown = [scores.quarterString()]
+            if initialQtrsShown[0] in quarters:
+                index = quarters.index(initialQtrsShown[0])
+                initialQtrsShown = quarters[index:
+                                            index + settings.MEMBERSHIPQUARTERS]
+            elif len(quarters) > 0:
+                initialQtrsShown = quarters[- settings.MEMBERSHIPQUARTERS:]
+            else:
+                initialQtrsShown = []
 
         self.render("players.html",
                     message = "No players found" if len(rows) == 0 else "",
-                    players=players, quarters=quarters, 
-                    currentQtr=scores.quarterString())
+                    players=players, quarters=quarters,
+                    visibleQtrs=initialQtrsShown)
+
