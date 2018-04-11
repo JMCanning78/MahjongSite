@@ -5,45 +5,8 @@
 {% block head %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js" type="text/javascript"></script>
 <script src="{{ static_url("js/players.js") }}"></script>
-<style type="text/css">
-#content_controls {
-        width: auto;
-        text-align: left;  
-}
-#visible_quarters_control table {
-	width: 100%;
-	margin-top: 1em;
-}
-#visible_quarters_control {
-        width: auto;
-        position: absolute;
-        left: 2.0em;
-        z-index: 1;
-}
-#visible_quarters_control td {
-        text-align: left;  
-        padding-left: 0.5em;
-        padding-right: 0.5em;
-}
-#visible_quarters_control input {
-        width: 1.0em;
-}
-table.players td[data-quarter] {
-        /* TBD center the checkboxes in the table cell */
-}
-table.players th {
-        padding-left: 4px;
-        padding-right: 4px;
-}
-.tooltip {
-        width: auto;
-        position: absolute;
-        opacity: 1;
-        background: #333;
-        font-size: 0.8em;
-        z-index: 1;
-}
-</style>
+<link href="{{ static_url("css/players.css") }}" type="text/css" rel="stylesheet" />
+
 {% end %}
 
 {% block content %}
