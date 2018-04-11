@@ -2,6 +2,8 @@
 
 import datetime
 import collections
+import json
+import sys
 
 import handler
 import db
@@ -51,3 +53,45 @@ class PlayersHandler(handler.BaseHandler):
                     players=players, quarters=quarters,
                     visibleQtrs=initialQtrsShown)
 
+    @handler.is_admin
+    def post(self):
+        operation = self.get_argument('operation', None)
+        playerId = self.get_argument('playerId', None)
+        quarter = self.get_argument('quarter', None)
+        value = self.get_argument('value', None)
+
+        if not (operation in ['set_Name', 'set_MeetupName', 'set_Membership']
+                and playerId is not None and value is not None):
+            self.write(json.dumps({
+                'status':'error',
+                'message':'Invalid operation requested. {}'.format(
+                    self.request.arguments)}))
+            return
+
+        with db.getCur() as cur:
+            args = (value, playerId)
+            if operation == 'set_Name':
+                sql = "UPDATE Players SET Name = ? WHERE Id = ?"
+            elif operation == 'set_MeetupName':
+                sql = "UPDATE Players SET MeetupName = ? WHERE Id = ?"
+            elif operation == 'set_Membership':
+                if quarter is None:
+                    self.write(json.dumps({
+                        'status': 'error',
+                        'message': 'No quarter specified in membership update'}))
+                    return
+                if value == 'true':
+                    sql = ("INSERT INTO Memberships (PlayerId, QuarterID)"
+                           " VALUES (?, ?)")
+                else:
+                    sql = ("DELETE FROM Memberships "
+                           "WHERE PlayerId = ? AND QuarterId = ?")
+                args = (playerId, quarter)
+            try:
+                cur.execute(sql, args)
+            except Exception as e:
+                print(e, file=sys.stderr)
+                self.write(json.dumps({'status': 'error', 'message': str(e)}))
+                return
+                
+        self.write('{"status":0}')

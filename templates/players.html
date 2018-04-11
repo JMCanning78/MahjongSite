@@ -3,6 +3,7 @@
 {% block title %} - Players{% end %}
 
 {% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js" type="text/javascript"></script>
 <script src="{{ static_url("js/players.js") }}"></script>
 <style type="text/css">
 #content_controls {
@@ -29,6 +30,9 @@
 }
 table.players td[data-quarter] {
         /* TBD center the checkboxes in the table cell */
+}
+table.players th {
+        padding: 4px;
 }
 .tooltip {
         width: auto;
@@ -87,7 +91,8 @@ table.players td[data-quarter] {
         <tr data-playerId="{{ playerId }}">
 	  <td>
 	    {% if is_admin %}
-	      <input type=text value="{{ player['Name'] }}" />
+	      <input type=text value="{{ player['Name'] }}" 
+		     data-columnName="Name" />
 	    {% else %}
 	      <a href="/playerstats/{{ player['Name'] }}">
 		{{ player['Name'] }}</a>
@@ -95,7 +100,7 @@ table.players td[data-quarter] {
 	  </td>
 	  <td>
 	    {% if is_admin %}
-            <input type=text
+            <input type=text data-columnName="MeetupName"
 		   {% if player['MeetupName'] %}
                      value="{{ player['MeetupName'] }}"
 		   {% end %}
