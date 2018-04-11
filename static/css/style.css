@@ -124,6 +124,17 @@ button.clearplayercomplete {
 	padding:1em;
 }
 
+input[type="checkbox"] {
+	display:inline-block;
+	height:1.5em;
+	width:1.5em;
+	margin-left:0.5em;
+	border:2px solid white;
+}
+input[type="checkbox"]:checked {
+	background:grey;
+}
+
 #tables > .table{
 	display:inline-block;
 	padding:0.5em;
