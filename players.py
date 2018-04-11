@@ -71,6 +71,11 @@ class PlayersHandler(handler.BaseHandler):
         with db.getCur() as cur:
             args = (value, playerId)
             if operation == 'set_Name':
+                if not value:
+                    self.write(json.dumps({
+                        'status': 'error',
+                        'message': 'Name cannot be empty'}))
+                    return
                 sql = "UPDATE Players SET Name = ? WHERE Id = ?"
             elif operation == 'set_MeetupName':
                 sql = "UPDATE Players SET MeetupName = ? WHERE Id = ?"
