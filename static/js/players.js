@@ -13,10 +13,15 @@ $(function() {
 	show_hide_quarter_column(this);
     });
 
-    function report_json_response(data) {
-	if (data["status"] !== 0) {
-	    console.log(data);
-	    $.notify(data["message"], data["status"]);
+    function report_edit_outcome(inputelem) {
+	return function (data) {
+	    if (data["status"] !== 0) {
+		console.log(data);
+		$.notify(data["message"], data["status"]);
+		$(inputelem).removeClass('good').addClass('bad');
+	    } else {
+		$(inputelem).removeClass('bad').addClass('good');
+	    }
 	}
     };
     
@@ -26,7 +31,7 @@ $(function() {
 	$.post("/players", 
 		{operation: 'set_' + columnName, playerId: playerId,
 		 value: $(this).val()
-		}, report_json_response, 'json');
+		}, report_edit_outcome(this), 'json');
     }
     $("table.players input[data-columnName]").change(update_text_field);
     
@@ -36,7 +41,7 @@ $(function() {
 	$.post("/players", 
 		{operation: 'set_Membership', playerId: playerId,
 		 quarter: quarter, value: $(this).prop("checked")
-		}, report_json_response, 'json');
+		}, report_edit_outcome(this), 'json');
     }
     $("table.players input.membershipFlag").change(update_quarter_membership);
     

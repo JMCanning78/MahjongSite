@@ -76,8 +76,27 @@ class PlayersHandler(handler.BaseHandler):
                         'status': 'error',
                         'message': 'Name cannot be empty'}))
                     return
+                cur.execute('SELECT Id FROM Players WHERE Name = ?', (value,))
+                result = cur.fetchall()
+                if result and str(result[0][0]) != playerId:
+                    self.write(json.dumps({
+                        'status': 'error',
+                        'message': 'Name "{}" matches {} other player{}'.format(
+                            value, len(result), '' if len(result) == 1 else 's')}))
+                    return
                 sql = "UPDATE Players SET Name = ? WHERE Id = ?"
             elif operation == 'set_MeetupName':
+                if value:
+                    cur.execute('SELECT Id FROM Players WHERE MeetupName = ?',
+                                (value,))
+                    result = cur.fetchall()
+                    if result and str(result[0][0]) != playerId:
+                        self.write(json.dumps({
+                            'status': 'error',
+                            'message': 'Meetup Name "{}" matches {} other player{}'.format(
+                                value, len(result),
+                                '' if len(result) == 1 else 's')}))
+                        return
                 sql = "UPDATE Players SET MeetupName = ? WHERE Id = ?"
             elif operation == 'set_Membership':
                 if quarter is None:
