@@ -64,7 +64,7 @@ input {
 	padding-right:0.5em;
 }
 
-button, input[type="submit"] {
+button, input[type="submit"], .control {
 	cursor:pointer;
 }
 

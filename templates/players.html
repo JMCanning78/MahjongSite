@@ -16,33 +16,31 @@
     {% except %}{% end %}</p>
 
   <h1>Players</h1>
-  <div id="content_controls">
-    <span id="visible_quarters_label" class="control">
-      Visible quarters
-    </span>
-    <table id="visible_quarters_control" class="checkbox_list">
-      <tbody>
-	{% for qtr in quarters%}
-	  <tr>
-	    <td>
-	      <label data-quarter="{{ qtr }}">
-	      <input type="checkbox" class="visibleQtrFlag"
-		     id="Qtr-{{ qtr }}-visible"
-		     data-quarter="{{ qtr }}"
-		     {% if qtr in visibleQtrs %}checked{% end %} /> 
-		{{ qtr }}
-	      </label> 
-	    </td>
-	  </tr>
-	{% end %}
-      </tbody>
-    </table>
-  </div>
-  
   <table class="players">
     <tbody>
       <tr>
-	<th colspan=2></th><th colspan={{ len(quarters) }}>Membership</th>
+	<th colspan=2></th>
+	<th colspan={{ len(quarters) }} id="visible_quarters_label" 
+	    class="control">
+	  Membership Quarters
+	  <table id="visible_quarters_control" class="checkbox_list">
+	    <tbody>
+	      {% for qtr in quarters%}
+	        <tr>
+		  <td>
+		    <label data-quarter="{{ qtr }}">
+		      <input type="checkbox" class="visibleQtrFlag"
+			     id="Qtr-{{ qtr }}-visible"
+			     data-quarter="{{ qtr }}"
+			     {% if qtr in visibleQtrs %}checked{% end %} /> 
+		      {{ qtr }}
+		    </label> 
+		  </td>
+		</tr>
+	      {% end %}
+	    </tbody>
+	  </table>
+	</th>
       </tr>
       <tr>
 	<th>Name</th>

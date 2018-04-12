@@ -130,7 +130,7 @@ $(function() {
 		$.post(endpoint, senddata, function(data) {
 			if (data.status !== 0) {
 				$("#message").text(data.error);
-				if(typeof errorcallback === "function") {
+				if (typeof errorcallback === "function") {
 					errorcallback(data);
 				}
 			}

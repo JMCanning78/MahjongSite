@@ -1,7 +1,3 @@
-#content_controls {
-        width: auto;
-        text-align: left;  
-}
 #visible_quarters_control table {
 	width: 100%;
 	margin-top: 1em;
@@ -9,7 +5,7 @@
 #visible_quarters_control {
         width: auto;
         position: absolute;
-        left: 2.0em;
+/*        left: 2.0em; */
         z-index: 1;
 }
 #visible_quarters_control td {
