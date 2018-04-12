@@ -106,6 +106,7 @@ schema = collections.OrderedDict({
         'AvgScore REAL',
         'GameCount INTEGER',
         'DropGames INTEGER',
+        'DateCount INTEGER',
         'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
     ],
     'Memberships': [

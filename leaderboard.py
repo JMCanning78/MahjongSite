@@ -7,7 +7,8 @@ import handler
 import settings
 import scores
 
-columns = ['Period', 'Date', 'PlayerId', 'AvgScore', 'GameCount', 'DropGames']
+columns = ['Period', 'Date', 'PlayerId', 'AvgScore', 'GameCount', 
+           'DropGames', 'DateCount']
 periods = {
     "annual":{
         "queries":["""SELECT
@@ -17,7 +18,8 @@ periods = {
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
-             0
+             0,
+             COUNT(DISTINCT Date) AS DateCount
            FROM Scores
            WHERE PlayerId != ?
            AND {datetest}
@@ -33,7 +35,8 @@ periods = {
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
-             0
+             0,
+             COUNT(DISTINCT Date) AS DateCount
            FROM Scores
            WHERE PlayerId != ?
            AND {datetest}
@@ -53,7 +56,8 @@ periods = {
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
              COUNT(Scores.Score) AS GameCount,
-             {DROPGAMES}
+             {DROPGAMES},
+             COUNT(DISTINCT Date) AS DateCount
            FROM Scores
              LEFT OUTER JOIN Quarters ON Scores.Quarter = Quarters.Quarter
            WHERE PlayerId != ? AND Scores.Id NOT IN
