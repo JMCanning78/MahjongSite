@@ -19,10 +19,8 @@
   <table class="players">
     <tbody>
       <tr>
-	<th colspan=2></th>
-	<th colspan={{ len(quarters) }} id="visible_quarters_label" 
-	    class="control">
-	  Membership Quarters
+	<th></th>
+	<th>
 	  <table id="visible_quarters_control" class="checkbox_list">
 	    <tbody>
 	      {% for qtr in quarters%}
@@ -40,6 +38,10 @@
 	      {% end %}
 	    </tbody>
 	  </table>
+	</th>
+	<th colspan={{ len(quarters) }} id="visible_quarters_label" 
+	    class="control">
+	  Membership Quarters
 	</th>
       </tr>
       <tr>
