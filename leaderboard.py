@@ -62,7 +62,7 @@ periods = {
            FROM Scores
              LEFT OUTER JOIN Quarters ON Scores.Quarter = Quarters.Quarter
            WHERE PlayerId != ? AND {{datetest}}
-           GROUP BY Scores.Quarter,PlayerId
+           GROUP BY {{datefmt}},PlayerId
            ORDER BY AvgScore DESC;""".format(DEFDROPGAMES=settings.DROPGAMECOUNT)
         ],
         "datefmt": """strftime('%Y', {date}) || ' ' ||
