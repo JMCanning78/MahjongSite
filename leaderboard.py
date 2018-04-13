@@ -70,8 +70,8 @@ periods = {
              COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * {DROPGAMES} AND
              COALESCE(Quarters.GameCount,{DEFDROPGAMES}) * ({DROPGAMES} + 1) - 1
            ORDER BY AvgScore DESC;""".format(
-               DROPGAMES=i,DEFDROPGAMES=settings.DROPGAMECOUNT)
-        for i in range(settings.MAXDROPGAMES)],
+               DROPGAMES=drop,DEFDROPGAMES=settings.DROPGAMECOUNT)
+        for drop in range(settings.MAXDROPGAMES)],
         "datefmt": """strftime('%Y', {date}) || ' ' ||
                case ((strftime('%m', {date}) - 1) / 3)
                    when 0 then '1st'
@@ -139,7 +139,9 @@ def genLeaderboard(leaderDate = None):
             cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND Date = {datefmt}".format(datefmt=datefmt.format(date="?")), [periodname] + bindings)
 
             for query in queries:
-                cur.execute(query.format(datetest=datetest, datefmt=datefmt).format(date="Scores.Date"), [scores.getUnusedPointsPlayerID()] + bindings)
+                cur.execute(query.format(datetest=datetest, datefmt=datefmt)
+                            .format(date="Scores.Date"),
+                            [scores.getUnusedPointsPlayerID()] + bindings)
                 rows += [dict(zip(columns, row)) for row in cur.fetchall()]
 
             rows.sort(key=lambda row: row['AvgScore'], reverse=True) # sort by score

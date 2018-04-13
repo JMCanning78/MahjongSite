@@ -183,8 +183,7 @@ class EditQuarterHandler(handler.BaseHandler):
         for field in formfields[1:]:
             values[field] = self.get_argument(field, None)
         with db.getCur() as cur:
-            cur.execute("DELETE FROM Quarters WHERE Quarter = ?;", (quarter,))
-            cur.execute("INSERT INTO Quarters ({}) VALUES ({})".format(
+            cur.execute("REPLACE INTO Quarters ({}) VALUES ({})".format(
                 ', '.join(quarterFields),
                 ', '.join(['?'] * len(formfields))),
                         [values[f] for f in formfields])
@@ -269,7 +268,7 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         title = "Quarter Deleted",
                         next = "Manage quarters",
                         next_url = "/admin/quarters")
-            leaderboard.genLeaderboard(scores.quarterDate(quarter))
+            leaderboard.genLeaderboard(scores.quarterDate(q))
         else:
             self.render("quarters.html",
                         message = ("Error: Multiple quarters named {0} "
