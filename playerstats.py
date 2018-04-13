@@ -97,10 +97,11 @@ class PlayerStatsHandler(handler.BaseHandler):
             player, name, meetupname = player
             eligible = leaderboard.get_eligible()
             quarterHistory = [
-                {'Name': qtr, 'Played': player in eligible[qtr],
+                {'Name': qtr,
+                 'Played': eligible[qtr][player]['Played'],
                  'Member': eligible[qtr][player]['Member'],
                  'Eligible': eligible[qtr][player]['Eligible']}
-                for qtr in eligible]
+                for qtr in sorted(eligible.keys())[-settings.TIMELINEQUARTERS:]]
             self.render("playerstats.html",
                         error = None,
                         name = name,

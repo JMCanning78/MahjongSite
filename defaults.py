@@ -49,6 +49,9 @@ FORECASTQUARTERS = 3
 #   MEMBERSHIPQUARTERS is the initial number of quarters to show in the
 #   Players dialog starting with the current quarter.
 MEMBERSHIPQUARTERS = 4
+#   TIMELINEQUARTERS is the max number of the most recent quarters to show in
+#   the Player Statistics quarterly timeline.
+TIMELINEQUARTERS = 12
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,

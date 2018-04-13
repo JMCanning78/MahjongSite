@@ -77,18 +77,19 @@ periods = {
 
 def get_eligible(quarter=None):
     """Return a nested dictionary structure indexed by quarter and player ID
-    that returns a dictionary with two flags:
-    'Member' for whether they were a member that quarter, and
+    that returns a dictionary with the following flags:
+    'Member' for whether they were a member that quarter, 
+    'Played' for whether they played any games that quarter, and
     'Eligible' indicating whether or not the player qualified for the
-    end-of-quarter tournament in that quarter.
+       end-of-quarter tournament in that quarter.
     """
     eligible = collections.defaultdict(
         lambda: collections.defaultdict(
-            lambda: {'Member': False, 'Eligible': False}))
+            lambda: collections.defaultdict(lambda: False)))
     with db.getCur() as cur:
         cur.execute(
-            "SELECT Scores.Quarter, Scores.PlayerId, QualifyingGames,"
-            "       QualifyingDistinctDates, COUNT(Score), "
+            "SELECT Scores.Quarter AS Qtr, Scores.PlayerId AS Plr,"
+            "       QualifyingGames, QualifyingDistinctDates, COUNT(Score), "
             "       COUNT(DISTINCT Date), Memberships.QuarterId IS NOT NULL"
             " FROM Scores LEFT OUTER JOIN Quarters ON"
             "   Scores.Quarter = Quarters.Quarter"
@@ -96,9 +97,17 @@ def get_eligible(quarter=None):
             "        Scores.PlayerId = Memberships.PlayerID AND"
             "        Scores.Quarter = Memberships.QuarterId"
             " WHERE Scores.PlayerId != ?"
-            " GROUP BY Scores.Quarter, Scores.PlayerId"
-            " ORDER BY Scores.Quarter, Scores.PlayerId",
-            (scores.getUnusedPointsPlayerID(),))
+            " GROUP BY Qtr, Plr "
+            "UNION SELECT Quarters.Quarter AS Qtr, Players.Id Plr,"
+            "       QualifyingGames, QualifyingDistinctDates, 0, 0,"
+            "       Memberships.QuarterId IS NOT NULL"
+            " FROM Quarters LEFT OUTER JOIN Players"
+            "   LEFT OUTER JOIN Memberships ON"
+            "        Players.Id = Memberships.PlayerID AND"
+            "        Quarters.Quarter = Memberships.QuarterId"
+            " WHERE Players.Id != ?"
+            " ORDER BY Qtr, Plr",
+            (scores.getUnusedPointsPlayerID(), scores.getUnusedPointsPlayerID()))
         rows = cur.fetchall()
     previousQtr = None
     for row in rows:
@@ -116,6 +125,7 @@ def get_eligible(quarter=None):
                     QDistinctDates or eligible[previousQtr]['QDistinctDates'])
         previousQtr = Quarter
         eligible[Quarter][PlayerId]['Member'] = Memb
+        eligible[Quarter][PlayerId]['Played'] = Games > 0
         eligible[Quarter][PlayerId]['Eligible'] = Memb and (
             Games >= eligible[Quarter]['QGames'] or
             Dates >= eligible[Quarter]['QDistinctDates'])
