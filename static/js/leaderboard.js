@@ -30,6 +30,13 @@ $(function() {
 			});
 	}
 
+	function totalDigits(counttext) {
+		return counttext.split(/[^0-9]+/).map(Math.floor).reduce(
+			function(t, e) {
+				return t + e
+			})
+	}
+
 	function updateLeaderScores(min_games, rank_visible) {
 		$(".leaderboard").each(function(i, board) {
 			/* Get the scores for this board */
@@ -44,17 +51,9 @@ $(function() {
 			var last_place = 0;
 			$(".leaderbd_row", board).each(function(i, row) {
 				/* Hide rows with game counts less than the min games */
-				var counttext = row.children[3].innerText;
-				var plus1 = counttext.search(/[^0-9]/)
-				if (plus1 < 0) {
-					count = Math.floor(counttext)
-				}
-				else if (plus1 == 0) {
-					count = 0
-				}
-				else {
-					count = Math.floor(counttext.substr(0, plus1)) + 1
-				}
+				var counttext = row.children[3].innerText,
+					count = totalDigits(counttext);
+
 				/* Hide rows with too few games */
 				if (count < min_games) {
 					$(row).slideUp('fast');
