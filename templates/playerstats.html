@@ -21,7 +21,7 @@
     <br />
     <a class="button" href="/playerhistory/{{ name }}">Game History</a>
     
-    <h4> Quarterly Participation Timeline </h4>
+    <h4> Quarterly Participation Timeline - {{ name }} </h4>
     <div id="quarterHistory">
       {% for qtr in quarterHistory %}
         <table class="quarterParticipation">
@@ -37,8 +37,8 @@
     </div>
     <div class="quarter_help helptext">
       <p> * Indicates membership for that quarter.</p>
-      <p> <span class="NoGames">Quarter</span> indicates no games were played
-	in that quarter.</p>
+      <p> <span class="NoGames">Quarter</span> indicates no games have been
+	recorded for that quarter.</p>
       <table>
 	<tbody>
 	  <tr class="eligible">
