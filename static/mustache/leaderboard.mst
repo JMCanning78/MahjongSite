@@ -9,15 +9,18 @@
 				<th>GAME COUNT</th>
 				<th>DATES PLAYED</th>
 			</tr>
-			{{#Scores}}
-				<tr class="leaderbd_row">
+			{{#Board}}
+				<tr class="leaderbd_row{{#Eligible}} eligible{{/Eligible}}">
 					<td>{{ Place }}</td>
-					<td><a href="/playerstats/{{ Name }}">{{ Name }}</a></td>
+					<td {{#Member}}class="member"{{/Member}}>
+					    <a href="/playerstats/{{ Name }}">{{ Name }}</a>
+					    {{#Member}}*{{/Member}}
+					</td>
 					<td>{{ AvgScore }}</td>
 					<td>{{ GameCount }}{{#DropGames}} (+{{ DropGames }}){{/DropGames}}</td>
 					<td>{{ DateCount }}</td>
 				</tr>
-			{{/Scores}}
+			{{/Board}}
 		</table>
 	</div>
 {{/leaderboards}}

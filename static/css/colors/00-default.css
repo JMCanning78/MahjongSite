@@ -78,6 +78,10 @@ input[type="checkbox"].priority:checked + label {
     color:      #eee;
 }
 
+.eligible td {
+    background: #414841;
+}
+
 .rankpielegend {
     margin-top: 0;
 }

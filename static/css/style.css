@@ -158,7 +158,16 @@ input[type="checkbox"]:checked {
 	}
 }
 
+table.quarterParticipation {
+	display: inline;
+	width: auto;
+}
+
 .helptext {
-    font-weight:regular;
-    font-size: 0.8em
+	font-weight:regular;
+	font-size: 0.8em
+}
+
+.eligible td {
+	font-style: italic;
 }

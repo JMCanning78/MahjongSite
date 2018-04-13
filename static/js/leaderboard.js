@@ -44,7 +44,7 @@ $(function() {
 			var bd_scores;
 			for (bd in scores['leaderboards']) {
 				if (scores['leaderboards'][bd]['Date'] == boardname) {
-					bd_scores = scores['leaderboards'][bd]['Scores'];
+					bd_scores = scores['leaderboards'][bd]['Board'];
 					break;
 				};
 			}
@@ -94,7 +94,10 @@ $(function() {
 		return orderings.indexOf($(".ordering:first").text()) == 1;
 	}
 	$("#period").change(function() {
-		getData($("#period").val());
+	    var period = $("#period").val();
+	    getData(period);
+	    $(".helptext").slideUp();
+	    $("." + period + "_help").slideDown();
 	});
 	$("#min_games").change(function() {
 		updateLeaderScores($("#min_games").val(), rank_visible());
