@@ -163,6 +163,10 @@ table.quarterParticipation {
 	width: auto;
 }
 
+table.quarterParticipation td {
+	padding: 2px;
+}
+
 .helptext {
 	font-weight:regular;
 	font-size: 0.8em
@@ -170,4 +174,8 @@ table.quarterParticipation {
 
 .eligible td {
 	font-style: italic;
+}
+
+.NoGames {
+	text-decoration:line-through;
 }

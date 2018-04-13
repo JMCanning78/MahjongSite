@@ -95,10 +95,17 @@ class PlayerStatsHandler(handler.BaseHandler):
                                    error = "Couldn't find player")
 
             player, name, meetupname = player
+            eligible = leaderboard.get_eligible()
+            quarterHistory = [
+                {'Name': qtr, 'Played': player in eligible[qtr],
+                 'Member': eligible[qtr][player]['Member'],
+                 'Eligible': eligible[qtr][player]['Eligible']}
+                for qtr in eligible]
             self.render("playerstats.html",
                         error = None,
                         name = name,
                         meetupname = meetupname,
+                        quarterHistory=quarterHistory
                 )
 
     def post(self, player):

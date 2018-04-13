@@ -20,6 +20,35 @@
     </div>
     <br />
     <a class="button" href="/playerhistory/{{ name }}">Game History</a>
+    
+    <h4> Quarterly Participation History </h4>
+    <div id="quarterHistory">
+      {% for qtr in quarterHistory %}
+        <table class="quarterParticipation">
+	  <tr{% if qtr['Eligible'] %}
+		  class="eligible"
+		  {% elif not qtr['Played'] %}
+		  class="NoGames"
+		  {% end %}>
+	    <td> {{ qtr['Name'] }} {% if qtr['Member'] %} * {% end %} </td>
+	  </tr>
+	</table>
+      {% end %}
+    </div>
+    <div class="quarter_help helptext">
+      <p> * Indicates membership for that quarter.</p>
+      <p> <span class="NoGames">Quarter</span> indicates no games were played
+	in that quarter.</p>
+      <table>
+	<tbody>
+	  <tr class="eligible">
+	    <td> Indicates eligibility for end of quarter tournament based
+	      on game count or dates played.
+	    </td>
+	  </tr>
+	</tbody>
+      </table>
+    </div>
     {% if is_admin %}
       <form method="post" action="/playerstats/{{ name }}">
 	<input type="text" name="name" value="{{ name }}" />
