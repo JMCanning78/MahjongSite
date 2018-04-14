@@ -3,6 +3,9 @@
 {% block head %}
 	<link href="{{ static_url("css/pointcalculator.css") }}" type="text/css" rel="stylesheet" />
 	<script type="text/javascript" src="{{ static_url("js/pointcalculator.js") }}"></script>
+	<link href="{{ static_url("css/timers.css") }}" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js" type="text/javascript"></script>
+	<script src="{{ static_url("js/timers.js") }}"></script>
 {% end %}
 {% block content %}
 	<h1 id="title">Point Calculator</h1>
@@ -30,5 +33,9 @@
 	<div class="input">
 		<div class="label">DEALER</div>
 		<div id="dealer" class="value clickable noselect"></div>
+	</div>
+	
+	<p>&nbsp;</p>
+	<div id="timers">
 	</div>
 {% end %}
