@@ -44,7 +44,7 @@ periods = {
         GROUP BY {datefmt},PlayerId
         ORDER BY AvgScore DESC;"""],
         "datefmt":"""strftime('%Y', {date}) || ' ' ||
-               case ((strftime('%m', {date}) - 1) / 6)
+               case ((strftime('%m', {date}) - 1) * 2 / 12)
                    when 0 then '1st'
                    when 1 then '2nd'
                 end"""
@@ -52,7 +52,7 @@ periods = {
     "quarter":{
         "queries":["""SELECT
             'quarter',
-             Scores.Quarter,
+             {{datefmt}},
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
@@ -66,7 +66,7 @@ periods = {
            ORDER BY AvgScore DESC;""".format(DEFDROPGAMES=settings.DROPGAMECOUNT)
         ],
         "datefmt": """strftime('%Y', {date}) || ' ' ||
-               case ((strftime('%m', {date}) - 1) / 3)
+               case ((strftime('%m', {date}) - 1) * 4 / 12)
                    when 0 then '1st'
                    when 1 then '2nd'
                    when 2 then '3rd'
@@ -187,8 +187,9 @@ def genLeaderboard(leaderDate = None):
             if leaderDate is not None:
                 datetest = "(" + datefmt + ") = (" + datefmt.format(date="?") + ")"
                 bindings = [leaderDate] * datefmt.count("{date}")
-
-            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND Date = {datefmt}".format(datefmt=datefmt.format(date="?")), [periodname] + bindings)
+            else:
+                datetest = "1"
+            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND {datetest}".format(datetest=datetest), [periodname] + bindings)
 
             for query in queries:
                 cur.execute(query.format(datetest=datetest, datefmt=datefmt)
