@@ -23,7 +23,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.current_user:
             with db.getCur() as cur:
                 cur.execute("SELECT Email FROM Users WHERE Id = ?",
-                            self.current_user)
+                            (self.current_user,))
                 email = cur.fetchone()
                 if isinstance(email, tuple):
                     # Find unique prefix for account name

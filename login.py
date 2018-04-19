@@ -170,7 +170,7 @@ class ResetPasswordHandler(handler.BaseHandler):
         email = None
         if self.current_user:
             with db.getCur() as cur:
-                cur.execute("SELECT Email FROM Users WHERE Id = ?", self.current_user)
+                cur.execute("SELECT Email FROM Users WHERE Id = ?", (self.current_user,))
                 email = cur.fetchone()
                 if email is not None:
                     email = email[0]
