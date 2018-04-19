@@ -12,6 +12,7 @@ html, body {
 }
 
 #navbar {
+	height:30px;
 	line-height:30px;
 	vertical-align:middle;
 }
@@ -27,9 +28,12 @@ html, body {
 }
 
 #navbar > a.userID {
-	width:0;
-	float:right;
-	padding-right:5em;
+	height:30px;
+	line-height:30px;
+	position:absolute;
+	right:0;
+	top:0;
+	vertical-align:middle;
 }
 
 #content {
@@ -142,6 +146,15 @@ button.clearplayercomplete {
 	float:left;
 }
 @media (max-width:600px) {
+	#navbar {
+		height:60px;
+		padding-right:3em;
+	}
+	#navbar > a.userID {
+		height:60px;
+		line-height:60px;
+		width:3em;
+	}
 	#tables > .table {
 		width:100%;
 	}

@@ -133,7 +133,7 @@ def genLeaderboard(leaderDate = None):
                 bindings = [leaderDate] * datefmt.count("{date}")
             else:
                 datetest = "1"
-            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND {datetest}".format(datetest=datetest), [periodname] + bindings)
+            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND Date = {datefmt}".format(datefmt=datefmt.format(date="?")), [periodname] + bindings)
 
             for query in queries:
                 cur.execute(query.format(datetest=datetest, datefmt=datefmt).format(date="Scores.Date"), [scores.getUnusedPointsPlayerID()] + bindings)
