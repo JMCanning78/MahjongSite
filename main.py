@@ -15,6 +15,7 @@ import os
 import math
 import tornado.httpserver
 from tornado.httpclient import AsyncHTTPClient
+from tornado.log import access_log
 import tornado.ioloop
 import tornado.options
 import tornado.web
@@ -235,7 +236,21 @@ class Application(tornado.web.Application):
                 login_url = "/login"
         )
         tornado.web.Application.__init__(self, handlers, **settings)
-
+        
+    def log_request(self, handler):
+        if handler.get_status() < 400:
+            log_method = access_log.info
+        elif handler.get_status() < 500:
+            log_method = access_log.warning
+        else:
+            log_method = access_log.error
+        request_time = 1000.0 * handler.request.request_time()
+        log_method("%d %s%s %.2fms", handler.get_status(),
+                   handler._request_summary(),
+                   ' by ' + handler.get_current_user_name()
+                   if handler.current_user else '',
+                   request_time)
+        
 def periodicCleanup():
     with db.getCur() as cur:
         cur.execute("DELETE FROM VerifyLinks WHERE Expires <= datetime('now')")
