@@ -127,16 +127,22 @@ def genLeaderboard(leaderDate = None):
             rows = []
             queries = period['queries']
             datefmt = period['datefmt']
-            bindings = []
             if leaderDate is not None:
                 datetest = "(" + datefmt + ") = (" + datefmt.format(date="?") + ")"
                 bindings = [leaderDate] * datefmt.count("{date}")
             else:
                 datetest = "1"
-            cur.execute("DELETE FROM Leaderboards WHERE Period = ? AND Date = {datefmt}".format(datefmt=datefmt.format(date="?")), [periodname] + bindings)
+                bindings = []
+
+            sql = ("DELETE FROM Leaderboards WHERE Period = ? "
+                   "AND {datetest}").format(datetest=datetest).format(
+                       date="Date")
+            cur.execute(sql, [periodname] + bindings)
 
             for query in queries:
-                cur.execute(query.format(datetest=datetest, datefmt=datefmt).format(date="Scores.Date"), [scores.getUnusedPointsPlayerID()] + bindings)
+                sql = query.format(datetest=datetest, datefmt=datefmt).format(
+                    date="Scores.Date")
+                cur.execute(sql, [scores.getUnusedPointsPlayerID()] + bindings)
                 rows += [dict(zip(columns, row)) for row in cur.fetchall()]
 
             rows.sort(key=lambda row: row['AvgScore'], reverse=True) # sort by score
@@ -155,3 +161,28 @@ def genLeaderboard(leaderDate = None):
                 colvals=",".join(["?"] * len(leadercols))
             )
         cur.executemany(query, leaderrows)
+
+if __name__ == '__main__':
+    import sys, timeit, argparse
+    parser = argparse.ArgumentParser(
+        description="Generate leaderboards and time execution.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        'date', nargs='*',
+        help='Date for which Leaderboards should be recalculated in '
+        'the format YYYY-MM-DD, e.g. "2018-02-27".')
+    parser.add_argument(
+        '-n', '--number', type=int, default=1,
+        help='Number of times to repeat calculation for measuring timing')
+    args = parser.parse_args()
+
+    if args.date == []:
+        args.date = [None]
+    for date in args.date:
+        elapsed = timeit.timeit('genLeaderboard(date)', number=args.number,
+                                globals=globals())
+        print('Running genLeaderboard({!r}) {} time{} took {} second{}'.format(
+            date, args.number, '' if args.number == 1 else 's',
+            elapsed, '' if elapsed == 1 else 's'))
+        if args.number > 1:
+            print('Average time = {}'.format(elapsed / args.number))
