@@ -22,8 +22,7 @@ periods = {
              0,
              COUNT(DISTINCT Date) AS DateCount
            FROM Scores
-           WHERE PlayerId != ?
-           AND {datetest}
+           WHERE PlayerId != ? AND {datetest}
            GROUP BY {datefmt},PlayerId
            ORDER BY AvgScore DESC;"""],
        "datefmt": "strftime('%Y', {date})",
@@ -39,8 +38,7 @@ periods = {
              0,
              COUNT(DISTINCT Date) AS DateCount
            FROM Scores
-           WHERE PlayerId != ?
-           AND {datetest}
+           WHERE PlayerId != ? AND {datetest}
         GROUP BY {datefmt},PlayerId
         ORDER BY AvgScore DESC;"""],
         "datefmt":"""strftime('%Y', {date}) || ' ' ||
@@ -52,7 +50,7 @@ periods = {
     "quarter":{
         "queries":["""SELECT
             'quarter',
-             {{datefmt}},
+             {datefmt},
              PlayerId,
              ROUND(SUM(Scores.Score) * 1.0 / COUNT(Scores.Score) * 100)
                / 100 AS AvgScore,
@@ -61,9 +59,9 @@ periods = {
              COUNT(DISTINCT Date) AS DateCount
            FROM Scores
              LEFT OUTER JOIN Quarters ON Scores.Quarter = Quarters.Quarter
-           WHERE PlayerId != ? AND {{datetest}}
-           GROUP BY {{datefmt}},PlayerId
-           ORDER BY AvgScore DESC;""".format(DEFDROPGAMES=settings.DROPGAMECOUNT)
+           WHERE PlayerId != ? AND {datetest}
+           GROUP BY {datefmt},PlayerId
+           ORDER BY AvgScore DESC;"""
         ],
         "datefmt": """strftime('%Y', {date}) || ' ' ||
                case ((strftime('%m', {date}) - 1) * 4 / 12)
@@ -185,20 +183,22 @@ def genLeaderboard(leaderDate = None):
             datefmt = period['datefmt']
             if leaderDate is not None:
                 datetest = "(" + datefmt + ") = (" + datefmt.format(date="?") + ")"
-                bindings = [leaderDate] * datefmt.count("{date}")
+                bindings = [scores.dateString(leaderDate)] * datefmt.count("{date}")
             else:
                 datetest = "1"
                 bindings = []
 
-            sql = ("DELETE FROM Leaderboards WHERE Period = ? "
-                   "AND {datetest}").format(datetest=datetest).format(
-                       date="Date")
+            sql = "DELETE FROM Leaderboards WHERE Period = ?" 
+            if leaderDate is not None:
+                sql += " AND Date = " + datefmt.format(date="?")
             cur.execute(sql, [periodname] + bindings)
 
             for query in queries:
-                cur.execute(query.format(datetest=datetest, datefmt=datefmt)
-                            .format(date="Scores.Date"),
-                            [scores.getUnusedPointsPlayerID()] + bindings)
+                sql = query.format(
+                    datetest=datetest, datefmt=datefmt,
+                    DEFDROPGAMES=settings.DROPGAMECOUNT).format(
+                        date="Scores.Date")
+                cur.execute(sql, [scores.getUnusedPointsPlayerID()] + bindings)
                 for row in cur.fetchall():
                     record = dict(zip(LBDcolumns, row))
                     # For Quarterly Leaderboards, compute dropped game average

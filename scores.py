@@ -13,6 +13,8 @@ import leaderboard
 umas = {4:[15,5,-5,-15],
         5:[15,5,0,-5,-15]}
 
+dateFormat = "%Y-%m-%d"
+
 def quarterString(time=None, date=None):
     """Return the string for the calendar quarter for the given datetime object.
     Time defaults to current time"""
@@ -32,6 +34,17 @@ def quarterDate(quarter=None):
     month = (int(quarter[5:6]) - 1) * 12 // 4 + 1
     return datetime.datetime(year=year, month=month, day=1)
 
+def dateString(date):
+    "Convert a datetime object to a date string (or leave as a string)"
+    global dateFormat
+    if isinstance(date, (datetime.datetime, datetime.date)):
+        return date.strftime(dateFormat)
+    elif isinstance(date, str):
+        return date
+    else:
+        raise Exception('Unexpected input type passed to dateString, {}'.format(
+            date))
+    
 def unusedPointsIncrement(quarter=None, date=None):
     """Get the UnusedPointsIncrement value for the given quarter.
     The quarter defaults to the most recent quarter in the database
@@ -75,8 +88,6 @@ def getUnusedPointsPlayerID():
 
 def getScore(score, uma):
     return (score - settings.SCOREPERPLAYER) / 1000.0 + uma
-
-dateFormat = "%Y-%m-%d"
 
 def rankGame(scores):
     """Calculates rank, point penalties, and umas for a given game.
@@ -175,7 +186,7 @@ def addGame(scores, gamedate = None, gameid = None):
     Returns a dictionary with a 'status' and a 'message' field.  Status of 0
     means success.
     """
-    global dateFormat, unusedPointsPlayerName
+    global unusedPointsPlayerName
 
     if scores is None:
         return {"status":1, "error":"Please enter some scores"}
@@ -184,7 +195,7 @@ def addGame(scores, gamedate = None, gameid = None):
         if 'Date' in scores[0]:
             gamedate = scores[0]['Date']
         else:
-            gamedate = datetime.datetime.now().strftime(dateFormat)
+            gamedate = dateString(datetime.datetime.now())
     if gameid is None:
         if 'GameId' in scores[0]:
             gameid = scores[0]['GameId']
