@@ -19,6 +19,7 @@ DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
 #   is 9 and the player completed 18 games, their 2 lowest scores are dropped)
 DROPGAMECOUNT = 9
 #   MAXDROPGAMES is the maximum number of games a player can drop in a quarter.
+#   Quarters are typically 13 weeks.
 MAXDROPGAMES = 3
 #   DEFAULT_RATING is the starting rating for players with no games
 DEFAULT_RATING = 1200
