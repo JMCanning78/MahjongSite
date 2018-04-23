@@ -19,7 +19,7 @@ DROPGAMES = 9
 #   MAXDROPGAMES is the maximum number of games a player can drop in a quarter
 #   Note that the higher this number is, the longer it will take to generate
 #   the quarterly leaderboard
-MAXDROPGAMES = 4
+MAXDROPGAMES = 3
 #   DEFAULT_RATING is the starting rating for players with no games
 DEFAULT_RATING = 1200
 #   SCOREPERPLAYER sets the initial score each player has at the start of
