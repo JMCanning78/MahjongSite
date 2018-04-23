@@ -239,7 +239,7 @@ def genLeaderboard(leaderDate = None):
         cur.executemany(query, leaderrows)
 
 if __name__ == '__main__':
-    import sys, timeit, argparse
+    import timeit, argparse
     parser = argparse.ArgumentParser(
         description="Generate leaderboards and time execution.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
