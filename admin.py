@@ -150,8 +150,7 @@ class EditQuarterHandler(handler.BaseHandler):
         gamecount = self.get_argument('gamecount', None)
         unusedPointsIncrement = self.get_argument('unusedPointsIncrement', None)
         with db.getCur() as cur:
-            cur.execute("DELETE FROM Quarters WHERE Quarter = ?;", (quarter,))
-            cur.execute("INSERT INTO Quarters(Quarter, Gamecount, "
+            cur.execute("REPLACE INTO Quarters(Quarter, Gamecount, "
                         "UnusedPointsIncrement) VALUES (?,?,?);",
                         (quarter, gamecount, unusedPointsIncrement))
 
