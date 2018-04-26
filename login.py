@@ -311,11 +311,13 @@ class SettingsHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         with db.getCur() as cur:
-            cur.execute("SELECT Email FROM Users WHERE Id = ?", self.current_user)
+            cur.execute("SELECT Email FROM Users WHERE Id = ?", 
+                        (self.current_user,))
             email = cur.fetchone()
             if email is not None:
                 email = email[0]
-            self.render("settings.html", email = email, stylesheets=sorted(os.listdir("static/css/colors")))
+            self.render("settings.html", email = email,
+                        stylesheets=sorted(os.listdir("static/css/colors")))
     @tornado.web.authenticated
     def post(self):
         stylesheet = self.get_argument('stylesheet', None)
