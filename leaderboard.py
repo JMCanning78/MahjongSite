@@ -181,16 +181,14 @@ def genLeaderboard(leaderDate = None):
             rows = []
             queries = period['queries']
             datefmt = period['datefmt']
+            sql = "DELETE FROM Leaderboards WHERE Period = ? "
             if leaderDate is not None:
                 datetest = "(" + datefmt + ") = (" + datefmt.format(date="?") + ")"
                 bindings = [scores.dateString(leaderDate)] * datefmt.count("{date}")
+                sql += " AND Date = " + datefmt.format(date="?")
             else:
                 datetest = "1"
                 bindings = []
-
-            sql = "DELETE FROM Leaderboards WHERE Period = ?" 
-            if leaderDate is not None:
-                sql += " AND Date = " + datefmt.format(date="?")
             cur.execute(sql, [periodname] + bindings)
 
             for query in queries:
