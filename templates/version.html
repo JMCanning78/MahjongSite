@@ -1,0 +1,13 @@
+{% extends "template.html" %}
+
+{% block title %} - Version{% end %}
+
+{% block content %}
+	<h1 id="page-title">Version</h1>
+	<div id="version">
+	  <p id="commit">{{ version }}</p>
+	</div>
+	<div id="description">
+	  <p>{{ description }}</p>
+	</div>
+{% end %}

@@ -37,6 +37,7 @@ import scores
 import leaderboard
 import playerstats
 import ratings
+import version
 
 # import and define tornado-y things
 from tornado.options import options
@@ -226,6 +227,7 @@ class Application(tornado.web.Application):
                 (r"/admin/edit/([0-9]*)", admin.EditGameHandler),
                 (r"/admin/promote/([0-9]*)", admin.PromoteUserHandler),
                 (r"/admin/demote/([0-9]*)", admin.DemoteUserHandler),
+                (r"/version", version.VersionHandler),
         ]
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "templates"),
