@@ -33,6 +33,11 @@
 	</head>
 	<body>
 		<div id="navbar">
+		        <a class="homelink" href="https://seattlemahjong.com/">
+			  <img class="homelinklogo"
+			       src="{{ static_url('images/SRMC-logo.jpeg') }}"
+			       alt="Home link"/>
+			</a>
 			<a href="/">Home</a>
 			{% if not current_user %}
 				<a href="/login?next={{ request.uri }}">Login</a>

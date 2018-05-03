@@ -36,6 +36,21 @@ html, body {
 	vertical-align:middle;
 }
 
+#navbar > a.homelink {
+	height:30px;
+	line-height:30px;
+	position:absolute;
+	left:0;
+	top:0;
+	vertical-align:middle;
+}
+
+img.homelinklogo {
+	height: 35px;
+	padding-left: 10px;
+	float:left;
+}
+
 #content {
 	width:96%;
 	max-width:700px;
@@ -154,6 +169,9 @@ button.clearplayercomplete {
 		height:60px;
 		line-height:60px;
 		width:3em;
+	}
+	img.homelinklogo {
+		padding-left: 0px;
 	}
 	#tables > .table {
 		width:100%;
