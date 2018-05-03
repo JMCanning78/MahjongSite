@@ -6,9 +6,15 @@ CLUBSTATE = "WA"
 CLUBNAME = "{0} Riichi Mahjong".format(CLUBCITY)
 
 # DB
-#  DBFILE is the name of the file that contains the scores and player database.
+#   DBFILE is the name of the file that contains the scores and player
+#   database.
 DBFILE = "scores.db"
+#   DBBACKUPS is the name of a directory where backups of the scores
+#   database will be stored.  Backups are made after significant changes
+#   so that previous states can be recovered.
 DBBACKUPS = "backups"
+#   DBDATEFORMAT is datetime format string to use in naming the database
+#   backup files with their timestamp
 DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
 
 # PREFERENCES
@@ -34,9 +40,7 @@ CHOMBOPENALTY = 8
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,
 #   filling in the values below will allow you to populate the seating based
-#   on who RSVP'd.  This only works for players whose name on meetup.com
-#   is exactly the same as how they registered on this mahjong site.
-#   Leave these values blank if you don't use meetup.com
+#   on who RSVP'd.  Leave these values blank if you don't use meetup.com
 #   MEETUP_APIKEY can be obtained from https://secure.meetup.com/meetup_api/key/
 MEETUP_APIKEY = ""
 #   MEETUP_GROUPNAME can be obtained from the URL you use to view your group
