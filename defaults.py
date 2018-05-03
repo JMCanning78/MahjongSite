@@ -3,7 +3,7 @@
 # LOCALE
 CLUBCITY = "Seattle"
 CLUBSTATE = "WA"
-CLUBNAME = "{0} Richi Mahjong".format(CLUBCITY)
+CLUBNAME = "{0} Riichi Mahjong".format(CLUBCITY)
 
 # DB
 #  DBFILE is the name of the file that contains the scores and player database.
