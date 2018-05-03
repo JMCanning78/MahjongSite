@@ -38,7 +38,6 @@ html, body {
 
 #navbar > a.homelink {
 	height:30px;
-	line-height:30px;
 	position:absolute;
 	left:0;
 	top:0;
@@ -46,8 +45,7 @@ html, body {
 }
 
 img.homelinklogo {
-	height: 35px;
-	padding-left: 10px;
+	height: 100px;
 	float:left;
 }
 
@@ -171,7 +169,10 @@ button.clearplayercomplete {
 		width:3em;
 	}
 	img.homelinklogo {
-		padding-left: 0px;
+		height: 70px;
+	}
+        #navbar > a.homelink {
+		top: 1.2em;
 	}
 	#tables > .table {
 		width:100%;
