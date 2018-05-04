@@ -22,7 +22,7 @@
           - supervisor
           - python3-pip
           - virtualenv
-          - libgit2-26
+          - libgit2-dev
           - libsqlite3-dev
 
     - name: Create nginx config
