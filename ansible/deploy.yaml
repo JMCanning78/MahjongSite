@@ -10,7 +10,7 @@
     app_name: MahjongSite
     repo_url: https://github.com/BlaiseRitchie/MahjongSite.git
     nginx_dir: /usr/share/nginx
-    file: main.py
+    file: run.sh
     user: www-data
 
   tasks:
@@ -21,9 +21,15 @@
           - nginx
           - supervisor
           - python3-pip
+          - virtualenv
+          - libgit2-26
+          - libsqlite3-dev
 
     - name: Create nginx config
       copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
+    - name: Create nginx vhosts dir
+      file: path=/etc/nginx/vhosts.d state=directory
 
     - name: Reload nginx
       service: name=nginx state=reloaded
@@ -31,17 +37,20 @@
     - name: deploy code from repository
       git: repo={{ repo_url }} dest="{{ nginx_dir }}/{{ app_name }}" version="master"
 
+    - name: Check if mysettings.py exists
+      stat:
+        path: ../mysettings.py
+      register: stat_result
+
     - name: Copy mysettings.py file
       copy: src=../mysettings.py dest="{{ nginx_dir }}/{{ app_name }}/mysettings.py"
-
-    - name: Install dependency libraries
-      apt:
-        update_cache: yes
-        name:
-          - libsqlite3-dev
+      when: stat_result.stat.exists == True
 
     - name: Install dependencies
-      pip: requirements="{{ nginx_dir }}/{{ app_name }}/requirements.txt"
+      pip:
+        virtualenv: "{{ nginx_dir }}/{{ app_name }}/venv"
+        virtualenv_python: "python3"
+        requirements: "{{ nginx_dir }}/{{ app_name }}/requirements.txt"
 
     - name: Fix permissions
       file: path="{{ nginx_dir }}/{{ app_name }}" owner={{ user }} group={{ user }} state=directory recurse=yes
@@ -61,7 +70,7 @@
 
   handlers:
     - name: restart supervisor
-      service: name=supervisor state=restart
+      service: name=supervisor state=restarted
 
     - name: reload nginx
       service: name=nginx state=reloaded

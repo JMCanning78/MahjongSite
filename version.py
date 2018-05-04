@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 
 import handler
-from subprocess import *
+import os.path
+from pygit2 import Repository
 
 class VersionHandler(handler.BaseHandler):
     def get(self):
         version = 'Unknown'
         description = ''
+        author = ''
+        committer = ''
         try:
-            result = run(['git', 'log', '-n', '1', '--oneline'], stdout=PIPE)
-            if result.returncode == 0:
-                parts = result.stdout.strip().split()
-                if len(parts) > 0:
-                    version = parts[0].decode()
-                    description = ' '.join([w.decode() for w in parts[1:]])
+            commit = Repository(os.path.dirname(__file__)).head.get_object()
+            version = commit.id
+            description = commit.message
+            author = commit.author.name
+            committer = commit.committer.name
         except:
             pass
-        self.render("version.html", version=version, description=description)
+        self.render(
+            "version.html",
+            version=version,
+            description=description,
+            author=author,
+            committer=committer
+        )

@@ -1,3 +1,5 @@
 tornado
 passlib
 meetup-api
+pygit2==0.26
+meetup-api
