@@ -34,7 +34,7 @@ clone https://github.com/BlaiseRitchie/MahjongSite.git`.
 1. Ensure you have the extra Python packages needed to run the Mahjong
 site code. The packages are listed in the `requirements.txt` file.
 These are easy to install using the Python package installer program,
-`pip` (https://pip.pypa.io). Depending on how you installed Python 3,
+`pip` (see https://pip.pypa.io). Depending on how you installed Python 3,
 you may already have `pip`, but if not, you can either install it
 separately or use other methods to get the packages. If you use
 `pip`, here's the command to install the needed modules.
@@ -59,13 +59,14 @@ characters for indenting. Python programs use the indenting of lines
 for the structure of the program and do not treat tab and space
 characters equivalently. The `mysettings.py` file has only comments
 (starting with a pound character, `#`) and assignments that all start
-without any indent. Each setting is optional and will use the value defined
-in the file `defaults.py` if it is excluded. Change the information in the
-EMAIL section to point to your **_outgoing_** email server. You can usually
-find this information by looking at the settings of the program you use to
-compose emails. You'll need the (smtp) host server name, the 'port' that the
-host listens on for mail requests, the email account that you use when
-accessing that server.
+without any indent. Each setting is optional and will use the value
+defined in the file `defaults.py` if it is not set in
+`mysettings.py`. Change the information in the EMAIL section to point
+to your **_outgoing_** email server. You can usually find this
+information by looking at the settings of the program you use to
+compose emails. You'll need the (smtp) host server name, the 'port'
+that the host listens on for mail requests, and the email account name
+and password that you use when accessing that server.
 
     1. Set the `EMAILSERVER` parameter to the server or host name.
        It can be a numeric address like 10.100.1.200, but must be inside
@@ -73,14 +74,16 @@ accessing that server.
     2. Set the `EMAILPORT` to the port the server listens to for requests.
        This should not be inside of quotes.
     3. Set the `EMAILUSER` to an account the server recognizes, and provide
-       the password for that account in `EMAILPASSWORD`.
+       the password for that account in `EMAILPASSWORD`.  The password
+       must be recorded in clear text in this file, so you may need to
+       control access of who can read the `mysettings.py` file.
     4. Set the `EMAILFROM` parameter to the alias that you want people to
-       see in the email they receive from the web site.
+       see in the emails they receive from the web site.
 
 1. Start up the web server. On your test system, you'll want to run
 this on some unused port on the machine. This should be a number
-between 1024 and 65535. A common one to use is 8888, but if this is
-in use, you'll need to choose something else. Start the server with
+between 1024 and 65535. A common one to use is 8888, but if this port
+is in use, you'll need to choose something else. Start the server with
 the command `/path/to/MahjongSite/main.py 8888`. If you don't get any
 error messages, then the web site should be up and running. If you get
 errors like:
@@ -107,6 +110,10 @@ of the command shell where you launch the program. The `scores.db` is the
 full database of the program. It will contain all the accumulated scores,
 users, admin settings, etc. In the production system, this file should be
 backed up.
+The web server will make automatic backup copies of this database
+in a folder (named by default 'backups') whenever significant
+changes are made to the database.  There can be a lot of these
+backup files over time for an active site.
 
 1. The initial `scores.db` is empty. It has no users and no game
 history. Clicking the "SETUP" button on the first web page will go to
@@ -124,6 +131,26 @@ log in a file such as `web.log`, run `/path/to/MahjongSite/main.py
 output and standard error text into the same log file. You can look
 at the contents of this file with tools like `tail web.log` and `less
 web.log` to track server activity and debug issues.
+
+
+Updates
+==========
+When you update code, you do it fork of the repository and send
+a "pull request" to the owners to merge your changes into the
+main repo.  If you already know about repo's and forks and pull
+requests, that will make sense.  If it's new to you.  You'll
+need to spend time learing the intricacies of git.
+
+When you do send pull requests, please run the beautify.sh script
+in the main repo directory and commit any changes it makes.  This
+runs a tool called `js-beautify` that formats the Javascript files
+in a consistent manner.  That helps minimize changes involving
+indentation and other whitespace that are hard to review in the
+pull request.  The js-beautify tool comes in both Python and
+Javascript implementations.  They perform slightly differently.
+We prefer the one that works with node.js, the Javascript
+interpreter, and that requires installing that tool, using
+the node package manager, `npm`, to install js-beautify.
 
 
 History
