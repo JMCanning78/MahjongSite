@@ -31,6 +31,20 @@ clone https://github.com/BlaiseRitchie/MahjongSite.git`.
     1. https://www.python.org/downloads/
     1. https://www.continuum.io/downloads (anaconda)
 
+1. One of the Python packages requires a C library, libgit2, which in turn
+requires Cmake to install.  See
+https://libgit2.github.com/
+https://libgit2.github.com/docs/guides/build-and-link/
+https://cmake.org/
+You will need to install cmake, and use it to build libgit2 before you
+will be able to build/install pygit2 in the next step.
+In MacOS, you can install cmake as a GUI tool with a DMG download.
+Launch the GUI tool, and click on the Tools > 'How to install for
+command line use' function to get the instructions for making
+cmake available as a command line tool.  Follow the instructions
+shown in the GUI. Then you can follow the libgit2 instructions on
+how to build/install that module from the command line.
+
 1. Ensure you have the extra Python packages needed to run the Mahjong
 site code. The packages are listed in the `requirements.txt` file.
 These are easy to install using the Python package installer program,
