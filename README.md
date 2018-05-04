@@ -33,9 +33,9 @@ clone https://github.com/BlaiseRitchie/MahjongSite.git`.
 
 1. One of the Python packages requires a C library, libgit2, which in turn
 requires Cmake to install.  See
-https://libgit2.github.com/
-https://libgit2.github.com/docs/guides/build-and-link/
-https://cmake.org/
+https://libgit2.github.com/ and
+https://libgit2.github.com/docs/guides/build-and-link/ and
+https://cmake.org/ for the software.
 You will need to install cmake, and use it to build libgit2 before you
 will be able to build/install pygit2 in the next step.
 In MacOS, you can install cmake as a GUI tool with a DMG download.
