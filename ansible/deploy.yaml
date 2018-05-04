@@ -70,7 +70,9 @@
 
   handlers:
     - name: restart supervisor
-      service: name=supervisor state=restarted
+      supervisorctl:
+        name: "{{ app_name }}:"
+        state: restarted
 
     - name: reload nginx
       service: name=nginx state=reloaded
