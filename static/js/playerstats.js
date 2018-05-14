@@ -1,5 +1,5 @@
 $(function() {
-	var playerstats;
+	var playerstats, ranks = ["1st", "2nd", "3rd", "4th", "5th"];
 	$.get("/static/mustache/playerstats.mst", function(data) {
 		playerstats = data;
 		Mustache.parse(playerstats);
@@ -80,7 +80,7 @@ $(function() {
 			return d.column + "_" + d.value + "_label " +
 				d.column + "_label"
 		}).text(function(d) {
-			return d.value
+			return d.column == 'rank' ? ranks[d.value - 1] : d.value
 		});
 	}
 });
