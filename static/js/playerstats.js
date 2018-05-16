@@ -4,8 +4,15 @@ $(function() {
 		playerstats = data;
 		Mustache.parse(playerstats);
 		var parts = document.URL.split('/');
-		player = parts[parts.length - 1];
+	    for (j=0; j < parts.length; j++) {
+		if (parts[j] == 'playerstats') break;
+	    }
+	    if (j >= parts.length - 1) {
+		$.notify('Unable to determine player for stats')
+	    } else {
+		player = parts.slice(j+1).join('/');
 		getData(player);
+	    }
 	});
 
 	function getData(player) {

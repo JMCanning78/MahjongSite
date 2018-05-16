@@ -35,7 +35,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                                for i in range(1, 6)]
         period_dict['rank_histogram'] = rank_histogram_list
 
-    def get(self, player):
+    def get(self, player, quarter):
         with db.getCur() as cur:
             name = player
             cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
@@ -85,7 +85,7 @@ class PlayerStatsDataHandler(handler.BaseHandler):
 
 
 class PlayerStatsHandler(handler.BaseHandler):
-    def get(self, player):
+    def get(self, player, quarter):
         with db.getCur() as cur:
             name = player
             cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
