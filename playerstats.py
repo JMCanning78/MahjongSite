@@ -63,7 +63,8 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find any scores for")
 
-            if quarter and p0['minquarter'] <= p0['maxquarter']:
+            if (quarter and p0['minquarter'] <= quarter and 
+                quarter <= p0['maxquarter']):
                 # Quarter provided in URI so just show that quarter
                 periods = [ {'name': 'Quarter {0} Stats'.format(quarter),
                              'subquery': "FROM Scores WHERE PlayerId = ? "
