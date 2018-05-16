@@ -47,41 +47,56 @@ class PlayerStatsDataHandler(handler.BaseHandler):
             playerID, name, meetupName = player
 
             N = 5
+            # Periods is a list of dicts; one for each stat period.
+            # We initialize the dict to describe the period, then call
+            # populate_queries to run the stats and histogram queries on
+            # the period and add entries to the dictionary for those stats
             periods = [
                 {'name': 'All Time Stats',
                  'subquery': "FROM Scores WHERE PlayerId = ?",
                  'params': (playerID,)
                 },
             ]
-            p = periods[0]
-            self.populate_queries(cur, p)
-            if p['numgames'] == 0:
+            p0 = periods[0]
+            self.populate_queries(cur, p0)
+            if p0['numgames'] == 0:
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find any scores for")
 
-            # Add optional periods if warranted
-            if p['numgames'] > N:
-                periods.append(
-                    {'name': 'Last {0} Game Stats'.format(N),
-                     'subquery': "FROM (SELECT * FROM Scores WHERE PlayerId = ? ORDER BY Date DESC LIMIT ?)",
-                     'params': (playerID, N)
-                     })
-            if p['minquarter'] < p['maxquarter']:
-                periods.append(
-                    {'name': 'Quarter {0} Stats'.format(p['maxquarter']),
-                     'subquery': "FROM Scores WHERE PlayerId = ? AND Quarter = ?",
-                     'params': (playerID, p['maxquarter'])
-                     })
-                prevQtr = formatQuarter(prevQuarter(parseQuarter(p['maxquarter'])))
-                periods.append(
-                    {'name': 'Quarter {0} Stats'.format(prevQtr),
-                     'subquery': "FROM Scores WHERE PlayerId = ? AND Quarter = ?",
-                     'params': (playerID, prevQtr)
-                     })
-            for p in periods[1:]:
+            if quarter and p0['minquarter'] <= p0['maxquarter']:
+                # Quarter provided in URI so just show that quarter
+                periods = [ {'name': 'Quarter {0} Stats'.format(quarter),
+                             'subquery': "FROM Scores WHERE PlayerId = ? "
+                             "AND Quarter = ?",
+                             'params': (playerID, quarter)
+                } ]
+            else:
+                if p0['numgames'] > N:
+                    periods.append(
+                        {'name': 'Last {0} Game Stats'.format(N),
+                         'subquery': "FROM (SELECT * FROM Scores "
+                         "WHERE PlayerId = ? ORDER BY Date DESC LIMIT ?)",
+                         'params': (playerID, N)
+                        })
+                if p0['minquarter'] < p0['maxquarter']:
+                    periods.append(
+                        {'name': 'Quarter {0} Stats'.format(p0['maxquarter']),
+                         'subquery': "FROM Scores WHERE PlayerId = ? "
+                         "AND Quarter = ?",
+                         'params': (playerID, p0['maxquarter'])
+                        })
+                    prevQtr = formatQuarter(prevQuarter(
+                        parseQuarter(p0['maxquarter'])))
+                    periods.append(
+                        {'name': 'Quarter {0} Stats'.format(prevQtr),
+                         'subquery': "FROM Scores WHERE PlayerId = ? "
+                         "AND Quarter = ?",
+                         'params': (playerID, prevQtr)
+                        })
+            for p in (periods[1:] if len(periods) > 1 else periods):
                 self.populate_queries(cur, p)
 
-            self.write(json.dumps({'playerstats': periods}))
+            self.write(json.dumps({'playerstats': periods, 'status': 0}))
 
 
 class PlayerStatsHandler(handler.BaseHandler):

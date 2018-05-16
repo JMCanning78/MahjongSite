@@ -15,7 +15,6 @@
     <h1 id="message">{{ error }} {{ name }}</h1>
   {% else %}
     <h1 id="message">{{ name }}</h1>
-    {% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}
     <div id="playerstats">
     </div>
     <br />
@@ -30,7 +29,11 @@
 		  {% elif not qtr['Played'] %}
 		  class="NoGames"
 		  {% end %}>
-	    <td> {{ qtr['Name'] }} {% if qtr['Member'] %} * {% end %} </td>
+	    <td>
+	      {% if qtr['Played'] %} <a href="/playerstats/{{ name }}/{{ qtr['Name'] }}"> {% end %}
+		{{ qtr['Name'] }} {% if qtr['Member'] %} * {% end %} 
+		{% if qtr['Played'] %} </a> {% end %}
+	    </td>
 	  </tr>
 	</table>
       {% end %}
@@ -39,6 +42,7 @@
       <p> * Indicates membership for that quarter.</p>
       <p> <span class="NoGames">Quarter</span> indicates no games have been
 	recorded for that quarter.</p>
+      <p> Click on quarters with games to see stats for that quarter.</p>
       <table>
 	<tbody>
 	  <tr class="eligible">
@@ -57,6 +61,8 @@
   	       placeholder="Meetup Name (optional)" />
 	<input type="submit" value="Update Names" />
       </form>
+    {% else %}
+      {% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}
     {% end %}
   {% end %}
 {% end %}
