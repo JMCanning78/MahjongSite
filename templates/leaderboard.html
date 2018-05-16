@@ -9,7 +9,9 @@
 {% end %}
 
 {% block content %}
-        <p>Click any player to see his or her stats</p>
+        <p>Click any player to see their stats. 
+	  <a href="#legend">Legend at bottom.</a>
+	</p>
 	<div id="content_controls">
 	  <select id="period">
 		<option value="quarter" selected="selected">QUARTER</option>
@@ -25,8 +27,11 @@
 	<div id="leaderboards">
 		Retrieving leaderboard...
 	</div>
-	<div class="quarter_help helptext">
+	<div id="legend" class="quarter_help helptext">
 	  <p>&nbsp;</p>
+	  <p>
+	    (+<i>N</i>) indicates lowest <i>N</i> games dropped from average.
+	  </p>
 	  <p> * Indicates membership for that quarter.</p>
 	  <table>
 	    <tbody>
