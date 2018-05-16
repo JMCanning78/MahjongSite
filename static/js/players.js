@@ -8,6 +8,16 @@ $(function() {
 	};
 	$("#visible_quarters_label").click(toggle_visible_quarters_menu);
 
+	/* Dismiss visible quarters menu whenever clicks on other inputs
+	   happen outside the menu */
+	$("#content td,th,h1").not("#visible_quarters_label").click(function(e) {
+		if ($(this).parents("#visible_quarters_label").length == 0 &&
+			$(e.target).parents("#visible_quarters_control").length == 0) {
+			dismiss_visible_quarters_menu();
+		}
+	});
+
+
 	function show_hide_quarter_column(checkbox) {
 		var qtr = $(checkbox).data('quarter');
 		$(".players th[data-quarter='" + qtr + "'], " +
@@ -66,8 +76,4 @@ $(function() {
 		function() {
 			$(this).parents("td").find("input.membershipFlag + .tooltip").remove();
 		});
-	/* Dismiss visible quarters menu whenever clicks on other inputs
-	   happen outside the menu */
-	$("input:not(#visible_quarters_control input)").click(
-		dismiss_visible_quarters_menu);
 });
