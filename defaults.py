@@ -5,6 +5,9 @@ CLUBCITY = "Seattle"
 CLUBSTATE = "WA"
 CLUBNAME = "{0} Riichi Mahjong".format(CLUBCITY)
 
+# Sponsor linked web site - Link for upper left corner 'sponsor' logo
+SPONSORLINK = "https://seattlemahjong.com"
+
 # DB
 #   DBFILE is the name of the file that contains the scores and player
 #   database.

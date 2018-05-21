@@ -2,6 +2,7 @@
 import tornado.web
 
 import db
+import settings
 
 def stringify(x):
     if x is None or isinstance(x, str):
@@ -58,6 +59,7 @@ class BaseHandler(tornado.web.RequestHandler):
             current_user = self.current_user,
             current_user_name = self.get_current_user_name(),
             is_admin = self.get_is_admin(),
+            SponsorLink = settings.SPONSORLINK,
             **kwargs
         )
 
