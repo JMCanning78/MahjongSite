@@ -26,6 +26,9 @@ $(function() {
 				$("#leaderboards").html(Mustache.render(leaderboard, data)).promise().done(function() {
 					$(".ordering").click(changeOrdering);
 					updateLeaderScores($("#min_games").val(), rank_visible());
+					$("tr.eligible").click(function() {
+						window.scrollTo(0, document.body.scrollHeight);
+					});
 				});
 			});
 	}
@@ -94,10 +97,10 @@ $(function() {
 		return orderings.indexOf($(".ordering:first").text()) == 1;
 	}
 	$("#period").change(function() {
-	    var period = $("#period").val();
-	    getData(period);
-	    $(".helptext").slideUp();
-	    $("." + period + "_help").slideDown();
+		var period = $("#period").val();
+		getData(period);
+		$(".helptext").slideUp();
+		$("." + period + "_help").slideDown();
 	});
 	$("#min_games").change(function() {
 		updateLeaderScores($("#min_games").val(), rank_visible());

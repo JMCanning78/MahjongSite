@@ -1,26 +1,26 @@
 {{#leaderboards}}
-	<div class="leaderboard">
-		<h2>LEADERBOARD <span class="lbname">{{ Date }}</span></h2>
-		<table>
-			<tr class="leaderbd_col_header">
-				<th class="ordering">PLACE</th>
-				<th>NAME</th>
-				<th>AVG SCORE</th>
-				<th>GAME COUNT</th>
-				<th>DATES PLAYED</th>
-			</tr>
-			{{#Board}}
-				<tr class="leaderbd_row{{#Eligible}} eligible{{/Eligible}}">
-					<td>{{ Place }}</td>
-					<td {{#Member}}class="member"{{/Member}}>
-					    <a href="/playerstats/{{ Name }}">{{ Name }}</a>
-					    {{#Member}}*{{/Member}}
-					</td>
-					<td>{{ AvgScore }}</td>
-					<td>{{ GameCount }}{{#DropGames}} (+{{ DropGames }}){{/DropGames}}</td>
-					<td>{{ DateCount }}</td>
-				</tr>
-			{{/Board}}
-		</table>
-	</div>
+<div class="leaderboard">
+    <h2>LEADERBOARD <span class="lbname">{{ Date }}</span></h2>
+    <table>
+	<tr class="leaderbd_col_header">
+	    <th class="ordering">PLACE</th>
+	    <th>NAME</th>
+	    <th>AVG SCORE</th>
+	    <th>GAME COUNT</th>
+	    <th>DATES PLAYED</th>
+	</tr>
+	{{#Board}}
+	<tr class="leaderbd_row{{#Eligible}} eligible{{/Eligible}}">
+	    <td>{{ Place }}</td>
+	    <td {{#Member}}class="member"{{/Member}}>
+		<a href="/playerstats/{{ Name }}">{{ Name }}</a>
+		{{#Member}}<a href="#legend">*</a>{{/Member}}
+	    </td>
+	    <td>{{ AvgScore }}</td>
+	    <td>{{ GameCount }}{{#DropGames}} (+{{ DropGames }}){{/DropGames}}</td>
+	    <td>{{ DateCount }}</td>
+	</tr>
+	{{/Board}}
+    </table>
+</div>
 {{/leaderboards}}
