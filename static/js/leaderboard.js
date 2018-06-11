@@ -26,7 +26,7 @@ $(function() {
 				$("#leaderboards").html(Mustache.render(leaderboard, data)).promise().done(function() {
 					$(".ordering").click(changeOrdering);
 					updateLeaderScores($("#min_games").val(), rank_visible());
-					$("tr.eligible").click(function() {
+					$("tr.eligible, div.membersymbol").click(function() {
 						window.scrollTo(0, document.body.scrollHeight);
 					});
 				});

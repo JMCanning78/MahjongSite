@@ -68,11 +68,11 @@ input {
 	padding-right:0.5em;
 }
 
-button, input[type="submit"], .control {
+button, input[type="submit"], .control, div.membersymbol {
 	cursor:pointer;
 }
 
-button:hover, input[type="submit"]:hover, a:hover, .control:hover  {
+button:hover, input[type="submit"]:hover, a:hover, .control:hover, div.membersymbol:hover {
 	text-decoration:underline;
 }
 
@@ -191,4 +191,8 @@ table.quarterParticipation td {
 
 .NoGames {
 	text-decoration:line-through;
+}
+
+div.membersymbol {
+	display: inline;
 }

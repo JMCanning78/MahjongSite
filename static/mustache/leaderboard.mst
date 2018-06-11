@@ -14,7 +14,7 @@
 	    <td>{{ Place }}</td>
 	    <td {{#Member}}class="member"{{/Member}}>
 		<a href="/playerstats/{{ Name }}">{{ Name }}</a>
-		{{#Member}}<a href="#legend">*</a>{{/Member}}
+		{{#Member}}<div class="membersymbol">*</div>{{/Member}}
 	    </td>
 	    <td>{{ AvgScore }}</td>
 	    <td>{{ GameCount }}{{#DropGames}} (+{{ DropGames }}){{/DropGames}}</td>
