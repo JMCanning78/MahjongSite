@@ -16,6 +16,12 @@
     {% except %}{% end %}</p>
 
   <h1>Players</h1>
+  {% if is_admin %}
+    <p>Click on game count to see player statistics.</p>
+  {% else %}
+    <p>Click on player name for overall or game count for per quarter player statistics.</p>
+  {% end %}
+  <br>
   <table class="players">
     <tbody>
       <tr>
@@ -41,7 +47,7 @@
 	</th>
 	<th colspan={{ len(quarters) }} id="visible_quarters_label" 
 	    class="control">
-	  Membership Quarters
+	  Game Counts & Membership by Quarter
 	</th>
       </tr>
       <tr>
@@ -55,7 +61,7 @@
         <tr data-playerId="{{ playerId }}">
 	  <td>
 	    {% if is_admin %}
-	      <input type=text value="{{ player['Name'] }}" 
+	      <input type=text value="{{ player['Name'] }}" class="playerName"
 		     data-columnName="Name" />
 	    {% else %}
 	      <a href="/playerstats/{{ player['Name'] }}">
@@ -77,12 +83,15 @@
 	  </td>
 	  {% for qtr in quarters %}
 	    <td data-quarter="{{ qtr }}">
+	      <a href="/playerstats/{{ player['Name'] }}/{{ qtr }}">
+		{{ player['GameCounts'].get(qtr, '') }}
+	      </a>
 	      <input type="checkbox" class="membershipFlag"
 		     id="Qtr-{{ qtr }}-visible"
 		     data-quarter="{{ qtr }}"
 		     {% if qtr in player['Memberships'] %}checked{% end %}
 		     {% if not is_admin %} disabled {% end %}
-		     /> 	    
+		     />
 	    </td>
           {% end %}
 	</tr>

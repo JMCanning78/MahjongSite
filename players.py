@@ -30,20 +30,35 @@ class PlayersHandler(handler.BaseHandler):
                         lambda: list(),
                         zip(playerFields, row))
                     last_player = row[0]
+                    players[row[0]]['GameCounts'] = {}
                 memberQtr = row[len(playerFields)]
                 if memberQtr is not None:  # Memberships is a list of qtrs
                     players[row[0]]['Memberships'].append(memberQtr)
 
+            cur.execute(("SELECT Players.Id, Quarter, COUNT(Scores.Id)"
+                         " FROM Players"
+                         " LEFT OUTER JOIN Scores"
+                         " ON Players.Id = Scores.PlayerId"
+                         " WHERE Players.Id != ?"
+                         " GROUP BY Players.Id, Scores.Quarter"
+                         " ORDER BY Players.Id ASC, Quarter ASC").format(
+                             ', '.join(playerFields)),
+                        (scores.getUnusedPointsPlayerID(),))
+            # Update player dictionary with game counts
+            for row in cur.fetchall():
+                player = players[row[0]]
+                player['GameCounts'][row[1]] = int(row[2])
+
             cur.execute("SELECT DISTINCT Quarter FROM Scores UNION"
                         " SELECT DISTINCT Quarter FROM Quarters"
-                        " ORDER BY Quarter ASC")
+                        " ORDER BY Quarter ASC") # Get all known quarters
             quarters = [row[0] for row in cur.fetchall()]
-            initialQtrsShown = [scores.quarterString()]
-            if initialQtrsShown[0] in quarters:
-                index = quarters.index(initialQtrsShown[0])
+            initialQtrsShown = [scores.quarterString()] # Current quarter
+            if initialQtrsShown[0] in quarters:  # Start at current qtr
+                index = quarters.index(initialQtrsShown[0]) # and go forward
                 initialQtrsShown = quarters[index:
                                             index + settings.MEMBERSHIPQUARTERS]
-            elif len(quarters) > 0:
+            elif len(quarters) > 0:        # Else take most recent qtrs
                 initialQtrsShown = quarters[- settings.MEMBERSHIPQUARTERS:]
             else:
                 initialQtrsShown = []
