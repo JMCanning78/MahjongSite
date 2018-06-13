@@ -84,6 +84,9 @@ def get_eligible(quarter=None):
     eligible = collections.defaultdict(
         lambda: collections.defaultdict(
             lambda: collections.defaultdict(lambda: False)))
+
+    # Get unused points playerID before opening cursor to avoid db deadlock
+    unusedPointsPlayerID = scores.getUnusedPointsPlayerID()
     with db.getCur() as cur:
         cur.execute(
             "SELECT Scores.Quarter AS Qtr, Scores.PlayerId AS Plr,"
@@ -105,7 +108,7 @@ def get_eligible(quarter=None):
             "        Quarters.Quarter = Memberships.QuarterId"
             " WHERE Players.Id != ?"
             " ORDER BY Qtr, Plr",
-            (scores.getUnusedPointsPlayerID(), scores.getUnusedPointsPlayerID()))
+            (unusedPointsPlayerID, unusedPointsPlayerID))
         rows = cur.fetchall()
     previousQtr = None
     for row in rows:
@@ -173,6 +176,10 @@ class LeaderDataHandler(handler.BaseHandler):
 def genLeaderboard(leaderDate = None):
     """Recalculates the leaderboard for the given datetime object.
     If leaderDate is None, then recalculates all leaderboards."""
+
+    # Get unused points playerID before opening cursor to change leaderboard
+    # records to avoid db deadlock if no unused player is yet defined
+    unusedPointsPlayerID = scores.getUnusedPointsPlayerID()
     with db.getCur() as cur:
         leadercols = ['Place'] + LBDcolumns
         leaderrows = []
@@ -196,7 +203,7 @@ def genLeaderboard(leaderDate = None):
                     datetest=datetest, datefmt=datefmt,
                     DEFDROPGAMES=settings.DROPGAMECOUNT).format(
                         date="Scores.Date")
-                cur.execute(sql, [scores.getUnusedPointsPlayerID()] + bindings)
+                cur.execute(sql, [unusedPointsPlayerID] + bindings)
                 for row in cur.fetchall():
                     record = dict(zip(LBDcolumns, row))
                     # For Quarterly Leaderboards, compute dropped game average
