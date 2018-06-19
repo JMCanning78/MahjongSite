@@ -29,15 +29,15 @@
 	<th>
 	  <table id="visible_quarters_control" class="checkbox_list">
 	    <tbody>
-	      {% for qtr in quarters%}
+	      {% for qtr_i in range(len(quarters) - 1, -1, -1) %}
 	        <tr>
 		  <td>
-		    <label data-quarter="{{ qtr }}">
+		    <label data-quarter="{{ quarters[qtr_i] }}">
 		      <input type="checkbox" class="visibleQtrFlag"
-			     id="Qtr-{{ qtr }}-visible"
-			     data-quarter="{{ qtr }}"
-			     {% if qtr in visibleQtrs %}checked{% end %} /> 
-		      {{ qtr }}
+			     id="Qtr-{{ quarters[qtr_i] }}-visible"
+			     data-quarter="{{ quarters[qtr_i] }}"
+			     {% if quarters[qtr_i] in visibleQtrs %}checked{% end %} /> 
+		      {{ quarters[qtr_i] }}
 		    </label> 
 		  </td>
 		</tr>
