@@ -21,13 +21,14 @@ DBBACKUPS = "backups"
 DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
 
 # PREFERENCES
-# Game play related
-#   DROPGAMES is the default number of games a player must complete in a
-#   quarter in order to have the lowest score dropped from the average.
-DROPGAMES = 9
-#   MAXDROPGAMES is the maximum number of games a player can drop in a quarter
-#   Note that the higher this number is, the longer it will take to generate
-#   the quarterly leaderboard
+# Game play related (some of these are settable for each quarter)
+#   DROPGAMECOUNT is the default number of games a player must complete in a
+#   quarter in order to have their lowest score dropped from the average.
+#   For each DROPGAMECOUNT games played, one low score is dropped (e.g. if it
+#   is 9 and the player completed 18 games, their 2 lowest scores are dropped)
+DROPGAMECOUNT = 9
+#   MAXDROPGAMES is the maximum number of games a player can drop in a quarter.
+#   Quarters are typically 13 weeks.
 MAXDROPGAMES = 3
 #   DEFAULT_RATING is the starting rating for players with no games
 DEFAULT_RATING = 1200
@@ -39,6 +40,28 @@ SCOREPERPLAYER = 25000
 #   CHOMBOPENALTY is the number of points deducted for a chombo (error).  This
 #   is counted in normalized points, e.g. a score of 8000 counts as 8 points
 CHOMBOPENALTY = 8
+#   UNUSEDPOINTSINCREMENT is the minimum amount of points that can be left
+#   as unused at the end of a game.  Typically this is one riichi bet.
+#   Unused points must be multiples of this amount.
+UNUSEDPOINTSINCREMENT = 1000
+#   QUALIFYINGGAMES is the minimum number of games a player must complete
+#   in a quarter to qualify for the end-of-quarter tournament.
+QUALIFYINGGAMES = 8
+#   QUALIFYINGDISTINCTDATES is the minimum number of distinct dates of
+#   play that a player must complete in a quarter to qualify for the
+#   end-of-quarter tournament.
+QUALIFYINGDISTINCTDATES = 8
+
+# Adminstrative
+#   FORECASTQUARTERS is the number of quarters ahead of the current quarter
+#   to show in the Quarters Management dialog
+FORECASTQUARTERS = 3
+#   MEMBERSHIPQUARTERS is the initial number of quarters to show in the
+#   Players dialog starting with the current quarter.
+MEMBERSHIPQUARTERS = 4
+#   TIMELINEQUARTERS is the max number of the most recent quarters to show in
+#   the Player Statistics quarterly timeline.
+TIMELINEQUARTERS = 12
 
 # MEETUP interface
 #   If the club uses the meetup.com site for players to RSVP for games,

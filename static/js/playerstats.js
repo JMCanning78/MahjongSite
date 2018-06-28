@@ -1,21 +1,34 @@
 $(function() {
-	var playerstats, ranks = ["1st", "2nd", "3rd", "4th", "5th"];
+	var statsTemplate, ranks = ["1st", "2nd", "3rd", "4th", "5th"];
 	$.get("/static/mustache/playerstats.mst", function(data) {
-		playerstats = data;
-		Mustache.parse(playerstats);
+		statsTemplate = data;
+		Mustache.parse(statsTemplate);
 		var parts = document.URL.split('/');
-		player = parts[parts.length - 1];
-		getData(player);
+		for (j = 0; j < parts.length; j++) {
+			if (parts[j] == 'playerstats') break;
+		}
+		if (j >= parts.length - 1) {
+			$.notify('Unable to determine player for stats')
+		}
+		else {
+			player = parts.slice(j + 1).join('/');
+			getData(player);
+		}
 	});
 
 	function getData(player) {
 		$.getJSON("/playerstatsdata/" + player, function(data) {
-			$("#playerstats").html(Mustache.render(playerstats, data));
-			d3.selectAll(".playerstatperiod").each(function(d, i) {
-				drawData(d3.select(this).select('svg'),
-					d3.select(this).select('.rankpielegend'),
-					data['playerstats'][i]['rank_histogram']);
-			})
+			if (data.status != 0) {
+				$.notify(data.error);
+			}
+			else {
+				$("#playerstats").html(Mustache.render(statsTemplate, data));
+				d3.selectAll(".playerstatperiod").each(function(d, i) {
+					drawData(d3.select(this).select('svg'),
+						d3.select(this).select('.rankpielegend'),
+						data['playerstats'][i]['rank_histogram']);
+				})
+			}
 		});
 	}
 

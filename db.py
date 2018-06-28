@@ -82,7 +82,9 @@ schema = collections.OrderedDict({
     'Quarters': [
         'Quarter TEXT PRIMARY KEY NOT NULL',
         'GameCount INTEGER NOT NULL',
-        'UnusedPointsIncrement INTEGER DEFAULT 0'
+        'UnusedPointsIncrement INTEGER DEFAULT 0',
+        'QualifyingGames INTEGER NOT NULL DEFAULT 1',
+        'QualifyingDistinctDates INTEGER NOT NULL DEFAULT 1'
     ],
     'Settings': [
         'UserId INTEGER',
@@ -104,8 +106,16 @@ schema = collections.OrderedDict({
         'AvgScore REAL',
         'GameCount INTEGER',
         'DropGames INTEGER',
+        'DateCount INTEGER',
         'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE'
-    ]
+    ],
+    'Memberships': [
+        'PlayerId INTEGER',
+        'QuarterId TEXT',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE',
+        'FOREIGN KEY(QuarterId) REFERENCES Quarters(Quarter)',
+        'UNIQUE(PlayerId, QuarterId)'
+        ],
 })
 
 def init(force=False):
@@ -216,6 +226,11 @@ def check_table_schema(tablename, force=False, backupname="_backup"):
 
 def words(spec):
     return re.findall(r'\w+', spec)
+
+def table_field_names(tablename):
+    return [words(fs)[0] for fs in schema.get(tablename, []) 
+            if not words(fs)[0].upper() in [
+                    'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'PRIMARY', 'CHECK']]
 
 def missing_fields(table_fields, actual_fields):
     return [ field_spec for field_spec in table_fields if (

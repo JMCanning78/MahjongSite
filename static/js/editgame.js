@@ -15,8 +15,7 @@
 				function() {
 					$("#message").text("GAME EDITED");
 					$("#content").append($("<a href='/admin/edit/" + window.gameid + "' class='button'>EDIT AGAIN</a>"));
-				},
-				{
+				}, {
 					'gamedate': $("#gamedate").val()
 				},
 				function() {

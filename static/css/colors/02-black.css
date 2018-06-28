@@ -65,6 +65,10 @@ table td {
     color:      black;
 }
 
+.eligible td {
+    background: #445044;
+}
+
 .rankpielegend {
     margin-top: 0;
 }

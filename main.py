@@ -36,6 +36,7 @@ import admin
 import scores
 import leaderboard
 import playerstats
+import players
 import ratings
 import version
 
@@ -200,8 +201,9 @@ class Application(tornado.web.Application):
                 (r"/ratingsdata", ratings.RatingsDataHandler),
                 (r"/history(/[0-9]+)?", HistoryHandler),
                 (r"/playerhistory/(.*?)(/[0-9]+)?", PlayerHistory),
-                (r"/playerstats/(.*)", playerstats.PlayerStatsHandler),
-                (r"/playerstatsdata/(.*)", playerstats.PlayerStatsDataHandler),
+                (r"/playerstats/([^/]+)/?([^/]+)?", playerstats.PlayerStatsHandler),
+                (r"/playerstatsdata/([^/]+)/?([^/]+)?", playerstats.PlayerStatsDataHandler),
+                (r"/players", players.PlayersHandler),
                 (r"/seating", seating.SeatingHandler),
                 (r"/seating/regentables", seating.RegenTables),
                 (r"/seating/clearcurrentplayers", seating.ClearCurrentPlayers),

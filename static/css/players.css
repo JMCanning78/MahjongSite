@@ -1,0 +1,30 @@
+#visible_quarters_control table {
+	width: 100%;
+	margin-top: 1em;
+}
+#visible_quarters_control {
+        width: auto;
+        position: absolute;
+/*        left: 2.0em; */
+        z-index: 1;
+}
+#visible_quarters_control td {
+        text-align: left;  
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+}
+#visible_quarters_control input {
+        width: 1.0em;
+}
+table.players th {
+        padding-left: 4px;
+        padding-right: 4px;
+}
+.tooltip {
+        width: auto;
+        position: absolute;
+        opacity: 1;
+        background: #333;
+        font-size: 0.8em;
+        z-index: 1;
+}

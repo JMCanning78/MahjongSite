@@ -21,25 +21,28 @@ table {
 		<tbody>
 			<tr>
 				<th>Quarter</th>
-				<th>Game count</th>
-				<th>Unused points increment</th>
+				<th>Drop Game Count</th>
+				<th>Unused Points Increment</th>
+				<th>Qualifying Games</th>
+				<th>Qualifying Distinct Dates</th>
 				<th>Actions</th>
 			</tr>
-			{% try %}
-				{% for quarter in quarters%}
-					<tr>
-						<td>{{ quarter[0] }}</td>
-						<td>{{ quarter[1] }}</td>
-						<td>{{ quarter[2] }}</td>
-						<td>
-						  {% if quarter[1] %}
-						  <a href="/admin/deletequarter/{{ quarter[0] }}">Delete</a> &nbsp;&nbsp;
-						  {% end %}
-						  <a href="/admin/editquarter/{{ quarter[0] }}">Edit</a>
-						</td>
-					</tr>
-				{% end %}
-			{% except %}
+			{% for qtr in quarters%}
+			<tr>
+			  <td>{{ qtr['Quarter'] }}</td>
+			  <td>{{ qtr['GameCount'] }}</td>
+			  <td>{{ qtr['UnusedPointsIncrement'] }}</td>
+			  <td>{{ qtr['QualifyingGames'] }}</td>
+			  <td>{{ qtr['QualifyingDistinctDates'] }}</td>
+			  <td>
+			    {% if qtr['GameCount'] %}
+			      <a href="/admin/deletequarter/{{ qtr['Quarter'] }}">
+                                Delete</a> &nbsp;&nbsp;
+			    {% end %}
+			    <a href="/admin/editquarter/{{ qtr['Quarter'] }}">
+                                Edit</a>
+			  </td>
+			</tr>
 			{% end %}
 		</tbody>
 	</table>

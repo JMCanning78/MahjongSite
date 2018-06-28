@@ -26,8 +26,44 @@ $(function() {
 				$("#leaderboards").html(Mustache.render(leaderboard, data)).promise().done(function() {
 					$(".ordering").click(changeOrdering);
 					updateLeaderScores($("#min_games").val(), rank_visible());
+					$("tr.eligible, div.membersymbol").click(
+						scrollToLegend);
 				});
 			});
+	};
+
+	function scrollToLegend() { // Smooth scroll to bottom, slow->fast->slow
+		var timer, t = -1.0,
+			step = 0.02,
+			a = 30,
+			start = window.scrollY,
+			end = document.body.scrollHeight - window.innerHeight;
+
+		function incrementalScroll() {
+			if (t >= 1.0 || window.scrollY >= end) {
+				clearInterval(timer);
+			}
+			else {
+				var y, a2t = 0;
+				t += step;
+				if (t >= 1.0) {
+					y = end
+				}
+				else {
+					a2t = Math.pow(a, t);
+					y = start + Math.floor((end - start) * a2t / (a2t + 1.0 / a2t));
+				};
+				window.scrollTo(0, y);
+			}
+		};
+		timer = setInterval(incrementalScroll, 10);
+	};
+
+	function totalDigits(counttext) {
+		return counttext.split(/[^0-9]+/).map(Math.floor).reduce(
+			function(t, e) {
+				return t + e
+			})
 	}
 
 	function updateLeaderScores(min_games, rank_visible) {
@@ -37,24 +73,16 @@ $(function() {
 			var bd_scores;
 			for (bd in scores['leaderboards']) {
 				if (scores['leaderboards'][bd]['Date'] == boardname) {
-					bd_scores = scores['leaderboards'][bd]['Scores'];
+					bd_scores = scores['leaderboards'][bd]['Board'];
 					break;
 				};
 			}
 			var last_place = 0;
 			$(".leaderbd_row", board).each(function(i, row) {
 				/* Hide rows with game counts less than the min games */
-				var counttext = row.children[3].innerText;
-				var plus1 = counttext.search(/[^0-9]/)
-				if (plus1 < 0) {
-					count = Math.floor(counttext)
-				}
-				else if (plus1 == 0) {
-					count = 0
-				}
-				else {
-					count = Math.floor(counttext.substr(0, plus1)) + 1
-				}
+				var counttext = row.children[3].innerText,
+					count = totalDigits(counttext);
+
 				/* Hide rows with too few games */
 				if (count < min_games) {
 					$(row).slideUp('fast');
@@ -95,7 +123,10 @@ $(function() {
 		return orderings.indexOf($(".ordering:first").text()) == 1;
 	}
 	$("#period").change(function() {
-		getData($("#period").val());
+		var period = $("#period").val();
+		getData(period);
+		$(".helptext").slideUp();
+		$("." + period + "_help").slideDown();
 	});
 	$("#min_games").change(function() {
 		updateLeaderScores($("#min_games").val(), rank_visible());

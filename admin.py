@@ -2,6 +2,9 @@
 
 import json
 import datetime
+import os
+import sys
+import collections
 
 import handler
 import db
@@ -106,7 +109,8 @@ class EditGameHandler(handler.BaseHandler):
                             scores=json.dumps(rows).replace("'", "\\'")
                             .replace("\\\"", "\\\\\""),
                             unusedPoints=unusedPoints,
-                            unusedPointsIncrement=scores.unusedPointsIncrement())
+                            unusedPointsIncrement=scores.unusedPointsIncrement(
+                                date=rows[0][4]))
     @handler.is_admin_ajax
     def post(self, q):
         gamescores = self.get_argument('scores', None)
@@ -125,34 +129,64 @@ class EditGameHandler(handler.BaseHandler):
         db.make_backup()
         self.write(json.dumps(scores.addGame(gamescores, gamedate, gameid)))
 
+quarterFields = db.table_field_names('Quarters')
+        
 class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
+        settingsDescriptions = getSettingsDescriptions()
+        helptext = '<ul>'
+        for field in ['DropGameCount'] + quarterFields:
+            if field.upper() in settingsDescriptions:
+                helptext += '<li><b><em>{}</em></b>'.format(
+                    splitCamelCase(field))
+                fieldhelp = settingsDescriptions[field.upper()]
+                if fieldhelp.startswith(field.upper()):
+                    helptext += fieldhelp[len(field):]
+                else:
+                    helptext += ' - ' + fieldhelp
+        helptext += '</ul>'
         with db.getCur() as cur:
-            cur.execute("SELECT Quarter, Gamecount, UnusedPointsIncrement "
-                        "FROM Quarters WHERE Quarter = ? ORDER BY Quarter DESC",
+            cur.execute(("SELECT {} FROM Quarters WHERE Quarter <= ?"
+                         "  ORDER BY Quarter DESC").format(', '.join(
+                             quarterFields)),
                         (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                rows = [(q, settings.DROPGAMES, scores.unusedPointsIncrement())]
-            if len(rows) > 1:
-                self.render("message.html",
-                            message = "Multiple entries in database for Quarter {0}".format(q),
-                            title = "Database Error",
-                            next = "Manage Quarters",
-                            next_url = "/admin/quarters")
+                rows = [(q, settings.DROPGAMECOUNT,
+                         settings.UNUSEDPOINTSINCREMENT,
+                         settings.QUALIFYINGGAMES,
+                         settings.QUALIFYINGDISTINCTDATES)]
             else:
-                self.render("editquarter.html", quarters=rows)
+                count = 0
+                while count < len(rows) and rows[count][0] == q:
+                    count += 1
+                if count > 1:
+                    self.render(
+                        "message.html",
+                        message = "Multiple entries in database for Quarter {0}".format(q),
+                        title = "Database Error",
+                        next = "Manage Quarters",
+                        next_url = "/admin/quarters")
+                if count == 0:
+                    # Use most recent quarter before selected one as default
+                    rows = [(q,) + rows[0][1:]] + rows
+            self.render("editquarter.html", 
+                        quarters=[dict(zip(quarterFields, row)) for row in rows],
+                        help=helptext)
 
     @handler.is_admin
     def post(self, q):
         quarter = q
-        gamecount = self.get_argument('gamecount', None)
-        unusedPointsIncrement = self.get_argument('unusedPointsIncrement', None)
+        values = { 'quarter': q }
+        formfields = [name[0].lower() + name[1:] for name in quarterFields]
+        for field in formfields[1:]:
+            values[field] = self.get_argument(field, None)
         with db.getCur() as cur:
-            cur.execute("REPLACE INTO Quarters(Quarter, Gamecount, "
-                        "UnusedPointsIncrement) VALUES (?,?,?);",
-                        (quarter, gamecount, unusedPointsIncrement))
+            cur.execute("REPLACE INTO Quarters ({}) VALUES ({})".format(
+                ', '.join(quarterFields),
+                ', '.join(['?'] * len(formfields))),
+                        [values[f] for f in formfields])
 
         leaderboard.genLeaderboard(scores.quarterDate(quarter))
 
@@ -165,26 +199,60 @@ class EditQuarterHandler(handler.BaseHandler):
 class QuartersHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self):
+        thisQtrDate = scores.quarterDate(scores.quarterString())
         with db.getCur() as cur:
-            cur.execute(
-                "SELECT DISTINCT Scores.Quarter, Gamecount, "
-                " COALESCE(UnusedPointsIncrement, ?)"
-                " FROM Scores LEFT OUTER JOIN Quarters"
-                " ON Scores.Quarter = Quarters.Quarter"
-                " ORDER BY Scores.Quarter DESC",
-                (scores.unusedPointsIncrement(),))
+            sql = ("SELECT DISTINCT Scores.Quarter, {fields}"
+                   " FROM Scores LEFT OUTER JOIN Quarters"
+                   " ON Scores.Quarter = Quarters.Quarter "
+                   "UNION SELECT DISTINCT Quarter, {fields}"
+                   " FROM Quarters"
+                   " ORDER BY Scores.Quarter DESC").format(
+                       fields=', '.join(quarterFields[1:]))
+            cur.execute(sql)
             rows = cur.fetchall()
-
+            knownQtrs = [row[0] for row in rows]
+            for i in range(settings.FORECASTQUARTERS + 1):
+                newQtr = scores.quarterString(
+                    thisQtrDate + datetime.timedelta(days=92 * i))
+                if newQtr not in knownQtrs:
+                    rows.append((newQtr, ) + (None,) * (len(quarterFields) - 1))
+            rows.sort(key=lambda x: x[0], reverse=True)
             self.render("quarters.html",
                         message = "No quarters found" if len(rows) == 0 else "",
-                        quarters=rows)
+                        quarters=[dict(zip(quarterFields, row)) for row in rows])
 
 class DeleteQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
         with db.getCur() as cur:
-            cur.execute("SELECT Quarter, Gamecount FROM Quarters "
-                        "WHERE Quarter = ? ORDER BY Quarter DESC", (q,))
+            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
+            rows = cur.fetchall()
+        if len(rows) == 0:
+            self.render("message.html",
+                        message = "Quarter {0} not found".format(q),
+                        title = "Quarter Not Found",
+                        next = "Manage quarters",
+                        next_url = "/admin/quarters")
+        elif len(rows) == 1:
+            self.render(
+                "confirm.html",
+                question=("Are you sure you want to delete the {} Quarter?  "
+                          "This can impact other parts of the system "
+                          "such as membership records, unused points "
+                          "settings, qualification criteria, etc.").format(
+                              q),
+                yesURL=self.request.path, yesMethod="post", yesLabel="Yes",
+                noURL="/admin/quarters", noMethod="get", noLabel="No"
+            )
+        else:
+            self.render("quarters.html",
+                        message = ("Error: Multiple quarters named {0} "
+                                   "found. See Adminstrator.").format(q),
+                        quarters=rows)
+        
+    def post(self, q):
+        with db.getCur() as cur:
+            cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
             rows = cur.fetchall()
         if len(rows) == 0:
             self.render("message.html",
@@ -200,10 +268,40 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         title = "Quarter Deleted",
                         next = "Manage quarters",
                         next_url = "/admin/quarters")
-            leaderboard.genLeaderboard(scores.quarterDate(quarter))
+            leaderboard.genLeaderboard(scores.quarterDate(q))
         else:
             self.render("quarters.html",
                         message = ("Error: Multiple quarters named {0} "
                                    "found. See Adminstrator.").format(q),
                         quarters=rows)
 
+def getSettingsDescriptions():
+    descriptions = collections.defaultdict(lambda : '')
+    prefix = "#   "
+    try:
+        defaults = os.path.join(os.path.dirname(sys.argv[0]), 'defaults.py') 
+        with open(defaults, 'r') as f:
+            in_description = None
+            for line in f:
+                line.strip()
+                if line.startswith(prefix):
+                    line = line[len(prefix):]
+                    words = line.split()
+                    if words and len(words[0]) > 1 and words[0].isupper():
+                        in_description = words[0]
+                    if in_description:
+                        descriptions[in_description] += line.replace('\n', ' ')
+                else:
+                    in_description = None
+    except:
+        print('Unable to read {} to get settings descriptions'.format(
+            defaults), file=sys.stderr)
+    return descriptions
+
+def splitCamelCase(word):
+    words = []
+    for i in range(len(word)):
+        if word[i].isupper() or len(words) == 0:
+            words.append('')
+        words[-1] += word[i]
+    return ' '.join(words)
