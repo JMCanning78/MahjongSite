@@ -196,3 +196,11 @@ table.quarterParticipation td {
 div.membersymbol {
 	display: inline;
 }
+
+#visible_quarters_control {
+        display: none;
+}
+
+.players th[data-quarter], .players td[data-quarter] {
+        display: none;
+}
