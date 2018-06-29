@@ -113,7 +113,7 @@ schema = collections.OrderedDict({
         'PlayerId INTEGER',
         'QuarterId TEXT',
         'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE',
-        'FOREIGN KEY(QuarterId) REFERENCES Quarters(Quarter)',
+        'FOREIGN KEY(QuarterId) REFERENCES Quarters(Quarter) ON DELETE CASCADE',
         'UNIQUE(PlayerId, QuarterId)'
         ],
 })
