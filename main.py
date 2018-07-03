@@ -119,11 +119,13 @@ class PlayerHistory(handler.BaseHandler):
             cur.execute("SELECT Id,Name FROM Players WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if len(player) == 0:
-                self.render("message.html", message="Couldn't find that player", title="User Game History")
+                self.render("message.html", message="Couldn't find that player",
+                            title="User Game History")
                 return
             name = player[1]
             player = player[0]
-            cur.execute("SELECT DISTINCT GameId FROM Scores WHERE PlayerId = ? ORDER BY Date DESC", (player,))
+            cur.execute("SELECT DISTINCT GameId FROM Scores WHERE PlayerId = ?"
+                        "  ORDER BY Date DESC", (player,))
             games = [i[0] for i in cur.fetchall()]
             gamecount = len(games)
             if gamecount > 0:
@@ -153,8 +155,10 @@ class PlayerHistory(handler.BaseHandler):
                         games[gID]['scores'][row[2]] = (
                             row[3], row[4], round(row[5], 2), row[6])
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
-                pages = range(max(1, page + 1 - 10), int(min(maxpage, page + 1 + 10) + 1))
-                games = sorted(games.values(), key=lambda x: x["date"], reverse=True)
+                pages = range(max(1, page + 1 - 10), 
+                              int(min(maxpage, page + 1 + 10) + 1))
+                games = sorted(games.values(), 
+                               key=lambda x: (x["date"], x["id"]), reverse=True)
                 if page != 0:
                     prev = page
                 else:
