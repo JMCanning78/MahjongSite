@@ -25,5 +25,6 @@ $(function() {
 			$($("#players .playercomplete")[i])
 				.val($(elem).clone().children().remove().end().text());
 		});
+		window.smoothScrollTo(0, 0);
 	});
 });

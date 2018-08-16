@@ -36,4 +36,46 @@
 			console.log(xhr);
 		}
 	});
+	window.smoothScrollTo = function(x, y, interval, step, base) {
+		if (x == null) {
+			x = 0
+		};
+		if (y == null) {
+			y = document.body.scrollHeight - window.innerHeight
+		};
+		if (interval == null) {
+			interval = 10
+		};
+		if (step == null) {
+			step = 0.02
+		};
+		if (base == null) {
+			base = 30
+		};
+		var timer, t = -1.0,
+			start_x = window.scrollX,
+			start_y = window.scrollY;
+
+		function incrScroll() {
+			if (t >= 1.0 || (window.scrollX == x && window.scrollY == y)) {
+				clearInterval(timer);
+			}
+			else {
+				var new_x, new_y;
+				t += step;
+				if (t >= 1.0) {
+					new_x = x;
+					new_y = y
+				}
+				else {
+					var base2t = Math.pow(base, t);
+					var scale = base2t / (base2t + 1.0 / base2t);
+					new_x = start_x + Math.floor((x - start_x) * scale);
+					new_y = start_y + Math.floor((y - start_y) * scale);
+				}
+				window.scrollTo(new_x, new_y);
+			};
+		};
+		timer = setInterval(incrScroll, interval);
+	};
 })(jQuery);

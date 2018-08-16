@@ -33,30 +33,7 @@ $(function() {
 	};
 
 	function scrollToLegend() { // Smooth scroll to bottom, slow->fast->slow
-		var timer, t = -1.0,
-			step = 0.02,
-			a = 30,
-			start = window.scrollY,
-			end = document.body.scrollHeight - window.innerHeight;
-
-		function incrementalScroll() {
-			if (t >= 1.0 || window.scrollY >= end) {
-				clearInterval(timer);
-			}
-			else {
-				var y, a2t = 0;
-				t += step;
-				if (t >= 1.0) {
-					y = end
-				}
-				else {
-					a2t = Math.pow(a, t);
-					y = start + Math.floor((end - start) * a2t / (a2t + 1.0 / a2t));
-				};
-				window.scrollTo(0, y);
-			}
-		};
-		timer = setInterval(incrementalScroll, 10);
+		window.smoothScrollTo();
 	};
 
 	function totalDigits(counttext) {
