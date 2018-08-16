@@ -21,6 +21,18 @@
 	</input>
 	{% end %}
 	<button id="submit" disabled>Add</button>
-	<div id="tables"></div>
-	<button id="seating">Fetch Seater Players</button>
+	<div id="tables">
+	  <h3>Click a table to insert its players into the form</h3>
+          {% for table in tables %}
+            <div class="table">
+              <h3>TABLE {{ table['index'] }}</h3>
+                {% for player in table['players'] %}
+                  <div class="player">
+                    <span class="windicator">{{ player['wind'] }}</span>
+                    {{ player['name'] }}
+                  </div>
+                {% end %}
+            </div>
+	  {% end %}
+	</div>
 {% end %}

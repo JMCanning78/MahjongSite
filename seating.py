@@ -139,44 +139,37 @@ class ClearCurrentPlayers(handler.BaseHandler):
             self.set_header('Content-Type', 'application/json')
             self.write('{"status":0}')
 
+def getCurrentTables():
+    tables = []
+    with db.getCur() as cur:
+        cur.execute("SELECT Players.Name FROM CurrentTables"
+                    "  INNER JOIN Players"
+                    "   ON Players.Id = CurrentTables.PlayerId")
+        rows = cur.fetchall()
+        numplayers = len(rows)
+        total_tables = numplayers // 4
+        extra_players = numplayers % 4
+        if total_tables > 0 and extra_players <= total_tables:
+            tables_4p = total_tables - extra_players
+            places = "東南西北５"
+            for table in range(total_tables):
+                players = [{"wind": places[player],
+                            "name": rows[table * 4 + max(0, table - tables_4p) +
+                                         player][0]}
+                           for player in range(4 if table < tables_4p else 5)]
+                tables += [{"index": str(table + 1), "players": players}]
+    return tables
+                
 class CurrentTables(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
-        result = {"status":"error", "message":"Unknown error ocurred"}
-        with db.getCur() as cur:
-            cur.execute("SELECT Players.Name FROM CurrentTables INNER JOIN Players ON Players.Id = CurrentTables.PlayerId")
-            rows = cur.fetchall()
-            numplayers = len(rows)
-            if numplayers < 4 or numplayers in [11, 7, 6]:
-                result["message"] = "Invalid number of players: " + str(numplayers)
-            else:
-                if numplayers >= 8:
-                    tables_5p = numplayers % 4
-                    total_tables = math.floor(numplayers / 4)
-                    tables_4p = total_tables - tables_5p
-                else:
-                    if numplayers == 5:
-                        tables_5p = 1
-                    else:
-                        tables_5p = 0
-                    total_tables = 1
-                    tables_4p = total_tables - tables_5p
-
-                result["tables"] = []
-                places = "東南西北５"
-                for table in range(total_tables):
-                    if table < tables_4p:
-                        players = [{"wind":places[player], "name":rows[table * 4 + player][0]} for player in range(4)]
-                    else:
-                        players = [{"wind":places[player], "name":rows[table * 4 + (table - tables_4p) + player][0]} for player in range(5)]
-                    result["tables"] += [{
-                            "index":str(table + 1),
-                            "players":players
-                        }]
-                result["status"] = "success"
-                result["message"] = "Generated tables"
-            self.write(json.dumps(result))
-
+        tables = getCurrentTables()
+        if len(tables) > 0:
+            result = {"status": "success", "message": "Generated tables",
+                      "tables": tables}
+        else:
+            result = {"status":"error", "message": "Invalid number of players"}
+        self.write(json.dumps(result))
 
 class PlayersList(tornado.web.RequestHandler):
     def get(self):
@@ -185,6 +178,19 @@ class PlayersList(tornado.web.RequestHandler):
             cur.execute("SELECT Name FROM Players WHERE Id != ? ORDER BY Name",
                         (scores.getUnusedPointsPlayerID(),))
             self.write(json.dumps(list(map(lambda x:x[0], cur.fetchall()))))
+
+class AddGameHandler(handler.BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        tables = getCurrentTables()
+        self.render("addgame.html",
+                    unusedPointsIncrement=scores.unusedPointsIncrement(),
+                    tables=tables,
+                    fourplayertotal='{:,d}'.format(4 * settings.SCOREPERPLAYER))
+    @tornado.web.authenticated
+    def post(self):
+        scores = self.get_argument('scores', None)
+        self.write(json.dumps(addGame(json.loads(scores))))
 
 POPULATION = 256
 

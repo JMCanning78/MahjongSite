@@ -74,7 +74,7 @@ $(function() {
 		return total;
 	}
 
-	function addPlayers(num) {
+	window.addPlayers = function(num) {
 		for (var i = 0; i < (num || 1); ++i)
 			$("#players").append(Mustache.render(playerScoreTemplate));
 		window.populatePlayerComplete();
@@ -150,40 +150,4 @@ $(function() {
 	}
 
 	$("#unusedPoints").change(checkUnusedPoints).keyup(checkUnusedPoints);
-
-	var tablesTemplate;
-	$("#seating").click(function() {
-		function _getCurrentTables() {
-			$.getJSON('/seating/currenttables.json', function(data) {
-				if (data.status === "success") {
-					$("#tables").html(
-						"<h3>Click a table to insert its players into the form</h3>" +
-						Mustache.render(tablesTemplate, {
-							"tables": data.tables
-						})
-					);
-					$("#tables").children(".table").click(function() {
-						var players = $(this).children("div");
-						if (players.length === 5 && $("#players .player").length === 4)
-							addPlayers();
-						else if (players.length === 4 && $("#players .player").length === 5)
-							$($("#players .playercomplete")[4]).val("");
-						players.each(function(i, elem) {
-							$($("#players .playercomplete")[i]).val($(elem).clone().children().remove().end().text());
-						});
-					});
-				}
-				else
-					$("#tables").text(data.message);
-			}).fail(xhrError);
-		}
-		if (tablesTemplate === undefined)
-			$.get("/static/mustache/tables.mst", function(data) {
-				tablesTemplate = data;
-				Mustache.parse(tablesTemplate);
-				_getCurrentTables();
-			});
-		else
-			_getCurrentTables();
-	});
 });
