@@ -189,8 +189,8 @@ class AddGameHandler(handler.BaseHandler):
                     fourplayertotal='{:,d}'.format(4 * settings.SCOREPERPLAYER))
     @tornado.web.authenticated
     def post(self):
-        scores = self.get_argument('scores', None)
-        self.write(json.dumps(addGame(json.loads(scores))))
+        self.write(json.dumps(scores.addGame(json.loads(
+            self.get_argument('scores', None)))))
 
 POPULATION = 256
 
