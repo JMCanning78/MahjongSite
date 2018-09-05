@@ -18,47 +18,62 @@
     <div id="playerstats">
     </div>
     <br />
-    <a class="button" href="/playerhistory/{{ name }}">Game History</a>
+    {% if everplayed %}
+      <a class="button" href="/playerhistory/{{ name }}">Game History</a>
     
-    <h4> Quarterly Participation Timeline - {{ name }} </h4>
-    <div id="quarterHistory">
-      {% for qtr in quarterHistory %}
-        <table class="quarterParticipation">
-	  <tr{% if qtr['Eligible'] %}
+      <h4> Quarterly Participation Timeline - {{ name }} </h4>
+      <div id="quarterHistory">
+	{% for qtr in quarterHistory %}
+          <table class="quarterParticipation">
+	    <tr{% if qtr['Eligible'] %}
 		  class="eligible"
-		  {% elif not qtr['Played'] %}
+		{% elif not qtr['Played'] %}
 		  class="NoGames"
-		  {% end %}>
-	    <td>
-	      {% if qtr['Played'] %} <a href="/playerstats/{{ name }}/{{ qtr['Name'] }}"> {% end %}
+		{% end %}>
+	      <td>
+	        {% if qtr['Played'] %}
+		  <a href="/playerstats/{{ name }}/{{ qtr['Name'] }}">
+		{% end %}
 		{{ qtr['Name'] }} {% if qtr['Member'] %} * {% end %} 
 		{% if qtr['Played'] %} </a> {% end %}
-	    </td>
-	  </tr>
+	      </td>
+	    </tr>
+	  </table>
+	{% end %}
+      </div>
+      <div class="quarter_help helptext">
+        <p> * Indicates membership for that quarter.</p>
+	<p> <span class="NoGames">Quarter</span> indicates no games have been
+	  recorded for that quarter.</p>
+	<p> Click on quarters with games to see stats for that quarter.</p>
+	<table>
+	  <tbody>
+	    <tr class="eligible">
+	      <td> Indicates eligibility for end of quarter tournament based
+		on game count or dates played.
+	      </td>
+	    </tr>
+	  </tbody>
 	</table>
-      {% end %}
-    </div>
-    <div class="quarter_help helptext">
-      <p> * Indicates membership for that quarter.</p>
-      <p> <span class="NoGames">Quarter</span> indicates no games have been
-	recorded for that quarter.</p>
-      <p> Click on quarters with games to see stats for that quarter.</p>
-      <table>
-	<tbody>
-	  <tr class="eligible">
-	    <td> Indicates eligibility for end of quarter tournament based
-	      on game count or dates played.
-	    </td>
-	  </tr>
-	</tbody>
-      </table>
-    </div>
+      </div>
+    {% else %}
+      <p> {{ name }} has not played any games yet. </p>  
+    {% end %} {% comment end if everplayed %}
     {% if is_admin %}
       <form method="post" action="/playerstats/{{ name }}">
-	<input type="text" name="name" value="{{ name }}" />
-	<input type="text" name="meetupname"
-  	       {% if meetupname %}value="{{ meetupname }}"{% end %}
-  	       placeholder="Meetup Name (optional)" />
+	<table id="player-names">
+	  <tr>
+	    <td> <label for="player-name">Name</label> </td>
+	    <td> <input id="player-name" type="text" name="name" 
+			value="{{ name }}" /> </td>
+	  </tr>
+	  <tr>
+	    <td> <label for="player-meetup-name">Meetup Name</label> </td>
+	    <td> <input id="player-meetup-name" type="text" name="meetupname"
+  			{% if meetupname %}value="{{ meetupname }}"{% end %}
+  			placeholder="(optional)" /> </td>
+	  </tr>
+	</table>
 	<input type="submit" value="Update Names" />
       </form>
     {% else %}

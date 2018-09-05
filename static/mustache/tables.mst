@@ -2,7 +2,9 @@
 	<div class="table">
 		<h3>TABLE {{ index }}</h3>
 		{{ #players }}
-			<div><span class="windicator">{{ wind }}</span>{{ name }}</div>
+			<div><span class="windicator">{{ wind }}</span>
+			    <a href="playerstats/{{ name }}">{{ name }}</a>
+			</div>
 		{{ /players}}
 	</div>
 {{ /tables}}

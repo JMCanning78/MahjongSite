@@ -62,10 +62,13 @@
 			}, 'json');
 		}
 
-		function prioritizePlayer(player, priority) {
+		function prioritizePlayer() {
+			var player = $(this).parent().data("name"),
+				priority = $(this).data("priority") || 0,
+				newpriority = mod(priority - 1, 3);
 			$.post("/seating/prioritizeplayer", {
 				player: player,
-				priority: priority ? 1 : 0
+				priority: newpriority
 			}, function(data) {
 				getCurrentPlayers();
 				regenTables();
@@ -86,9 +89,7 @@
 							player.id = player.name.replace(/ /g, "-");
 						});
 						$(people).html(Mustache.render(currentPlayersTemplate, data));
-						$(".priority").change(function() {
-							prioritizePlayer($(this).parent().data("name"), this.checked);
-						});
+						$(".player-status").click(prioritizePlayer);
 						$(".deletebutton").click(function() {
 							removePlayer($(this).parent().data("name"));
 						});
@@ -114,11 +115,21 @@
 			getCurrentPlayers();
 			getCurrentTables();
 		}
-		window.setInterval(function() {
-			refresh();
-		}, 5000);
+		var refresher = null;
+
+		function change_auto_refresh() {
+			if ($("#auto-refresh-seating").prop("checked")) {
+				refresher = setInterval(refresh, 5000);
+			}
+			else if (refresher) {
+				clearInterval(refresher);
+				refresher = null;
+			}
+		}
+		$("#auto-refresh-seating").change(change_auto_refresh);
 		window.populatePlayerComplete();
 		refresh();
+		change_auto_refresh();
 
 		function xhrError(xhr, status, error) {
 			console.log(status + ": " + error);

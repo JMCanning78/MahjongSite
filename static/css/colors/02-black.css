@@ -55,6 +55,21 @@ table td {
 	color: #eee;
 }
 
+#key {
+	border:3px solid #eee;
+}
+
+.player-status {
+	border: 5px solid #bbb;
+}
+.player-status-0 {
+	background:#bbb;
+}
+.player-status-2 {
+	border: none;
+	color: #bbb;
+}
+
 .bad {
     background: #511;
     color:      #faa;

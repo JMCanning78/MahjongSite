@@ -38,7 +38,8 @@ class PlayerStatsDataHandler(handler.BaseHandler):
     def get(self, player, quarter):
         with db.getCur() as cur:
             name = player
-            cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            cur.execute("SELECT Id, Name, MeetupName FROM Players"
+                        " WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if player is None or len(player) == 0:
                 self.write(json.dumps({'status': 1,
@@ -60,13 +61,17 @@ class PlayerStatsDataHandler(handler.BaseHandler):
             p0 = periods[0]
             self.populate_queries(cur, p0)
             if p0['numgames'] == 0:
-                return self.render("playerstats.html", name=name,
-                                   error = "Couldn't find any scores for")
+                self.write(json.dumps(
+                    {'status': 1,
+                     'error': "Couldn't find any scores for {}".format(name)}))
+                return 
 
+            if quarter == 'latest':
+                quarter = p0['maxquarter']
             if (quarter and p0['minquarter'] <= quarter and 
                 quarter <= p0['maxquarter']):
                 # Quarter provided in URI so just show that quarter
-                periods = [ {'name': 'Quarter {0} Stats'.format(quarter),
+                periods = [ {'name': '{0} Quarter Stats'.format(quarter),
                              'subquery': "FROM Scores WHERE PlayerId = ? "
                              "AND Quarter = ?",
                              'params': (playerID, quarter)
@@ -101,31 +106,35 @@ class PlayerStatsDataHandler(handler.BaseHandler):
 
 
 class PlayerStatsHandler(handler.BaseHandler):
-    def get(self, player, quarter):
+    def get(self, player, quarter=None):
         with db.getCur() as cur:
             name = player
-            cur.execute("SELECT Id,Name,MeetupName FROM Players WHERE Id = ? OR Name = ?", (player, player))
+            cur.execute("SELECT Id, Name, MeetupName FROM Players"
+                        " WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if player is None or len(player) == 0:
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find player")
 
-            player, name, meetupname = player
+            playerID, name, meetupname = player
             eligible = leaderboard.get_eligible()
+            everplayed = any(eligible[qtr][playerID]['Played'] 
+                             for qtr in eligible)
             quarterHistory = [
                 {'Name': qtr,
-                 'Played': eligible[qtr][player]['Played'],
-                 'Member': eligible[qtr][player]['Member'],
-                 'Eligible': eligible[qtr][player]['Eligible']}
+                 'Played': eligible[qtr][playerID]['Played'],
+                 'Member': eligible[qtr][playerID]['Member'],
+                 'Eligible': eligible[qtr][playerID]['Eligible']}
                 for qtr in sorted(eligible.keys())[-settings.TIMELINEQUARTERS:]]
             self.render("playerstats.html",
                         error = None,
                         name = name,
                         meetupname = meetupname,
-                        quarterHistory=quarterHistory
+                        quarterHistory=quarterHistory,
+                        everplayed=everplayed
                 )
 
-    def post(self, player):
+    def post(self, player, quarter=None):
         name = self.get_argument("name", player)
         meetupname = self.get_argument("meetupname", None)
         if name != player or meetupname is not None:

@@ -61,11 +61,16 @@ table td {
 	border:3px solid #555;
 }
 
-input[type="checkbox"].priority + label {
+.player-status {
 	border: 5px solid #555;
 }
-input[type="checkbox"].priority:checked + label {
-	background:#666;
+
+.player-status-0 {
+	background: #333;
+}
+
+.player-status-2 {
+	border: none;
 }
 
 .bad {

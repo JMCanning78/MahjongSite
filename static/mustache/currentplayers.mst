@@ -1,8 +1,12 @@
 {{ #players }}
 	<div class="player" data-name="{{ name }}">
-		<input id="{{ id }}" class="priority" type="checkbox" {{ #priority }}checked{{ /priority }}></input>
-		<label for="{{ id }}"></label>
-		<span>{{ name }}</span>
+		<button class="player-status player-status-{{ priority }}" 
+			data-priority="{{ priority }}">
+		    {{ ^seated }}<b>+</b>{{ /seated }}
+		</button>
+		<a href="playerstats/{{ playerid }}/latest"
+		    <span class="player-name">{{ name }}</span>
+		</a>
 		<a class="deletebutton noselect clickable">✖</a>
 	</div>
 {{ /players}}

@@ -78,4 +78,14 @@
 		};
 		timer = setInterval(incrScroll, interval);
 	};
+
+	window.mod = function(num, modulus) {
+		var remainder = num % modulus;
+		if (modulus > 0) {
+			while (remainder < 0) {
+				remainder += modulus
+			}
+		};
+		return remainder;
+	}
 })(jQuery);

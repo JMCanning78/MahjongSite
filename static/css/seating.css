@@ -1,17 +1,35 @@
 #personselector {
 	margin-right:2%;
 }
+.seater-controls {
+	margin: auto;
+}
+.seater-controls > * {
+	display: inline;
+}
+.seater-controls button {
+	width: 20%;
+}
+.seater-controls input, button.addRSVPs {
+	width: 78%;
+}
+.seater-controls button.clearplayercomplete {
+	right: 13%;
+}
 #people {
-	margin-bottom:1em;
+	margin-bottom: 1em;
 }
 #key {
-	padding:0.3em;
-	margin:0.3em;
-	border:3px solid white;
+	padding-top: 0.6em;
+	margin: 0.3em;
+	border: 3px solid white;
 }
 #key > .player {
-	width:45%;
-	margin:0;
+	width: 30%;
+	min-width: 80px;
+	min-height: 1px;
+	margin: 0px;
+	font-size: smaller;
 }
 .player {
 	display:inline-block;
@@ -19,28 +37,33 @@
 	min-height:2em;
 	line-height:2em;
 	vertical-align:middle;
-	margin-bottom:0.2em;
 	width:49.5%;
+}
+.player-status {
+	display:inline-block;
+	font-size: xx-large;
+	height: 1.3em;
+	width: 1.3em;
+	float: left;
+	margin-left: 0.5em;
+	border: 5px solid white;
+}
+.player-status-2 {
+	background: none;
+	border: none;
+}
+.player-status-1 {
+	background: grey;
+}
+.player-status-0 {
+	background: none;
 }
 .deletebutton {
 	position:relative;
 	float:right;
+	margin-right: 0.5em;
 	height:100%;
 	width:2em;
-}
-input.priority[type="checkbox"] {
-	display:none;
-}
-input.priority[type="checkbox"] + label {
-	display:inline-block;
-	height:2em;
-	width:2em;
-	float:left;
-	margin-left:0.5em;
-	border:5px solid white;
-}
-input.priority[type="checkbox"]:checked + label {
-	background:grey;
 }
 @media (max-width:600px) {
 	.player {
@@ -48,6 +71,7 @@ input.priority[type="checkbox"]:checked + label {
 	}
 	#key > .player {
 		vertical-align:top;
+		font-size: small;
 	}
 	#key > .player > span {
 		clear:both;

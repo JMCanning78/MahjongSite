@@ -8,11 +8,14 @@ import random
 import datetime
 import math
 from operator import itemgetter
+import logging
 
 import db
 import handler
 import settings
 import scores
+
+log = logging.getLogger("WebServer")
 
 def meetup_ready():
     return (settings.MEETUP_APIKEY and settings.MEETUP_GROUPNAME and
@@ -20,8 +23,8 @@ def meetup_ready():
             len(settings.MEETUP_GROUPNAME) > 1)
 
 def meetup_date():
-    debug = False;  # Set True to force a particular date when testing meetup
-    return datetime.date(2017, 7, 31) if debug else datetime.date.today()
+    debug = settings.DEVELOPERMODE;  # Set True to force a particular date when testing meetup
+    return datetime.date(2018, 9, 3) if debug else datetime.date.today()
 
 class SeatingHandler(handler.BaseHandler):
     def get(self):
@@ -33,7 +36,8 @@ class RegenTables(handler.BaseHandler):
     def post(self):
         self.set_header('Content-Type', 'application/json')
         with db.getCur() as cur:
-            cur.execute("SELECT PlayerId, Priority FROM CurrentPlayers")
+            cur.execute("SELECT PlayerId, Priority FROM CurrentPlayers"
+                        " WHERE Priority < 2")
             priorities = dict(cur.fetchall())
             players = list(priorities.keys())
             playergames = playerGames(players, cur)
@@ -47,9 +51,14 @@ class CurrentPlayers(handler.BaseHandler):
     def get(self):
         with db.getCur() as cur:
             self.set_header('Content-Type', 'application/json')
-            cur.execute("SELECT Name, Priority FROM CurrentPlayers INNER JOIN Players ON PlayerId = Players.Id ORDER BY Players.Name")
-            self.write(json.dumps({"players":[{"name":row[0], "priority":row[1] == 1} for row in cur.fetchall()]}))
-
+            cur.execute(
+                "SELECT Id, Name, Priority, Priority < 2 AS Seated"
+                " FROM CurrentPlayers JOIN Players ON PlayerId = Players.Id"
+                " ORDER BY Seated DESC, Players.Name ASC")
+            self.write(json.dumps(
+                {"players":[dict(zip(["playerid", "name", "priority", "seated"],
+                                     row))
+                            for row in cur.fetchall()]}))
 
 class AddMeetupPlayers(handler.BaseHandler):
     @tornado.web.authenticated
@@ -65,14 +74,36 @@ class AddMeetupPlayers(handler.BaseHandler):
             if len(events.results) > 0:
                 event = events.results[0]
                 for result in events.results:
-                    if datetime.date.fromtimestamp(result['time'] / 1000) == meetup_date():
+                    if datetime.date.fromtimestamp(
+                            result['time'] / 1000) == meetup_date():
                         event = result
-                rsvps = client.GetRsvps({'event_id':event['id']})
-                with db.getCur() as cur:
-                    members = [member['member']['name'] for member in rsvps.results if member['response'] == 'yes']
-                    if len(members) > 0:
-                        cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT Id, 1 FROM Players WHERE \
-                            COALESCE(MeetupName, Name) IN (" + ",".join('?' * len(members)) + ") AND NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = Players.Id)", members)
+                rsvps = client.GetRsvps({'event_id':event['id'], 'rsvp': 'yes'})
+                names = [rsvp['member']['name'] for rsvp in rsvps.results
+                         if len(rsvp['member']['name']) > 1]
+                if len(names) < len(rsvps.results):
+                    log.info('In the Meetup on {}'
+                             ' some RSVP names are too short: {}'.format(
+                        datetime.date.fromtimestamp(event['time'] / 1000),
+                        ', '.join("'{}'".format(rsvp['member']['name']) 
+                                  for rsvp in rsvps.results
+                                  if len(rsvp['member']['name']) <= 1)))
+                if len(names) > 0:
+                    with db.getCur() as cur:
+                        for name in names:
+                            cur.execute(
+                                "SELECT Id, PlayerId FROM Players"
+                                "  LEFT OUTER JOIN CurrentPlayers ON"
+                                "    Id = PlayerId"
+                                "  WHERE COALESCE(MeetupName, Name) = ?",
+                                (name,))
+                            result = cur.fetchone()
+                            if result is None or result[0] is None:
+                                newCurrentPlayer(name, status=2, meetup=name)
+                            elif result[1] is None:
+                                newCurrentPlayer(name, status=1)
+                            else:
+                                log.debug('Ignoring request to re-add {}'
+                                          .format(name))
                     ret['status'] = "success"
                     ret['message'] = "Players added"
             else:
@@ -81,26 +112,36 @@ class AddMeetupPlayers(handler.BaseHandler):
             ret = {'status':'error','message':'Meetup.com API not configured'}
         self.write(json.dumps(ret))
 
+def newCurrentPlayer(player, status=0, meetup=None):
+    with db.getCur() as cur:
+        cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
+                    (player, player))
+        row = cur.fetchone()
+        if row is None or len(row) == 0:
+            cur.execute("INSERT INTO Players(Name, MeetupName) VALUES (?, ?)",
+                        (player, meetup))
+            cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
+            row = cur.fetchone()
+        player = row[0]
+        cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority)"
+                    " SELECT ?, ? WHERE NOT EXISTS"
+                    "  (SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)",
+                      (player, status, player))
+    return True
+                                                     
 class AddCurrentPlayer(handler.BaseHandler):
     @tornado.web.authenticated
     def post(self):
         player = self.get_argument('player', None)
+        status =  self.get_argument('status', 0)
 
         if player is None or player == "":
             self.write('{"status":1,"error":"Please enter a player"}')
             return
-
-        with db.getCur() as cur:
-            cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (player, player))
-            row = cur.fetchone()
-            if row is None or len(row) == 0:
-                cur.execute("INSERT INTO Players(Name) VALUES(?)", (player,))
-                cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
-                row = cur.fetchone()
-            player = row[0]
-
-            cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority) SELECT ?, 0 WHERE NOT EXISTS(SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)", (player,player))
-            self.write('{"status":0}')
+        if newCurrentPlayer(player, status=status):
+            self.write('{"status": 0}')
+        else:
+            self.write('{"status": 0,"error":"Unable to add new player"}')
 
 class RemovePlayer(handler.BaseHandler):
     @tornado.web.authenticated
@@ -112,7 +153,10 @@ class RemovePlayer(handler.BaseHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN (SELECT Id FROM Players WHERE Players.Id = ? OR Players.Name = ?)", (player, player))
+            cur.execute("DELETE FROM CurrentPlayers WHERE PlayerId IN"
+                        " (SELECT Id FROM Players WHERE Players.Id = ? OR"
+                        "      Players.Name = ?)",
+                        (player, player))
             self.write('{"status":0}')
 
 class PrioritizePlayer(handler.BaseHandler):
@@ -126,7 +170,11 @@ class PrioritizePlayer(handler.BaseHandler):
             return
 
         with db.getCur() as cur:
-            cur.execute("UPDATE CurrentPlayers Set Priority = ? WHERE PlayerId IN (SELECT Id FROM Players WHERE Players.Id = ? OR Players.Name = ?)", (priority, player, player))
+            cur.execute(
+                "UPDATE CurrentPlayers Set Priority = ? WHERE PlayerId IN"
+                " (SELECT Id FROM Players WHERE Players.Id = ? OR"
+                " Players.Name = ?)",
+                (priority, player, player))
 
             self.write('{"status":0}')
 
