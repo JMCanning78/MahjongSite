@@ -14,7 +14,10 @@ def stringify(x):
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return stringify(self.get_secure_cookie("user"))
+        if settings.DEVELOPERMODE:
+            return "1"
+        else:
+            return stringify(self.get_secure_cookie("user"))
 
     def get_current_user_name(self):
         if (getattr(self, 'current_user_name', None) and 
@@ -46,7 +49,10 @@ class BaseHandler(tornado.web.RequestHandler):
         return None
     
     def get_is_admin(self):
-        return stringify(self.get_secure_cookie("admin")) == "1"
+        if settings.DEVELOPERMODE:
+            return True
+        else:
+            return stringify(self.get_secure_cookie("admin")) == "1"
 
     def get_stylesheet(self):
         return stringify(self.get_secure_cookie("stylesheet"))

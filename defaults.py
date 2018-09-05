@@ -19,6 +19,10 @@ DBBACKUPS = "backups"
 #   DBDATEFORMAT is datetime format string to use in naming the database
 #   backup files with their timestamp
 DBDATEFORMAT = "%Y-%m-%d-%H-%M-%S"
+#   DEVELOPERMODE is a flag that bypasses user authentication and makes
+#   every access be done as the first, administrative user.  Only set this
+#   to true when working on enhancing the code
+DEVELOPERMODE = False
 
 # PREFERENCES
 # Game play related (some of these are settable for each quarter)
