@@ -130,6 +130,7 @@ class PlayerStatsHandler(handler.BaseHandler):
                         error = None,
                         name = name,
                         meetupname = meetupname,
+                        quarter=quarter,
                         quarterHistory=quarterHistory,
                         everplayed=everplayed
                 )
@@ -137,21 +138,24 @@ class PlayerStatsHandler(handler.BaseHandler):
     def post(self, player, quarter=None):
         name = self.get_argument("name", player)
         meetupname = self.get_argument("meetupname", None)
-        if name != player or meetupname is not None:
-            args = []
-            cols = []
-            if name != player:
-                cols += ["Name = ?"]
-                args += [name]
-            if meetupname is not None:
-                cols += ["MeetupName = ?"]
-                args += [meetupname]
-            if len(args) > 0:
-                query = "UPDATE Players SET " + ",".join(cols) + " WHERE Id = ? OR Name = ?"
-                args += [player, player]
-                with db.getCur() as cur:
+        if meetupname == '':
+            meetupname = None
+        if name is None or name == '':
+            self.render("playerstats.html", name=player,
+                        error="Cannot set name to {!r} for".format(name))
+        else:
+            query = """UPDATE Players SET Name = ?, MeetupName = ? 
+                       WHERE Id = ? OR Name = ?"""
+            args = [name, meetupname, player, player]
+            with db.getCur() as cur:
+                try:
                     cur.execute(query, args)
-            self.redirect("/playerstats/" + name)
+                except Exception as e:
+                    self.render("playerstats.html", name=player,
+                                error="Error updating names, {}, for".format(e))
+                    return
+            self.redirect("/playerstats/" + name + 
+                          ('/{}'.format(quarter) if quarter else ''))
 
 quarterSuffixes = {'1': 'st', '2': 'nd', '3': 'rd', '4': 'th'}
 

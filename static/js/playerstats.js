@@ -14,6 +14,14 @@ $(function() {
 			player = parts.slice(j + 1).join('/');
 			getData(player);
 		}
+		var name1 = $("#player-name").val(),
+			meetupname1 = $("#player-meetup-name").val();
+		$("#player-names input").keyup(function() {
+			$("#update-names").prop(
+				"disabled",
+				name1 == $("#player-name").val() &&
+				meetupname1 == $("#player-meetup-name").val());
+		});
 	});
 
 	function getData(player) {

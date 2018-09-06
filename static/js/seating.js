@@ -43,12 +43,16 @@
 			}
 		});
 		$("#meetup").click(function() {
+			var meetupbutton = $(this);
+			meetupbutton.prop("disabled", true);
 			$.post('/seating/meetup', function(data) {
-				if (data.status !== 'success')
+				if (data.status !== 'success') {
 					console.log(data.message);
-				else
-					getCurrentPlayers();
+					$.notify(data.message);
+				}
+				getCurrentPlayers();
 				regenTables();
+				meetupbutton.prop("disabled", false);
 			}, 'json').fail(xhrError);
 		});
 		$("#regentables").click(regenTables);
@@ -104,7 +108,8 @@
 			$.getJSON('/seating/currenttables.json', function(data) {
 				if (data.status === "success")
 					$(tables).html(Mustache.render(tablesTemplate, {
-						"tables": data.tables
+						"tables": data.tables,
+						"numplayers": data.numplayers
 					}));
 				else
 					$(tables).html("<h1>" + data.message + "</h1>");

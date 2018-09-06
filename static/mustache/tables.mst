@@ -1,3 +1,4 @@
+<p>{{ numplayers }} seated players.</p>
 {{ #tables }}
 	<div class="table">
 		<h3>TABLE {{ index }}</h3>

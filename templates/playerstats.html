@@ -60,7 +60,8 @@
       <p> {{ name }} has not played any games yet. </p>  
     {% end %} {% comment end if everplayed %}
     {% if is_admin %}
-      <form method="post" action="/playerstats/{{ name }}">
+      <form method="post" 
+	    action="/playerstats/{{ name }}{% if quarter %}/{{ quarter }}{% end %}">
 	<table id="player-names">
 	  <tr>
 	    <td> <label for="player-name">Name</label> </td>
@@ -74,7 +75,7 @@
   			placeholder="(optional)" /> </td>
 	  </tr>
 	</table>
-	<input type="submit" value="Update Names" />
+	<input id="update-names" type="submit" value="Update Names" disabled/>
       </form>
     {% else %}
       {% if meetupname %}Meetup Name: {{ meetupname }}<br />{% end %}

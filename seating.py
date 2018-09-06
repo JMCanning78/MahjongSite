@@ -69,18 +69,33 @@ class AddMeetupPlayers(handler.BaseHandler):
             if meetup_date() < datetime.date.today():
                 event_params['status'] = 'past'
                 event_params['desc'] = True
-            events = client.GetEvents(event_params)
             ret = {'status':'error','message':'Unknown error ocurred'}
-            if len(events.results) > 0:
-                event = events.results[0]
-                for result in events.results:
+            eventlist = []
+            try:
+                events = client.GetEvents(event_params)
+                eventlist = events.results
+            except Exception as e:
+                ret = {'status':'error',
+                       'message':'Error ocurred querying meetup events, {}'
+                       .format(e)}
+            if len(eventlist) > 0:
+                event = eventlist[0]
+                for result in eventlist:
                     if datetime.date.fromtimestamp(
                             result['time'] / 1000) == meetup_date():
                         event = result
-                rsvps = client.GetRsvps({'event_id':event['id'], 'rsvp': 'yes'})
-                names = [rsvp['member']['name'] for rsvp in rsvps.results
-                         if len(rsvp['member']['name']) > 1]
-                if len(names) < len(rsvps.results):
+                rsvps = None
+                try:
+                    rsvps = client.GetRsvps({
+                        'event_id':event['id'], 'rsvp': 'yes'})
+                    names = [rsvp['member']['name'] for rsvp in rsvps.results
+                             if len(rsvp['member']['name']) > 1]
+                except Exception as e:
+                    ret = {'status':'error',
+                           'message':'Error ocurred querying meetup RSVPs, {}'
+                       .format(e)}
+                    names = []
+                if len(names) < (len(rsvps.results) if rsvps else 0):
                     log.info('In the Meetup on {}'
                              ' some RSVP names are too short: {}'.format(
                         datetime.date.fromtimestamp(event['time'] / 1000),
@@ -91,7 +106,7 @@ class AddMeetupPlayers(handler.BaseHandler):
                     with db.getCur() as cur:
                         for name in names:
                             cur.execute(
-                                "SELECT Id, PlayerId FROM Players"
+                                "SELECT Id, PlayerId, MeetupName FROM Players"
                                 "  LEFT OUTER JOIN CurrentPlayers ON"
                                 "    Id = PlayerId"
                                 "  WHERE COALESCE(MeetupName, Name) = ?",
@@ -100,24 +115,29 @@ class AddMeetupPlayers(handler.BaseHandler):
                             if result is None or result[0] is None:
                                 newCurrentPlayer(name, status=2, meetup=name)
                             elif result[1] is None:
-                                newCurrentPlayer(name, status=1)
+                                newCurrentPlayer(name, status=1, 
+                                                 meetup=result[2])
                             else:
                                 log.debug('Ignoring request to re-add {}'
                                           .format(name))
                     ret['status'] = "success"
                     ret['message'] = "Players added"
-            else:
-                ret['message'] = 'No meetup events found'
         else:
             ret = {'status':'error','message':'Meetup.com API not configured'}
         self.write(json.dumps(ret))
 
 def newCurrentPlayer(player, status=0, meetup=None):
     with db.getCur() as cur:
-        cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", 
-                    (player, player))
+        sql = "SELECT Id FROM Players WHERE Id = ? OR Name = ?"
+        bindings = (player, ) * 2
+        if meetup:
+            sql += " OR MeetupName = ?"
+            bindings += (meetup,)
+        cur.execute(sql, bindings)
         row = cur.fetchone()
         if row is None or len(row) == 0:
+            if meetup == '':
+                meetup = None
             cur.execute("INSERT INTO Players(Name, MeetupName) VALUES (?, ?)",
                         (player, meetup))
             cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
@@ -133,7 +153,7 @@ class AddCurrentPlayer(handler.BaseHandler):
     @tornado.web.authenticated
     def post(self):
         player = self.get_argument('player', None)
-        status =  self.get_argument('status', 0)
+        status =  self.get_argument('status', 1)
 
         if player is None or player == "":
             self.write('{"status":1,"error":"Please enter a player"}')
@@ -206,17 +226,19 @@ def getCurrentTables():
                                          player][0]}
                            for player in range(4 if table < tables_4p else 5)]
                 tables += [{"index": str(table + 1), "players": players}]
-    return tables
+    return tables, numplayers
                 
 class CurrentTables(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
-        tables = getCurrentTables()
+        tables, numplayers = getCurrentTables()
         if len(tables) > 0:
             result = {"status": "success", "message": "Generated tables",
-                      "tables": tables}
+                      "tables": tables, "numplayers": numplayers}
         else:
-            result = {"status":"error", "message": "Invalid number of players"}
+            result = {"status":"error", 
+                      "message": "Invalid number of players, {}".format(
+                          numplayers)}
         self.write(json.dumps(result))
 
 class PlayersList(tornado.web.RequestHandler):

@@ -89,9 +89,10 @@ button:hover, input[type="submit"]:hover, a:hover, .control:hover, div.membersym
 	text-decoration:underline;
 }
 
-button[disabled] {
+button[disabled], input[type="submit"][disabled] {
 	text-decoration:none;
 	cursor:not-allowed;
+	color: #866;
 }
 
 table {
