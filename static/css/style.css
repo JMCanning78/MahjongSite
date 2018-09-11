@@ -95,6 +95,21 @@ button[disabled], input[type="submit"][disabled] {
 	color: #866;
 }
 
+.returntotop {
+	position: absolute;
+	right: 0.1em;
+	float: right;
+}
+
+.returntotophelp {
+	position: absolute;
+	display: none;
+	font-size: small;
+	right: 2em;
+	float: right;
+	z-index: 10;
+}
+
 table {
 	border-collapse:collapse;
 }

@@ -79,6 +79,20 @@
 		timer = setInterval(incrScroll, interval);
 	};
 
+	window.setupReturnToTop = function(selector) {
+		$(selector).click(function() {
+			window.smoothScrollTo(0, 0)
+		});
+		$(selector).hover(
+			function() {
+				$(this).next(".returntotophelp").show()
+			},
+			function() {
+				$(this).next(".returntotophelp").hide()
+			},
+		);
+	}
+
 	window.mod = function(num, modulus) {
 		var remainder = num % modulus;
 		if (modulus > 0) {

@@ -23,4 +23,6 @@
 	{{/Board}}
     </table>
 </div>
+<span class="returntotop">⤒</span>
+<span class="returntotophelp">Return to top</span>
 {{/leaderboards}}

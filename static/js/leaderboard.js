@@ -28,6 +28,7 @@ $(function() {
 					updateLeaderScores($("#min_games").val(), rank_visible());
 					$("tr.eligible, div.membersymbol").click(
 						scrollToLegend);
+					setupReturnToTop(".returntotop")
 				});
 			});
 	};
