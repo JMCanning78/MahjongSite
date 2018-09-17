@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+__doc__ = """
+Manage database for mahjong players, scores, users, etc.
+"""
+
 import warnings
 import sqlite3
 import datetime
@@ -8,6 +12,7 @@ import collections
 import shutil
 import os
 import logging
+import argparse
 
 import util
 import settings
@@ -151,3 +156,21 @@ def table_field_names(tablename):
     return [words(fs)[0] for fs in schema.get(tablename, [])
             if not words(fs)[0].upper() in [
                     'FOREIGN', 'UNIQUE', 'CONSTRAINT', 'PRIMARY', 'CHECK']]
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        'database', default=settings.DBFILE, nargs='?',
+        help='SQLite3 database file to check.')
+    parser.add_argument(
+        '-f', '--force', default=False, action='store_true',
+        help='Force an upgrade rather than prompting')
+    parser.add_argument(
+        '-v', '--verbose', action='count', default=0,
+        help='Add verbose comments.')
+
+    args = parser.parse_args()
+
+    init(force=args.force, dbfile=args.database, verbose=args.verbose)

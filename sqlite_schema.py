@@ -916,13 +916,18 @@ def backup_db_and_migrate(
                 if table in done:
                     return
                 if verbose > 1:
-                    print('{} {} table'.format(
-                        'Creating new' if in_new else 'Preserving', table))
+                    print('{} {} table ...'.format(
+                        'Creating new' if in_new else 'Preserving', table),
+                          end='')
                 cur.execute(pd['sql'])
+                if verbose > 1:
+                    print(' Done.')
                 fields = [c.name for c in (
                     common_fields(pd['column'], old_db_schema[table]['column'])
                     if in_new and in_old else pd['column'])]
                 if in_old:
+                    if verbose > 1:
+                        print('Copying... ', end='')
                     cur.execute(
                         'INSERT INTO main.{0} ({1}) SELECT {1} FROM {2}.{0}'
                         .format(table, ','.join(fields), old_name))
