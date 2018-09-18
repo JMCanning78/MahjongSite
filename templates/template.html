@@ -7,16 +7,43 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width = device-width, initial-scale = 1.0, user-scalable=no" />
 
-		<link rel="icon" type="image/png" href="{{ static_url("images/SRMC-logo-favicon.png") }}" />
+		<link rel="icon" type="image/png"
+		      href="{{ static_url("images/SRMC-logo-favicon.png") }}" />
 
-		<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css' />
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css" rel="stylesheet" type="text/css" />
-		<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.theme.min.css" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url("css/style.css") }}" type="text/css" rel="stylesheet" />
+		<link {% if settings.DEVELOPERMODE %}
+		      href="{{ static_url ("css/family_Lato.css") }}"
+		      {% else %}
+		      href="https://fonts.googleapis.com/css?family=Lato:400,700"
+		      {% end %} rel='stylesheet' type='text/css' />
+                            
+		<link {% if settings.DEVELOPERMODE %}
+		      href="{{ static_url ("css/jquery-ui.min.css") }}"
+		      {% else %}
+		      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css"
+		      {% end %} rel="stylesheet" type="text/css" />
+		<link {% if settings.DEVELOPERMODE %}
+		      href="{{ static_url ("css/jquery-ui.theme.min.css") }}"
+		      {% else %}
+		      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.theme.min.css"
+		      {% end %} rel="stylesheet" type="text/css" />
+		<link href="{{ static_url("css/style.css") }}" 
+		      type="text/css" rel="stylesheet" />
 
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
+		<script {% if settings.DEVELOPERMODE %}
+			src="{{ static_url ("js/jquery.min.js") }}"
+			{% else %}
+			src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"
+			{% end %}></script>
+		<script {% if settings.DEVELOPERMODE %}
+			src="{{ static_url ("js/jquery-ui.min.js") }}"
+			{% else %}
+			src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"
+			{% end %}></script>
+		<script {% if settings.DEVELOPERMODE %}
+			src="{{ static_url ("js/notify.min.js") }}"
+			{% else %}
+			src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js">
+			{% end %}></script>
 		<script src="{{ static_url("js/script.js") }}"></script>
 		{% if current_user %}
 			<script type="text/javascript">
