@@ -252,7 +252,7 @@ class PlayersList(tornado.web.RequestHandler):
 class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
-        tables = getCurrentTables()
+        tables, numplayers = getCurrentTables()
         self.render("addgame.html",
                     unusedPointsIncrement=scores.unusedPointsIncrement(),
                     tables=tables,
