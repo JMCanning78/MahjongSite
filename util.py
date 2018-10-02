@@ -2,6 +2,7 @@
 
 import random
 import string
+import operator
 from quemail import QueMail, Email
 
 import settings
@@ -29,3 +30,17 @@ def prompt(msg, default=None):
                   format(resp, accepted_responses))
     return (resp.lower().startswith('y') if len(resp) > 0 or default == None
             else default.lower().startswith('y'))
+
+def identity(x):
+    return x
+
+def first(seq, elem, key=identity, not_found=ValueError, 
+          comparison=operator.__eq__):
+    for i, e in enumerate(seq):
+        if comparison(elem, key(e)):
+            return i
+    if isinstance(not_found, Exception):
+        raise not_found('Cannot find {} in {}'.format(elem, seq))
+    else:
+        return not_found
+    

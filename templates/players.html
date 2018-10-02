@@ -24,7 +24,9 @@
   <table class="players">
     <tbody>
       <tr>
-	<th></th>
+	<th><input type=text value="" placeholder="Name filter" 
+		   class="namefilter"/>
+	</th>
 	<th>
 	  <table id="visible_quarters_control" class="checkbox_list">
 	    <tbody>
@@ -53,7 +55,10 @@
 	<th>Name</th>
 	<th>Meetup Name</th>
 	{% for qtr in quarters %}
-	  <th data-quarter="{{ qtr }}">{{ qtr }}</th>
+	<th data-quarter="{{ qtr }}">{{ qtr }}
+	  <span class="totalmembers" data-quarter="{{ qtr }}">...
+	  </span>
+	</th>
 	{% end %}
       </tr>
       {% for playerId, player in players.items() %}
