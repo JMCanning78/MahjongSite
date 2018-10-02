@@ -53,29 +53,29 @@ $(function() {
 
 	function update_quarter_membership() {
 		var playerId = $(this).parents("tr[data-playerId]").data('playerid'),
-		    quarter = $(this).data('quarter'),
-		    reporter = report_edit_outcome(this);;
+			quarter = $(this).data('quarter'),
+			reporter = report_edit_outcome(this);;
 		$.post("/players", {
 			operation: 'set_Membership',
 			playerId: playerId,
 			quarter: quarter,
 			value: $(this).prop("checked")
 		}, function(data) {
-		    reporter(data);
-		    update_total_members(quarter);
+			reporter(data);
+			update_total_members(quarter);
 		}, 'json');
 	};
-    
-    function update_total_members(quarter) {
-	$('.totalmembers[data-quarter="' + quarter + '"]').text(
-	    ' : ' +
-	    $('.membershipFlag[data-quarter="' + quarter + '"]:checked').length)
-    };
-    
-    $("table.players input.membershipFlag").change(update_quarter_membership);
-    $("input.visibleQtrFlag").each(function(i, e) {
-	update_total_members($(this).data("quarter"))
-    });
+
+	function update_total_members(quarter) {
+		$('.totalmembers[data-quarter="' + quarter + '"]').text(
+			' : ' +
+			$('.membershipFlag[data-quarter="' + quarter + '"]:checked').length)
+	};
+
+	$("table.players input.membershipFlag").change(update_quarter_membership);
+	$("input.visibleQtrFlag").each(function(i, e) {
+		update_total_members($(this).data("quarter"))
+	});
 
 	/* Initialize status of control widgets */
 	$("#visible_quarters_control").toggle(false);
