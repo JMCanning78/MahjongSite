@@ -62,7 +62,9 @@
 	{% end %}
       </tr>
       {% for playerId, player in players.items() %}
-        <tr data-playerId="{{ playerId }}">
+        <tr data-playerId="{{ playerId }}" class="playerrow"
+	    data-name="{{ player['Name'] }}" 
+	    data-meetupname="{{ player['MeetupName'] }}">
 	  <td>
 	    {% if is_admin %}
 	      <input type=text value="{{ player['Name'] }}" class="playerName"

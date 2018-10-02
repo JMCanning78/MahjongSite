@@ -41,13 +41,21 @@ $(function() {
 	};
 
 	function update_text_field() {
-		var playerId = $(this).parents("tr[data-playerId]").data('playerid'),
-			columnName = $(this).data('columnname');
+		var playerrow = $(this).parents("tr[data-playerId]"),
+			playerId = playerrow.data('playerid'),
+			columnName = $(this).data('columnname'),
+			newVal = $(this).val(),
+			reporter = report_edit_outcome(this);
 		$.post("/players", {
 			operation: 'set_' + columnName,
 			playerId: playerId,
-			value: $(this).val()
-		}, report_edit_outcome(this), 'json');
+			value: newVal
+		}, function(data) {
+			reporter(data);
+			if (data['status'] == 0) {
+				playerrow.data(columnName.toLowerCase(), newVal);
+			}
+		}, 'json');
 	}
 	$("table.players input[data-columnName]").change(update_text_field);
 
@@ -76,6 +84,26 @@ $(function() {
 	$("input.visibleQtrFlag").each(function(i, e) {
 		update_total_members($(this).data("quarter"))
 	});
+
+	function update_player_visibility(delay) {
+		var nfilter = $("input.namefilter").val().toLocaleLowerCase();
+		delay = delay ? delay : 700;
+		$(".playerrow").each(function() {
+			var show = (nfilter.length == 0 ||
+				$(this).data('name').toLocaleLowerCase().indexOf(
+					nfilter) >= 0 ||
+				$(this).data('meetupname').toLocaleLowerCase().indexOf(
+					nfilter) >= 0
+			);
+			if (show) {
+				$(this).slideDown(delay)
+			}
+			else {
+				$(this).slideUp(delay)
+			}
+		});
+	};
+	$("input.namefilter").keyup(update_player_visibility);
 
 	/* Initialize status of control widgets */
 	$("#visible_quarters_control").toggle(false);
