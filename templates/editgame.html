@@ -2,8 +2,6 @@
 {% block title %} - Edit Game{% end %}
 {% block head %}
 		<link href="{{ static_url("css/addgame.css") }}" type="text/css" rel="stylesheet" />
-		<script src="{{ static_url("js/gameeditor.js") }}"></script>
-		<script src="{{ static_url("js/editgame.js") }}"></script>
 		<script {% if settings.DEVELOPERMODE %}
 			src="{{ static_url ("js/mustache.min.js") }}"
 			{% else %}
@@ -12,7 +10,10 @@
 		<script type="text/javascript">
 			window.scores = JSON.parse('{% raw scores %}');
 			window.gameid = {{ id }};
+			window.scorePerPlayer = {{ scorePerPlayer }}
 		</script>
+		<script src="{{ static_url("js/gameeditor.js") }}"></script>
+		<script src="{{ static_url("js/editgame.js") }}"></script>
 {% end %}
 {% block content %}
 	<h1 id="page-title">Editing Game #{{ id }}</h1>

@@ -105,12 +105,14 @@ class EditGameHandler(handler.BaseHandler):
                 # UnusedPointsPlayer always sorted last in rank
                 if rows[-1][5] == scores.getUnusedPointsPlayerID():
                     unusedPoints = rows[-1][2]
+                unusedPointsIncrement, perPlayer = scores.PointSettings(
+                    date=rows[0][4])
                 self.render("editgame.html", id=q,
                             scores=json.dumps(rows).replace("'", "\\'")
                             .replace("\\\"", "\\\\\""),
                             unusedPoints=unusedPoints,
-                            unusedPointsIncrement=scores.unusedPointsIncrement(
-                                date=rows[0][4]))
+                            unusedPointsIncrement=unusedPointsIncrement,
+                            scorePerPlayer=perPlayer)
     @handler.is_admin_ajax
     def post(self, q):
         gamescores = self.get_argument('scores', None)
@@ -154,6 +156,7 @@ class EditQuarterHandler(handler.BaseHandler):
             rows = cur.fetchall()
             if len(rows) == 0:
                 rows = [(q, settings.DROPGAMECOUNT,
+                         settings.DEFAULTSCOREPERPLAYER,
                          settings.UNUSEDPOINTSINCREMENT,
                          settings.QUALIFYINGGAMES,
                          settings.QUALIFYINGDISTINCTDATES)]

@@ -36,11 +36,12 @@ DROPGAMECOUNT = 9
 MAXDROPGAMES = 3
 #   DEFAULT_RATING is the starting rating for players with no games
 DEFAULT_RATING = 1200
-#   SCOREPERPLAYER sets the initial score each player has at the start of
-#   each round.  It is used to determine what the total raw scores should
-#   sum to at the end of each round and how to calculate points from those
+#   DEFAULTSCOREPERPLAYER sets the default value for initial scores.  This
+#   can be set differently per quarter to define the score each player has
+#   at the start of each round.  It is used to determine what the total raw 
+#   score sum to at the end of each round and how to calculate points from those
 #   sums
-SCOREPERPLAYER = 25000
+DEFAULTSCOREPERPLAYER = 25000
 #   CHOMBOPENALTY is the number of points deducted for a chombo (error).  This
 #   is counted in normalized points, e.g. a score of 8000 counts as 8 points
 CHOMBOPENALTY = 8

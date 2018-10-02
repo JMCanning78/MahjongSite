@@ -45,22 +45,27 @@ def dateString(date):
         raise Exception('Unexpected input type passed to dateString, {}'.format(
             date))
     
-def unusedPointsIncrement(quarter=None, date=None):
-    """Get the UnusedPointsIncrement value for the given quarter.
+def PointSettings(quarter=None, date=None):
+    """Get the UnusedPointsIncrement and starting ScorePerPlayer value for
+    the given quarter.
     The quarter defaults to the most recent quarter in the database
     (but no later than today's date)."""
     if quarter is None:
         quarter = quarterString(date=date)
     try:
         with db.getCur() as cur:
-            cur.execute("SELECT COALESCE(UnusedPointsIncrement,0) FROM Quarters"
-                        " WHERE Quarter <= ? ORDER BY Quarter DESC"
+            cur.execute("SELECT COALESCE(UnusedPointsIncrement, ?), "
+                        "  COALESCE(ScorePerPlayer, ?) FROM Quarters"
+                        "  WHERE Quarter <= ? ORDER BY Quarter DESC"
                         " LIMIT 1",
-                        (quarter,))
-            increment = cur.fetchone()[0]
+                        (settings.UNUSEDPOINTSINCREMENT,
+                         settings.DEFAULTSCOREPERPLAYER, 
+                         quarter))
+            increment, perPlayer = cur.fetchone()
     except:
-        increment = 0
-    return increment
+        increment, perPlayer = (
+            settings.UNUSEDPOINTSINCREMENT, settings.DEFAULTSCOREPERPLAYER)
+    return increment, perPlayer
 
 _unusedPointsPlayer = None
 unusedPointsPlayerName = '!#*UnusedPointsPlayer*#!'
@@ -86,10 +91,10 @@ def getUnusedPointsPlayerID():
             _unusedPointsPlayer = cur.lastrowid
     return _unusedPointsPlayer
 
-def getScore(score, uma):
-    return (score - settings.SCOREPERPLAYER) / 1000.0 + uma
+def getScore(score, uma, perPlayer):
+    return (score - perPlayer) / 1000.0 + uma
 
-def rankGame(scores):
+def rankGame(scores, perPlayer, unusedPointsIncr):
     """Calculates rank, point penalties, and umas for a given game.
     Also validates game player names and point totals.
     The scores should be a list of dictionaries.
@@ -138,12 +143,12 @@ def rankGame(scores):
     if len(uniqueIDs) < len(scores):
         return {"status":1, "error": "All players must be distinct"}
 
-    if hasUnusedPoints and unusedPoints % unusedPointsIncrement() != 0:
+    if hasUnusedPoints and unusedPoints % unusedPointsIncr != 0:
         return {"status":1,
                 "error":"Unused points must be a multiple of {0}".format(
-                    unusedPointsIncrement())}
+                    unusedPointsIncr)}
 
-    targetTotal = realPlayerCount * settings.SCOREPERPLAYER
+    targetTotal = realPlayerCount * perPlayer
     if total != targetTotal:
         return {"status": 1,
                 "error": "Scores add up to {}, not {}".format(
@@ -167,7 +172,7 @@ def rankGame(scores):
             for j in range(rank-1, rank-1 + pointHistogram[last_points]):
                 score['uma'] += umas[realPlayerCount][j]
             score['uma'] /= pointHistogram[last_points]
-            score['Score'] = getScore(score['points'], score['uma'])
+            score['Score'] = getScore(score['points'], score['uma'], perPlayer)
         else:
             score['Score'] = 0
 
@@ -201,8 +206,9 @@ def addGame(scores, gamedate = None, gameid = None):
             gameid = scores[0]['GameId']
 
     quarter = quarterString(datetime.datetime.strptime(gamedate, dateFormat))
-
-    status = rankGame(scores)
+    unusedPointsIncr, perPlayer = PointSettings(quarter=quarter)
+            
+    status = rankGame(scores, perPlayer, unusedPointsIncr)
     if status['status'] == 0:
         hasUnusedPoints = status['hasUnusedPoints']
         realPlayerCount = status['realPlayerCount']

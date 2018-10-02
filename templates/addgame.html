@@ -2,6 +2,9 @@
 {% block title %} - Add Game{% end %}
 {% block head %}
 		<link href="{{ static_url("css/addgame.css") }}" type="text/css" rel="stylesheet" />
+		<script type="text/javascript">
+			window.scorePerPlayer = {{ scorePerPlayer }}
+		</script>
 		<script {% if settings.DEVELOPERMODE %}
 			src="{{ static_url ("js/mustache.min.js") }}"
 			{% else %}

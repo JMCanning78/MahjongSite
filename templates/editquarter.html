@@ -15,6 +15,11 @@
 				 name="gameCount" required 
 				 min="1" step="1"/></td>
 		    </tr>
+		    <tr><td>Starting Points Per Player</td>
+		      <td><input type="number" value="{{ qtr['ScorePerPlayer'] }}" 
+				 name="scorePerPlayer" required 
+				 min="10000" max="50000" step="1000"/></td>
+		    </tr>
 		    <tr><td>Unused Points Increment</td>
 		      <td><input type="number" value="{{ qtr['UnusedPointsIncrement'] }}" 
 				 name="unusedPointsIncrement" required 

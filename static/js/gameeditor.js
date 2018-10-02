@@ -34,10 +34,10 @@ $(function() {
 	function pointsChange(e) {
 		var total = updateTotal();
 
-		if (total > 25000 * 4 && $("#players .playerpoints").length === 4) {
+		if (total > scorePerPlayer * 4 && $("#players .playerpoints").length === 4) {
 			addPlayers();
 		}
-		else if (total === 25000 * 4 && $("#players .playerpoints").length === 5) {
+		else if (total === scorePerPlayer * 4 && $("#players .playerpoints").length === 5) {
 			$("#players .player:last-child").last().remove();
 			updateTotal();
 		}
@@ -54,7 +54,8 @@ $(function() {
 			ready = ready && $(this).val() !== "";
 		});
 
-		ready = ready && (total === 25000 * 4 || total === 25000 * 5) &&
+		ready = ready && (total === scorePerPlayer * 4 ||
+				total === scorePerPlayer * 5) &&
 			checkUnusedPoints();
 
 		$("#submit").prop("disabled", !ready);
