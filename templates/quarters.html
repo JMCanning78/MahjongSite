@@ -22,20 +22,20 @@ table {
 			<tr>
 				<th>Quarter</th>
 				<th>Drop Game Count</th>
-				<th>Points Per Player</th>
-				<th>Unused Points Increment</th>
 				<th>Qualifying Games</th>
 				<th>Qualifying Distinct Dates</th>
+				<th>Points Per Player</th>
+				<th>Unused Points Increment</th>
 				<th>Actions</th>
 			</tr>
 			{% for qtr in quarters%}
 			<tr>
 			  <td>{{ qtr['Quarter'] }}</td>
 			  <td>{{ qtr['GameCount'] }}</td>
-			  <td>{{ qtr['ScorePerPlayer'] }}</td>
-			  <td>{{ qtr['UnusedPointsIncrement'] }}</td>
 			  <td>{{ qtr['QualifyingGames'] }}</td>
 			  <td>{{ qtr['QualifyingDistinctDates'] }}</td>
+			  <td>{{ qtr['ScorePerPlayer'] }}</td>
+			  <td>{{ qtr['UnusedPointsIncrement'] }}</td>
 			  <td>
 			    {% if qtr['GameCount'] %}
 			      <a href="/admin/deletequarter/{{ qtr['Quarter'] }}">

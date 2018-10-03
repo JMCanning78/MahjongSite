@@ -59,12 +59,12 @@ def PointSettings(quarter=None, date=None):
                         "  WHERE Quarter <= ? ORDER BY Quarter DESC"
                         " LIMIT 1",
                         (settings.UNUSEDPOINTSINCREMENT,
-                         settings.DEFAULTSCOREPERPLAYER, 
+                         settings.SCOREPERPLAYER, 
                          quarter))
             increment, perPlayer = cur.fetchone()
     except:
         increment, perPlayer = (
-            settings.UNUSEDPOINTSINCREMENT, settings.DEFAULTSCOREPERPLAYER)
+            settings.UNUSEDPOINTSINCREMENT, settings.SCOREPERPLAYER)
     return increment, perPlayer
 
 _unusedPointsPlayer = None

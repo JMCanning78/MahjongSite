@@ -12,18 +12,8 @@
 		  <tbody>
 		    <tr><td>Drop Game Count</td>
 		      <td><input type="number" value="{{ qtr['GameCount'] }}" 
-				 name="gameCount" required 
+				 name="dropGameCount" required 
 				 min="1" step="1"/></td>
-		    </tr>
-		    <tr><td>Starting Points Per Player</td>
-		      <td><input type="number" value="{{ qtr['ScorePerPlayer'] }}" 
-				 name="scorePerPlayer" required 
-				 min="10000" max="50000" step="1000"/></td>
-		    </tr>
-		    <tr><td>Unused Points Increment</td>
-		      <td><input type="number" value="{{ qtr['UnusedPointsIncrement'] }}" 
-				 name="unusedPointsIncrement" required 
-				 min="0" max="10000" step="100"/></td>
 		    </tr>
 		    <tr><td>Qualifying Games</td>
 		      <td><input type="number" value="{{ qtr['QualifyingGames'] }}" 
@@ -34,6 +24,16 @@
 		      <td><input type="number" value="{{ qtr['QualifyingDistinctDates'] }}" 
 				 name="qualifyingDistinctDates" required 
 				 min="1" max="20" step="1"/></td>
+		    </tr>
+		    <tr><td>Starting Points Per Player</td>
+		      <td><input type="number" value="{{ qtr['ScorePerPlayer'] }}" 
+				 name="scorePerPlayer" required 
+				 min="10000" max="50000" step="1000"/></td>
+		    </tr>
+		    <tr><td>Unused Points Increment</td>
+		      <td><input type="number" value="{{ qtr['UnusedPointsIncrement'] }}" 
+				 name="unusedPointsIncrement" required 
+				 min="0" max="10000" step="100"/></td>
 		    </tr>
 		  </tbody>
 		</table>

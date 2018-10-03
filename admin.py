@@ -155,9 +155,10 @@ class EditQuarterHandler(handler.BaseHandler):
                         (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                rows = [(q, settings.DROPGAMECOUNT,
-                         settings.DEFAULTSCOREPERPLAYER,
+                rows = [(q,
+                         settings.SCOREPERPLAYER,
                          settings.UNUSEDPOINTSINCREMENT,
+                         settings.DROPGAMECOUNT,
                          settings.QUALIFYINGGAMES,
                          settings.QUALIFYINGDISTINCTDATES)]
             else:
