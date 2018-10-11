@@ -12,6 +12,7 @@ The web log is written to standard output (redirect as desired).
 import sys
 import os.path
 import os
+import stat
 import math
 import tornado.httpserver
 from tornado.httpclient import AsyncHTTPClient
@@ -313,7 +314,7 @@ def main():
     if isinstance(socket, int):
         http_server.add_sockets(tornado.netutil.bind_sockets(socket))
     else:
-        http_server.add_socket(tornado.netutil.bind_unix_socket(socket))
+        http_server.add_socket(tornado.netutil.bind_unix_socket(socket, mode=stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH))
 
     signal.signal(signal.SIGINT, sigint_handler)
 
