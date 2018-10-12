@@ -187,18 +187,24 @@ class EditQuarterHandler(handler.BaseHandler):
         for field in formfields[1:]:
             values[field] = self.get_argument(field, None)
         with db.getCur() as cur:
-            cur.execute("REPLACE INTO Quarters ({}) VALUES ({})".format(
-                ', '.join(quarterFields),
-                ', '.join(['?'] * len(formfields))),
-                        [values[f] for f in formfields])
+            try:
+                cur.execute("REPLACE INTO Quarters ({}) VALUES ({})".format(
+                    ', '.join(quarterFields),
+                    ', '.join(['?'] * len(formfields))),
+                            [values[f] for f in formfields])
 
-        leaderboard.genLeaderboard(scores.quarterDate(quarter))
+                leaderboard.genLeaderboard(scores.quarterDate(quarter))
 
-        self.render("message.html",
-                    message = "Quarter {0} updated".format(quarter),
-                    title = "Quarter Updated",
-                    next = "Update more quarters",
-                    next_url = "/admin/quarters")
+                self.render("message.html",
+                            message = "Quarter {0} updated".format(quarter),
+                            title = "Quarter Updated",
+                            next = "Update more quarters",
+                            next_url = "/admin/quarters")
+            except Exception as e:
+                self.render("quarters.html",
+                            message="Unable to update {} {} ({})".format(
+                                q, e, values),
+                            quarters=[])
 
 class QuartersHandler(handler.BaseHandler):
     @handler.is_admin
