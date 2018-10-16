@@ -45,7 +45,7 @@ def dateString(date):
         raise Exception('Unexpected input type passed to dateString, {}'.format(
             date))
     
-def PointSettings(quarter=None, date=None):
+def getPointSettings(quarter=None, date=None):
     """Get the UnusedPointsIncrement and starting ScorePerPlayer value for
     the given quarter.
     The quarter defaults to the most recent quarter in the database
@@ -66,6 +66,16 @@ def PointSettings(quarter=None, date=None):
         increment, perPlayer = (
             settings.UNUSEDPOINTSINCREMENT, settings.SCOREPERPLAYER)
     return increment, perPlayer
+
+class PointSettings(handler.BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        date = self.get_argument("date", None)
+        quarter = self.get_argument("quarter", quarterString(date=date))
+        increment, perPlayer = getPointSettings(quarter=quarter, date=date)
+        result = {"status": 0, "unusedPointsIncrement": increment,
+                  "scorePerPlayer": perPlayer}
+        self.write(json.dumps(result))
 
 _unusedPointsPlayer = None
 unusedPointsPlayerName = '!#*UnusedPointsPlayer*#!'
@@ -176,7 +186,8 @@ def rankGame(scores, perPlayer, unusedPointsIncr):
         else:
             score['Score'] = 0
 
-    return {"status": 0, "realPlayerCount": realPlayerCount, "hasUnusedPoints": hasUnusedPoints}
+    return {"status": 0, "realPlayerCount": realPlayerCount, 
+            "hasUnusedPoints": hasUnusedPoints}
 
 def addGame(scores, gamedate = None, gameid = None):
     """Add or replace game scores for a particular game in the database.
@@ -206,7 +217,7 @@ def addGame(scores, gamedate = None, gameid = None):
             gameid = scores[0]['GameId']
 
     quarter = quarterString(datetime.datetime.strptime(gamedate, dateFormat))
-    unusedPointsIncr, perPlayer = PointSettings(quarter=quarter)
+    unusedPointsIncr, perPlayer = getPointSettings(quarter=quarter)
             
     status = rankGame(scores, perPlayer, unusedPointsIncr)
     if status['status'] == 0:

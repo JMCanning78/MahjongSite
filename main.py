@@ -219,6 +219,7 @@ class Application(tornado.web.Application):
                 (r"/seating/players.json", seating.PlayersList),
                 (r"/seating/meetup", seating.AddMeetupPlayers),
                 (r"/addgame", seating.AddGameHandler),
+                (r"/pointsettings", scores.PointSettings),
                 (r"/timers", timers.TimersHandler),
                 (r"/timers.json", timers.GetTimersHandler),
                 (r"/timers/add", timers.AddTimer),

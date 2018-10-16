@@ -253,12 +253,8 @@ class AddGameHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         tables, numplayers = getCurrentTables()
-        unusedPointsIncr, perPlayer = scores.PointSettings()
-        self.render("addgame.html",
-                    unusedPointsIncrement=unusedPointsIncr,
-                    scorePerPlayer=perPlayer,
-                    tables=tables, 
-                    fourplayertotal='{:,d}'.format(4 * perPlayer))
+        self.render("addgame.html", tables=tables)
+
     @tornado.web.authenticated
     def post(self):
         self.write(json.dumps(scores.addGame(json.loads(

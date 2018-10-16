@@ -99,20 +99,20 @@ class EditGameHandler(handler.BaseHandler):
             cur.execute("SELECT Rank, Players.Name, Scores.RawScore, Scores.Chombos, Scores.Date, Players.Id FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ? ORDER BY Rank", (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                self.render("message.html", message = "Game not found", title = "Edit Game")
+                self.render("message.html", message = "Game not found", 
+                            title = "Edit Game")
             else:
                 unusedPoints = None
                 # UnusedPointsPlayer always sorted last in rank
                 if rows[-1][5] == scores.getUnusedPointsPlayerID():
                     unusedPoints = rows[-1][2]
-                unusedPointsIncrement, perPlayer = scores.PointSettings(
+                unusedPointsIncrement, perPlayer = scores.getPointSettings(
                     date=rows[0][4])
                 self.render("editgame.html", id=q,
                             scores=json.dumps(rows).replace("'", "\\'")
                             .replace("\\\"", "\\\\\""),
                             unusedPoints=unusedPoints,
-                            unusedPointsIncrement=unusedPointsIncrement,
-                            scorePerPlayer=perPlayer)
+                            unusedPointsIncrement=unusedPointsIncrement)
     @handler.is_admin_ajax
     def post(self, q):
         gamescores = self.get_argument('scores', None)
@@ -186,25 +186,27 @@ class EditQuarterHandler(handler.BaseHandler):
         formfields = [name[0].lower() + name[1:] for name in quarterFields]
         for field in formfields[1:]:
             values[field] = self.get_argument(field, None)
-        with db.getCur() as cur:
-            try:
+        try:
+            with db.getCur() as cur:
                 cur.execute("REPLACE INTO Quarters ({}) VALUES ({})".format(
                     ', '.join(quarterFields),
                     ', '.join(['?'] * len(formfields))),
                             [values[f] for f in formfields])
 
-                leaderboard.genLeaderboard(scores.quarterDate(quarter))
+        except Exception as e:
+            self.render("quarters.html",
+                        message="Unable to update {} {} ({})".format(
+                            q, e, values),
+                        quarters=[])
 
-                self.render("message.html",
-                            message = "Quarter {0} updated".format(quarter),
-                            title = "Quarter Updated",
-                            next = "Update more quarters",
-                            next_url = "/admin/quarters")
-            except Exception as e:
-                self.render("quarters.html",
-                            message="Unable to update {} {} ({})".format(
-                                q, e, values),
-                            quarters=[])
+        finally:
+            leaderboard.genLeaderboard(scores.quarterDate(quarter))
+
+            self.render("message.html",
+                        message = "Quarter {0} updated".format(quarter),
+                        title = "Quarter Updated",
+                        next = "Update more quarters",
+                        next_url = "/admin/quarters")
 
 class QuartersHandler(handler.BaseHandler):
     @handler.is_admin

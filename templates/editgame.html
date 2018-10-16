@@ -10,7 +10,6 @@
 		<script type="text/javascript">
 			window.scores = JSON.parse('{% raw scores %}');
 			window.gameid = {{ id }};
-			window.scorePerPlayer = {{ scorePerPlayer }}
 		</script>
 		<script src="{{ static_url("js/gameeditor.js") }}"></script>
 		<script src="{{ static_url("js/editgame.js") }}"></script>
@@ -25,6 +24,7 @@
 	</div>
 	<input id="unusedPoints" type="number"
 	       step="{{ unusedPointsIncrement }}" min="0"
+	       {% if unusedPointsIncrement == 0 %}disabled{% end %}
 	       {% if unusedPoints %}
 	       value="{{ unusedPoints }}"
 	       {% end %}

@@ -1,7 +1,8 @@
 $(function() {
 	var message = document.getElementById("message");
 
-	var playerScoreTemplate;
+	var playerScoreTemplate, scorePerPlayer = 25000,
+		unusedPointsIncrement = 0;
 
 	$.get("/static/mustache/playerscore.mst", function(data) {
 		playerScoreTemplate = data;
@@ -10,6 +11,22 @@ $(function() {
 		if (typeof window.populatedEditor === "function")
 			window.populatedEditor();
 	});
+
+	function updatePointSettings() {
+		var date = $("#gamedate").val(),
+			param = date ? "?date=" + date : "";
+		$.get("/pointsettings" + param,
+			function(data) {
+				if (data.status == 0) {
+					scorePerPlayer = data.scorePerPlayer;
+					unusedPointsIncrement = data.unusedPointsIncrement;
+					$("#unusedpoints").prop("step", unusedPointsIncrement);
+					gameComplete();
+					checkUnusedPoints();
+				}
+			}, 'json');
+	}
+	updatePointSettings();
 
 	function updateTotal() {
 		var total = getTotalPoints();
@@ -49,6 +66,9 @@ $(function() {
 	}
 
 	function gameComplete(total) {
+		if (total == null) {
+			total = getTotalPoints()
+		};
 		var ready = true;
 		$(".playercomplete").each(function(index, elem) {
 			ready = ready && $(this).val() !== "";
@@ -63,7 +83,7 @@ $(function() {
 	}
 
 	function completeChange(e) {
-		if (gameComplete(getTotalPoints()) && e.keyCode === 13)
+		if (gameComplete() && e.keyCode === 13)
 			$("#submit").click();
 	}
 
@@ -89,9 +109,12 @@ $(function() {
 		var unusedPoints = $("#unusedPoints");
 		if (unusedPoints.length == 0)
 			return true;
-		var unusedPointsIncrement = parseInt(unusedPoints.attr("step")),
-			entry = parseInt(unusedPoints.val()) || 0,
-			good = (unusedPointsIncrement == 0) ||
+		unusedPoints.prop("disabled", unusedPointsIncrement == 0);
+		if (unusedPointsIncrement == 0) {
+			unusedPoints.val('')
+		};
+		var entry = parseInt(unusedPoints.val()) || 0,
+			good = (unusedPointsIncrement == 0 && entry == 0) ||
 			(entry % unusedPointsIncrement) == 0;
 		unusedPoints.removeClass(good ? "bad" : "good");
 		unusedPoints.addClass(good ? "good" : "bad");
@@ -151,4 +174,5 @@ $(function() {
 	}
 
 	$("#unusedPoints").change(checkUnusedPoints).keyup(checkUnusedPoints);
+	$("#gamedate").change(updatePointSettings);
 });
