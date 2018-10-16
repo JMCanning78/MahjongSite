@@ -23,17 +23,36 @@ $(function() {
 					$("#unusedpoints").prop("step", unusedPointsIncrement);
 					gameComplete();
 					checkUnusedPoints();
+					$(".gametotal").text(
+						addCommaSeparators(
+							$("#players .playerpoints").length *
+							scorePerPlayer));
 				}
 			}, 'json');
 	}
-	updatePointSettings();
+	$(updatePointSettings);
+
+	function addCommaSeparators(num, digits) {
+		if (digits == null) {
+			digits = 3
+		};
+		var thresh = Math.pow(10, digits),
+			result = "",
+			sign = num < 0 ? "-" : "";
+		if (num < 0) {
+			num = -num
+		};
+		while (num >= thresh) {
+			s = "" + num;
+			result = "," + s.slice(-digits) + result
+			num = Math.floor(num / thresh)
+		}
+		return sign + num + result
+	};
 
 	function updateTotal() {
 		var total = getTotalPoints();
-		$(message).text("Total: " +
-			(total < 1000 ? total :
-				Math.floor(total / 1000) + "," +
-				"00".substr(Math.log10(last3 = total % 1000)) + last3));
+		$(message).text("Total: " + addCommaSeparators(total));
 		return total;
 	}
 
