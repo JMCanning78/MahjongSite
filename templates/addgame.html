@@ -6,7 +6,12 @@
 			src="{{ static_url ("js/mustache.min.js") }}"
 			{% else %}
 			src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.1/mustache.min.js"
-			{% end %} type="text/javascript"></script>
+			{% end %} type="text/javascript">
+		</script>
+		<script>
+			window.scores = [];
+			window.allowMorePlayers = true;
+		</script>
 		<script src="{{ static_url("js/gameeditor.js") }}"></script>
 		<script src="{{ static_url("js/addgame.js") }}"></script>
 {% end %}
@@ -16,8 +21,8 @@
  	  <span class="gametotal">?</span>, a fifth player position
   	  will be added.</p>
 	<p class="player4help">When scores total exactly
-	  <span class="gametotal">?</span>,
-	  the fifth player position will be removed.</p>
+	  <span class="gametotal">?</span>
+	  and the fifth player has no name, it will be removed.</p>
 	<div id="players">
 	</div>
 	{% if unusedPointsIncrement > 0 %}

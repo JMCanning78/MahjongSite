@@ -2,14 +2,14 @@ $(function() {
 	var message = document.getElementById("message");
 
 	var playerScoreTemplate, scorePerPlayer = 25000,
-		unusedPointsIncrement = 0;
+		unusedPointsIncrement = 1000;
 
 	$.get("/static/mustache/playerscore.mst", function(data) {
 		playerScoreTemplate = data;
 		Mustache.parse(playerScoreTemplate);
-		addPlayers(4);
-		if (typeof window.populatedEditor === "function")
-			window.populatedEditor();
+		addPlayers(scores.length || 4, allowMorePlayers);
+		if (typeof window.populateEditor === "function")
+			window.populateEditor();
 	});
 
 	function updatePointSettings() {
@@ -57,7 +57,7 @@ $(function() {
 	}
 
 	function updateHelp() {
-		if ($("#players .playerpoints").length === 5) {
+		if ($("#players .playerpoints").length == 5) {
 			$('.player5help').hide();
 			$('.player4help').show();
 		}
@@ -67,21 +67,28 @@ $(function() {
 		}
 	}
 
-	function pointsChange(e) {
-		var total = updateTotal();
+	function pointsChange(allowMorePlayers) {
+		return function(e) {
+			var total = updateTotal();
 
-		if (total > scorePerPlayer * 4 && $("#players .playerpoints").length === 4) {
-			addPlayers();
-		}
-		else if (total === scorePerPlayer * 4 && $("#players .playerpoints").length === 5) {
-			$("#players .player:last-child").last().remove();
-			updateTotal();
-		}
-		updateHelp();
+			if (allowMorePlayers) {
+				if (total > scorePerPlayer * 4 &&
+					$("#players .playerpoints").length == 4) {
+					addPlayers(1, allowMorePlayers);
+				}
+				else if (total == scorePerPlayer * 4 &&
+					$("#players .playerpoints").length == 5 &&
+					$(".playercomplete").last().val() == "") {
+					$("#players .player:last-child").last().remove();
+					updateTotal();
+				}
+				updateHelp();
+			}
 
-		var complete = gameComplete(total);
-		if (complete && e.keyCode === 13)
-			$("#submit").click();
+			var complete = gameComplete(total);
+			if (complete && e.keyCode == 13)
+				$("#submit").click();
+		}
 	}
 
 	function gameComplete(total) {
@@ -93,17 +100,12 @@ $(function() {
 			ready = ready && $(this).val() !== "";
 		});
 
-		ready = ready && (total === scorePerPlayer * 4 ||
-				total === scorePerPlayer * 5) &&
+		ready = ready &&
+			total == scorePerPlayer * $("#players .playerpoints").length &&
 			checkUnusedPoints();
 
 		$("#submit").prop("disabled", !ready);
 		return ready;
-	}
-
-	function completeChange(e) {
-		if (gameComplete() && e.keyCode === 13)
-			$("#submit").click();
 	}
 
 	function getTotalPoints() {
@@ -114,14 +116,15 @@ $(function() {
 		return total;
 	}
 
-	window.addPlayers = function(num) {
+	window.addPlayers = function(num, allowMorePlayers) {
 		for (var i = 0; i < (num || 1); ++i)
 			$("#players").append(Mustache.render(playerScoreTemplate));
+		var pChange = pointsChange(allowMorePlayers);
 		window.populatePlayerComplete();
-		$(".playerpoints").change(pointsChange).keyup(pointsChange);
-		$(".chombos").change(pointsChange).keyup(pointsChange);
-		$(".playercomplete").change(completeChange).keyup(completeChange);
-		$("#unusedPoints").change(pointsChange).keyup(pointsChange);
+		$(".playerpoints").change(pChange).keyup(pChange);
+		$(".chombos").change(pChange).keyup(pChange);
+		$(".playercomplete").change(pChange).keyup(pChange);
+		$("#unusedPoints").change(pChange).keyup(pChange);
 	}
 
 	window.checkUnusedPoints = function() {

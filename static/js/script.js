@@ -20,15 +20,15 @@
 				source: players,
 				minLength: 2
 			});
-			if (elem.next(".clearplayercomplete").length === 0) {
-				elem.after("<button class=\"clearplayercomplete\">✖</button>");
-				elem.each(function(_, complete) {
-					$(complete).next(".clearplayercomplete").click(function(clearbutton) {
-						$(complete).val("");
-						$(complete).trigger("change");
+			elem.each(function(i, name) {
+				if ($(name).next(".clearplayercomplete").length === 0) {
+					$(name).after('<button class="clearplayercomplete">✖</button>');
+					$(name).next(".clearplayercomplete").click(function(b) {
+						$(name).val("");
+						$(name).trigger("change");
 					});
-				});
-			}
+				}
+			})
 		}
 
 		window.xhrError = function(xhr, status, error) {

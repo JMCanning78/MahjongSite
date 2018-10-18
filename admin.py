@@ -106,6 +106,7 @@ class EditGameHandler(handler.BaseHandler):
                 # UnusedPointsPlayer always sorted last in rank
                 if rows[-1][5] == scores.getUnusedPointsPlayerID():
                     unusedPoints = rows[-1][2]
+                    rows = rows[:-1]
                 unusedPointsIncrement, perPlayer = scores.getPointSettings(
                     date=rows[0][4])
                 self.render("editgame.html", id=q,

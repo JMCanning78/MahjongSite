@@ -25,7 +25,7 @@
 			);
 		});
 
-		window.populatedEditor = function() {
+		window.populateEditor = function() {
 			for (var i = 0; i < scores.length; ++i) {
 				var player = $("#players").children(".player").eq(i);
 
