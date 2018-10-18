@@ -79,10 +79,8 @@ $(function() {
 				else if (total == scorePerPlayer * 4 &&
 					$("#players .playerpoints").length == 5 &&
 					$(".playercomplete").last().val() == "") {
-					$("#players .player:last-child").last().remove();
-					updateTotal();
+					addPlayers(-1, allowMorePlayers);
 				}
-				updateHelp();
 			}
 
 			var complete = gameComplete(total);
@@ -119,12 +117,17 @@ $(function() {
 	window.addPlayers = function(num, allowMorePlayers) {
 		for (var i = 0; i < (num || 1); ++i)
 			$("#players").append(Mustache.render(playerScoreTemplate));
+		if (num == -1 && $("#players .playerpoints").length == 5) {
+			$("#players .player:last-child").last().remove();
+			updateTotal();
+		}
 		var pChange = pointsChange(allowMorePlayers);
 		window.populatePlayerComplete();
 		$(".playerpoints").change(pChange).keyup(pChange);
 		$(".chombos").change(pChange).keyup(pChange);
 		$(".playercomplete").change(pChange).keyup(pChange);
 		$("#unusedPoints").change(pChange).keyup(pChange);
+		updateHelp();
 	}
 
 	window.checkUnusedPoints = function() {

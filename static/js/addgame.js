@@ -16,12 +16,12 @@ $(function() {
 	});
 
 	$("#tables").children(".table").click(function() {
-		var players = $(this).children("div.player");
-		if (players.length === 5 && $("#players .player").length === 4)
+		var tplayers = $(this).children("div.player");
+		if (tplayers.length == 5 && $("#players .player").length == 4)
 			window.addPlayers();
-		else if (players.length === 4 && $("#players .player").length === 5)
-			$($("#players .playercomplete")[4]).val("");
-		players.each(function(i, elem) {
+		else if (tplayers.length == 4 && $("#players .player").length == 5)
+			window.addPlayers(-1);
+		tplayers.each(function(i, elem) {
 			$($("#players .playercomplete")[i])
 				.val($(elem).clone().children().remove().end().text());
 		});
