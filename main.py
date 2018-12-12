@@ -142,19 +142,19 @@ class PlayerHistory(handler.BaseHandler):
                     " FROM Scores INNER JOIN Players"
                     "  ON Players.Id = Scores.PlayerId"
                     " WHERE Scores.GameId IN (" + placeholders + ")"
-                    " GROUP BY Scores.Id ORDER BY Scores.Date ASC;", thesegames)
+                    " ORDER BY Scores.GameId, Rank ASC;", thesegames)
                 rows = cur.fetchall()
                 games = {}
                 for row in rows:
-                    gID = row[0]
+                    gID, date, rank, name, rawScore, score, chombos, pID = row
                     if gID not in games:
-                        games[gID] = {'date':row[1], 'scores':{},
+                        games[gID] = {'date':date, 'scores':[],
                                       'id':gID, 'unusedPoints': 0}
-                    if row[7] == scores.getUnusedPointsPlayerID():
-                        games[gID]['unusedPoints'] = row[4]
+                    if pID == scores.getUnusedPointsPlayerID():
+                        games[gID]['unusedPoints'] = rawScore
                     else:
-                        games[gID]['scores'][row[2]] = (
-                            row[3], row[4], round(row[5], 2), row[6])
+                        games[gID]['scores'].append(
+                            (rank, name, rawScore, round(score, 2), chombos))
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
                 pages = range(max(1, page + 1 - 10), 
                               int(min(maxpage, page + 1 + 10) + 1))
@@ -169,15 +169,16 @@ class PlayerHistory(handler.BaseHandler):
                 else:
                     nex = None
                 self.render("userhistory.html",
-                        error=None,
-                        games=games,
-                        curpage=page + 1,
-                        pages=pages,
-                        gamecount=gamecount,
-                        nex = nex,
-                        prev = prev,
-                        user = name,
-                        player = player)
+                            error=None,
+                            games=games,
+                            curpage=page + 1,
+                            pages=pages,
+                            gamecount=gamecount,
+                            ChomboPenalty=settings.CHOMBOPENALTY,
+                            nex = nex,
+                            prev = prev,
+                            user = name,
+                            player = player)
             else:
                 self.render("message.html", message="No games entered thusfar", title="Game History", user = name)
 
