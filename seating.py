@@ -22,14 +22,46 @@ def meetup_ready():
             len(settings.MEETUP_APIKEY) > 1 and
             len(settings.MEETUP_GROUPNAME) > 1)
 
-def meetup_date():
+def target_meetup_date():
     debug = settings.DEVELOPERMODE;  # Set True to force a particular date when testing meetup
     return datetime.date(2018, 9, 3) if debug else datetime.date.today()
 
+
+def current_meetup_event(client):
+    if client is None:
+        return None
+    eventlist = []
+    event_params = {'group_urlname':settings.MEETUP_GROUPNAME}
+    if target_meetup_date() < datetime.date.today():
+        event_params['status'] = 'past'
+        event_params['desc'] = True
+    events = client.GetEvents(event_params)
+    eventlist = events.results
+    for result in eventlist:
+        if datetime.date.fromtimestamp(
+                result['time'] / 1000) == target_meetup_date():
+            return event
+    if len(eventlist) > 0:
+        return eventlist[0]
+    else:
+        return None
+
 class SeatingHandler(handler.BaseHandler):
     def get(self):
+        event = None
+        if meetup_ready():
+            client = meetup.api.Client(settings.MEETUP_APIKEY)
+            try:
+                event = current_meetup_event(client)
+            except Exception as e:
+                pass
+        if event is None:
+            meetupDate = target_meetup_date()
+        else:
+            meetupDate = datetime.date.fromtimestamp(event['time'] / 1000)
+
         self.render("seating.html", meetup_ok = meetup_ready(),
-                    today=meetup_date().strftime('%a %d-%b'))
+                    today=meetupDate.strftime('%a %d-%b'))
 
 class RegenTables(handler.BaseHandler):
     @tornado.web.authenticated
@@ -63,27 +95,17 @@ class CurrentPlayers(handler.BaseHandler):
 class AddMeetupPlayers(handler.BaseHandler):
     @tornado.web.authenticated
     def post(self):
+        ret = {'status':'error','message':'Unknown error ocurred'}
         if meetup_ready():
             client = meetup.api.Client(settings.MEETUP_APIKEY)
-            event_params = {'group_urlname':settings.MEETUP_GROUPNAME}
-            if meetup_date() < datetime.date.today():
-                event_params['status'] = 'past'
-                event_params['desc'] = True
-            ret = {'status':'error','message':'Unknown error ocurred'}
-            eventlist = []
+            event = None
             try:
-                events = client.GetEvents(event_params)
-                eventlist = events.results
+                event = current_meetup_event(client)
             except Exception as e:
                 ret = {'status':'error',
                        'message':'Error ocurred querying meetup events, {}'
                        .format(e)}
-            if len(eventlist) > 0:
-                event = eventlist[0]
-                for result in eventlist:
-                    if datetime.date.fromtimestamp(
-                            result['time'] / 1000) == meetup_date():
-                        event = result
+            if event is not None:
                 rsvps = None
                 try:
                     rsvps = client.GetRsvps({
@@ -99,7 +121,7 @@ class AddMeetupPlayers(handler.BaseHandler):
                     log.info('In the Meetup on {}'
                              ' some RSVP names are too short: {}'.format(
                         datetime.date.fromtimestamp(event['time'] / 1000),
-                        ', '.join("'{}'".format(rsvp['member']['name']) 
+                        ', '.join("'{}'".format(rsvp['member']['name'])
                                   for rsvp in rsvps.results
                                   if len(rsvp['member']['name']) <= 1)))
                 if len(names) > 0:
@@ -115,7 +137,7 @@ class AddMeetupPlayers(handler.BaseHandler):
                             if result is None or result[0] is None:
                                 newCurrentPlayer(name, status=2, meetup=name)
                             elif result[1] is None:
-                                newCurrentPlayer(name, status=1, 
+                                newCurrentPlayer(name, status=1,
                                                  meetup=result[2])
                             else:
                                 log.debug('Ignoring request to re-add {}'
@@ -123,7 +145,7 @@ class AddMeetupPlayers(handler.BaseHandler):
                     ret['status'] = "success"
                     ret['message'] = "Players added"
         else:
-            ret = {'status':'error','message':'Meetup.com API not configured'}
+            ret['message'] = 'Meetup.com API not configured'
         self.write(json.dumps(ret))
 
 def newCurrentPlayer(player, status=0, meetup=None):
@@ -148,7 +170,7 @@ def newCurrentPlayer(player, status=0, meetup=None):
                     "  (SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)",
                       (player, status, player))
     return True
-                                                     
+
 class AddCurrentPlayer(handler.BaseHandler):
     @tornado.web.authenticated
     def post(self):
@@ -227,7 +249,7 @@ def getCurrentTables():
                            for player in range(4 if table < tables_4p else 5)]
                 tables += [{"index": str(table + 1), "players": players}]
     return tables, numplayers
-                
+
 class CurrentTables(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Content-Type', 'application/json')
@@ -236,7 +258,7 @@ class CurrentTables(tornado.web.RequestHandler):
             result = {"status": "success", "message": "Generated tables",
                       "tables": tables, "numplayers": numplayers}
         else:
-            result = {"status":"error", 
+            result = {"status":"error",
                       "message": "Invalid number of players, {}".format(
                           numplayers)}
         self.write(json.dumps(result))

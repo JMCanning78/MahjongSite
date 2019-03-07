@@ -14,7 +14,8 @@
 	width: 78%;
 }
 .seater-controls button.clearplayercomplete {
-	right: 13%;
+	right: 21%;
+	width: 2em;
 }
 #people {
 	margin-bottom: 1em;
