@@ -40,7 +40,7 @@ def current_meetup_event(client):
     for result in eventlist:
         if datetime.date.fromtimestamp(
                 result['time'] / 1000) == target_meetup_date():
-            return event
+            return result
     if len(eventlist) > 0:
         return eventlist[0]
     else:
@@ -75,7 +75,8 @@ class RegenTables(handler.BaseHandler):
             playergames = playerGames(players, cur)
             tables = bestArrangement(players, playergames, priorities)
             cur.execute("DELETE FROM CurrentTables")
-            cur.execute("INSERT INTO CurrentTables(PlayerId) VALUES" + ",".join(["(?)"] * len(players)), tables)
+            if len(players) > 0:
+                cur.execute("INSERT INTO CurrentTables(PlayerId) VALUES" + ",".join(["(?)"] * len(players)), tables)
             self.write('{"status":0}')
 
 class CurrentPlayers(handler.BaseHandler):
@@ -135,40 +136,40 @@ class AddMeetupPlayers(handler.BaseHandler):
                                 (name,))
                             result = cur.fetchone()
                             if result is None or result[0] is None:
-                                newCurrentPlayer(name, status=2, meetup=name)
+                                newCurrentPlayer(cur, name, status=2, meetup=name)
                             elif result[1] is None:
-                                newCurrentPlayer(name, status=1,
+                                newCurrentPlayer(cur, name, status=1,
                                                  meetup=result[2])
                             else:
                                 log.debug('Ignoring request to re-add {}'
                                           .format(name))
                     ret['status'] = "success"
                     ret['message'] = "Players added"
+                    ret['names'] = names
         else:
             ret['message'] = 'Meetup.com API not configured'
         self.write(json.dumps(ret))
 
-def newCurrentPlayer(player, status=0, meetup=None):
-    with db.getCur() as cur:
-        sql = "SELECT Id FROM Players WHERE Id = ? OR Name = ?"
-        bindings = (player, ) * 2
-        if meetup:
-            sql += " OR MeetupName = ?"
-            bindings += (meetup,)
-        cur.execute(sql, bindings)
+def newCurrentPlayer(cur, player, status=0, meetup=None):
+    sql = "SELECT Id FROM Players WHERE Id = ? OR Name = ?"
+    bindings = (player, ) * 2
+    if meetup:
+        sql += " OR MeetupName = ?"
+        bindings += (meetup,)
+    cur.execute(sql, bindings)
+    row = cur.fetchone()
+    if row is None or len(row) == 0:
+        if meetup == '':
+            meetup = None
+        cur.execute("INSERT INTO Players(Name, MeetupName) VALUES (?, ?)",
+                    (player, meetup))
+        cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
         row = cur.fetchone()
-        if row is None or len(row) == 0:
-            if meetup == '':
-                meetup = None
-            cur.execute("INSERT INTO Players(Name, MeetupName) VALUES (?, ?)",
-                        (player, meetup))
-            cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
-            row = cur.fetchone()
-        player = row[0]
-        cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority)"
-                    " SELECT ?, ? WHERE NOT EXISTS"
-                    "  (SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)",
-                      (player, status, player))
+    player = row[0]
+    cur.execute("INSERT INTO CurrentPlayers(PlayerId, Priority)"
+                " SELECT ?, ? WHERE NOT EXISTS"
+                "  (SELECT 1 FROM CurrentPlayers WHERE PlayerId = ?)",
+                  (player, status, player))
     return True
 
 class AddCurrentPlayer(handler.BaseHandler):
@@ -177,13 +178,19 @@ class AddCurrentPlayer(handler.BaseHandler):
         player = self.get_argument('player', None)
         status =  self.get_argument('status', 1)
 
+        ret = {'status':'error','message':'Unable to add new player'}
+
         if player is None or player == "":
-            self.write('{"status":1,"error":"Please enter a player"}')
-            return
-        if newCurrentPlayer(player, status=status):
-            self.write('{"status": 0}')
-        else:
-            self.write('{"status": 0,"error":"Unable to add new player"}')
+            ret['message'] = "Please enter a player"
+        with db.getCur() as cur:
+            try:
+                if newCurrentPlayer(cur, player, status=status):
+                    ret['status'] = "success"
+                    ret['message'] = "Player added"
+            except:
+                pass
+
+        self.write(json.dumps(ret))
 
 class RemovePlayer(handler.BaseHandler):
     @tornado.web.authenticated

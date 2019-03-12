@@ -20,8 +20,10 @@
 			$.post("/seating/addcurrentplayer", {
 				player: val
 			}, function(data) {
-				if (data.status !== 0)
-					console.log(data);
+				if (data.status !== 'success') {
+					console.log(data.message);
+					$.notify(data.message);
+				}
 				else {
 					getCurrentPlayers();
 					regenTables();
