@@ -15,7 +15,7 @@
 		      {% else %}
 		      href="https://fonts.googleapis.com/css?family=Lato:400,700"
 		      {% end %} rel='stylesheet' type='text/css' />
-                            
+
 		<link {% if settings.DEVELOPERMODE %}
 		      href="{{ static_url ("css/jquery-ui.min.css") }}"
 		      {% else %}
@@ -26,7 +26,7 @@
 		      {% else %}
 		      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.theme.min.css"
 		      {% end %} rel="stylesheet" type="text/css" />
-		<link href="{{ static_url("css/style.css") }}" 
+		<link href="{{ static_url("css/style.css") }}"
 		      type="text/css" rel="stylesheet" />
 
 		<script {% if settings.DEVELOPERMODE %}
@@ -82,5 +82,7 @@
 		<div id="content">
 			{% block content %}{% end %}
 		</div>
+    {% block scripts %}
+    {% end %}
 	</body>
 </html>

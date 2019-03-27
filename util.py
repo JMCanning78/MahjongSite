@@ -7,6 +7,14 @@ from quemail import QueMail, Email
 
 import settings
 
+def stringify(x):
+    if x is None or isinstance(x, str):
+        return x
+    elif isinstance(x, bytes):
+        return x.decode()
+    else:
+        return str(x)
+
 def randString(length):
     return ''.join(random.SystemRandom().choice(string.ascii_letters + string.digits) for x in range(length))
 
@@ -34,7 +42,7 @@ def prompt(msg, default=None):
 def identity(x):
     return x
 
-def first(seq, elem, key=identity, not_found=ValueError, 
+def first(seq, elem, key=identity, not_found=ValueError,
           comparison=operator.__eq__):
     for i, e in enumerate(seq):
         if comparison(elem, key(e)):
@@ -43,4 +51,4 @@ def first(seq, elem, key=identity, not_found=ValueError,
         raise not_found('Cannot find {} in {}'.format(elem, seq))
     else:
         return not_found
-    
+

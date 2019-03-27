@@ -40,7 +40,8 @@ schema = collections.OrderedDict({
     'Players': [
         'Id INTEGER PRIMARY KEY AUTOINCREMENT',
         'Name TEXT UNIQUE ON CONFLICT ABORT',
-        'MeetupName TEXT UNIQUE ON CONFLICT ABORT'
+        'MeetupName TEXT UNIQUE ON CONFLICT ABORT',
+        'Symbol TEXT'
     ],
     'Scores': [
         'Id INTEGER PRIMARY KEY AUTOINCREMENT',
@@ -70,6 +71,8 @@ schema = collections.OrderedDict({
         'Id INTEGER PRIMARY KEY AUTOINCREMENT',
         'Email TEXT NOT NULL',
         'Password TEXT NOT NULL',
+        'PlayerId INTEGER',
+        'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE SET NULL',
         'UNIQUE(Email)'
     ],
     'Admins': [
@@ -124,7 +127,7 @@ schema = collections.OrderedDict({
         'FOREIGN KEY(PlayerId) REFERENCES Players(Id) ON DELETE CASCADE',
         'FOREIGN KEY(QuarterId) REFERENCES Quarters(Quarter) ON DELETE CASCADE',
         'UNIQUE(PlayerId, QuarterId)'
-        ],
+    ],
 })
 
 def init(force=False, dbfile=settings.DBFILE, verbose=0):

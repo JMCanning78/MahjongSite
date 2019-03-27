@@ -22,15 +22,46 @@ class ManageUsersHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self):
         with db.getCur() as cur:
-            cur.execute("SELECT Users.Id, Email, Password, Admins.Id FROM Users LEFT JOIN Admins ON Admins.Id = Users.Id")
+            cur.execute("SELECT Users.Id, Email, Password, Admins.Id, Players.Name "
+                        "FROM Users LEFT JOIN Admins ON Admins.Id = Users.Id LEFT JOIN "
+                        "Players ON Players.Id = Users.PlayerId")
             users = []
             for row in cur.fetchall():
                 users += [{
                             "Id":row[0],
                             "Email":row[1],
                             "Admin":row[3] is not None,
+                            "PlayerId": row[4],
                         }]
             self.render("users.html", users = users)
+    @handler.is_admin
+    def post(self):
+        user = self.get_argument('user', None)
+        newPlayer = self.get_argument('newPlayer', None)
+        ret = {"status":"error", "message":"Unknown error occurred"};
+        with db.getCur() as cur:
+            if user is None:
+                ret["message"] = "Please provide a user"
+                return self.write(json.dumps(ret))
+            cur.execute("SELECT Id FROM Users WHERE Id = ? or Email = ?", (user, user))
+            row = cur.fetchone()
+            if row is None or len(row) == 0:
+                ret["message"] = "Unable to find user"
+                return self.write(json.dumps(ret))
+            userId = row[0]
+            if userId is None:
+                ret["message"] = "Unable to find user Id"
+            newPlayerId = None
+            if newPlayer is not None and len(newPlayer) > 0:
+                cur.execute("SELECT Id FROM Players WHERE Id = ? OR Name = ?", (newPlayer, newPlayer))
+                row = cur.fetchone()
+                if row is not None and len(row) > 0:
+                    newPlayerId = row[0]
+
+            cur.execute("UPDATE Users SET PlayerId = ? WHERE Id = ?", (newPlayerId, userId))
+            ret["status"] = "success"
+            ret["message"] = "Updated player"
+        return self.write(json.dumps(ret))
 
 class PromoteUserHandler(handler.BaseHandler):
     @handler.is_admin
@@ -99,7 +130,7 @@ class EditGameHandler(handler.BaseHandler):
             cur.execute("SELECT Rank, Players.Name, Scores.RawScore, Scores.Chombos, Scores.Date, Players.Id FROM Scores INNER JOIN Players ON Players.Id = Scores.PlayerId WHERE GameId = ? ORDER BY Rank", (q,))
             rows = cur.fetchall()
             if len(rows) == 0:
-                self.render("message.html", message = "Game not found", 
+                self.render("message.html", message = "Game not found",
                             title = "Edit Game")
             else:
                 unusedPoints = None
@@ -133,7 +164,7 @@ class EditGameHandler(handler.BaseHandler):
         self.write(json.dumps(scores.addGame(gamescores, gamedate, gameid)))
 
 quarterFields = db.table_field_names('Quarters')
-        
+
 class EditQuarterHandler(handler.BaseHandler):
     @handler.is_admin
     def get(self, q):
@@ -176,7 +207,7 @@ class EditQuarterHandler(handler.BaseHandler):
                 if count == 0:
                     # Use most recent quarter before selected one as default
                     rows = [(q,) + rows[0][1:]] + rows
-            self.render("editquarter.html", 
+            self.render("editquarter.html",
                         quarters=[dict(zip(quarterFields, row)) for row in rows],
                         help=helptext)
 
@@ -262,7 +293,7 @@ class DeleteQuarterHandler(handler.BaseHandler):
                         message = ("Error: Multiple quarters named {0} "
                                    "found. See Adminstrator.").format(q),
                         quarters=rows)
-        
+
     def post(self, q):
         with db.getCur() as cur:
             cur.execute("SELECT Quarter FROM Quarters WHERE Quarter = ?", (q,))
@@ -292,7 +323,7 @@ def getSettingsDescriptions():
     descriptions = collections.defaultdict(lambda : '')
     prefix = "#   "
     try:
-        defaults = os.path.join(os.path.dirname(sys.argv[0]), 'defaults.py') 
+        defaults = os.path.join(os.path.dirname(sys.argv[0]), 'defaults.py')
         with open(defaults, 'r') as f:
             in_description = None
             for line in f:

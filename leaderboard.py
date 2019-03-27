@@ -76,7 +76,7 @@ periods = {
 def get_eligible(quarter=None):
     """Return a nested dictionary structure indexed by quarter and player ID
     that returns a dictionary with the following flags:
-    'Member' for whether they were a member that quarter, 
+    'Member' for whether they were a member that quarter,
     'Played' for whether they played any games that quarter, and
     'Eligible' indicating whether or not the player qualified for the
        end-of-quarter tournament in that quarter.
@@ -131,7 +131,7 @@ def get_eligible(quarter=None):
             Games >= eligible[Quarter]['QGames'] or
             Dates >= eligible[Quarter]['QDistinctDates'])
     return eligible
-                    
+
 class LeaderboardHandler(handler.BaseHandler):
     def get(self, period):
         self.render("leaderboard.html")
@@ -147,7 +147,7 @@ class LeaderDataHandler(handler.BaseHandler):
 
         rows = []
         with db.getCur() as cur:
-            displaycols = ['Name', 'Place'] + LBDcolumns
+            displaycols = ['Name', 'Place', 'Symbol'] + LBDcolumns
             cur.execute(
                 ("SELECT {columns} FROM Leaderboards"
                  " JOIN Players ON PlayerId = Players.Id"
@@ -208,13 +208,13 @@ def genLeaderboard(leaderDate = None):
                     record = dict(zip(LBDcolumns, row))
                     # For Quarterly Leaderboards, compute dropped game average
                     if periodname == 'quarter' and int(record['DropGames']) > 0:
-                        record['DropGames'] = min(settings.MAXDROPGAMES, 
+                        record['DropGames'] = min(settings.MAXDROPGAMES,
                                                   record['DropGames'])
                         cur.execute(
                             "SELECT Score FROM Scores"
                             "  WHERE PlayerId = ? AND Quarter = ?"
                             "  ORDER BY Score ASC LIMIT -1 OFFSET ?",
-                            (record['PlayerId'], record['Date'], 
+                            (record['PlayerId'], record['Date'],
                              record['DropGames']))
                         total = 0.0
                         count = 0

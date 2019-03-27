@@ -38,14 +38,14 @@ class PlayerStatsDataHandler(handler.BaseHandler):
     def get(self, player, quarter):
         with db.getCur() as cur:
             name = player
-            cur.execute("SELECT Id, Name, MeetupName FROM Players"
+            cur.execute("SELECT Id, Name, MeetupName, Symbol FROM Players"
                         " WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if player is None or len(player) == 0:
                 self.write(json.dumps({'status': 1,
                                        'error': "Couldn't find player"}))
                 return
-            playerID, name, meetupName = player
+            playerID, name, meetupName, symbol = player
 
             N = 5
             # Periods is a list of dicts; one for each stat period.
@@ -64,11 +64,11 @@ class PlayerStatsDataHandler(handler.BaseHandler):
                 self.write(json.dumps(
                     {'status': 1,
                      'error': "Couldn't find any scores for {}".format(name)}))
-                return 
+                return
 
             if quarter == 'latest':
                 quarter = p0['maxquarter']
-            if (quarter and p0['minquarter'] <= quarter and 
+            if (quarter and p0['minquarter'] <= quarter and
                 quarter <= p0['maxquarter']):
                 # Quarter provided in URI so just show that quarter
                 periods = [ {'name': '{0} Quarter Stats'.format(quarter),
@@ -104,21 +104,21 @@ class PlayerStatsDataHandler(handler.BaseHandler):
 
             self.write(json.dumps({'playerstats': periods, 'status': 0}))
 
-
 class PlayerStatsHandler(handler.BaseHandler):
     def get(self, player, quarter=None):
         with db.getCur() as cur:
             name = player
-            cur.execute("SELECT Id, Name, MeetupName FROM Players"
+            cur.execute("SELECT Id, Name, MeetupName, Symbol FROM Players"
                         " WHERE Id = ? OR Name = ?", (player, player))
             player = cur.fetchone()
             if player is None or len(player) == 0:
                 return self.render("playerstats.html", name=name,
                                    error = "Couldn't find player")
 
-            playerID, name, meetupname = player
+            playerID, name, meetupname, symbol = player
+            isSelf = self.get_current_player() == stringify(playerID)
             eligible = leaderboard.get_eligible()
-            everplayed = any(eligible[qtr][playerID]['Played'] 
+            everplayed = any(eligible[qtr][playerID]['Played']
                              for qtr in eligible)
             quarterHistory = [
                 {'Name': qtr,
@@ -130,31 +130,41 @@ class PlayerStatsHandler(handler.BaseHandler):
                         error = None,
                         name = name,
                         meetupname = meetupname,
-                        quarter=quarter,
-                        quarterHistory=quarterHistory,
-                        everplayed=everplayed
+                        symbol = symbol,
+                        quarter = quarter,
+                        quarterHistory = quarterHistory,
+                        everplayed = everplayed,
+                        is_self = isSelf
                 )
 
     def post(self, player, quarter=None):
+        isSelf = (self.get_current_player() == stringify(player) or
+                self.get_current_player_name() == stringify(player))
+        if not (self.get_is_admin() or isSelf):
+            return self.render("playerstats.html", name=player,
+                        error="You can only update player settings for yourself or if you're admin.")
         name = self.get_argument("name", player)
         meetupname = self.get_argument("meetupname", None)
+        symbol = self.get_argument("symbol", None)
         if meetupname == '':
             meetupname = None
+        if symbol == '':
+            symbol = None
         if name is None or name == '':
             self.render("playerstats.html", name=player,
                         error="Cannot set name to {!r} for".format(name))
         else:
-            query = """UPDATE Players SET Name = ?, MeetupName = ? 
+            query = """UPDATE Players SET Name = ?, MeetupName = ?, Symbol = ?
                        WHERE Id = ? OR Name = ?"""
-            args = [name, meetupname, player, player]
+            args = [name, meetupname, symbol, player, player]
             with db.getCur() as cur:
                 try:
                     cur.execute(query, args)
                 except Exception as e:
                     self.render("playerstats.html", name=player,
-                                error="Error updating names, {}, for".format(e))
+                                error="Error updating player, {}, for".format(e))
                     return
-            self.redirect("/playerstats/" + name + 
+            self.redirect("/playerstats/" + name +
                           ('/{}'.format(quarter) if quarter else ''))
 
 quarterSuffixes = {'1': 'st', '2': 'nd', '3': 'rd', '4': 'th'}

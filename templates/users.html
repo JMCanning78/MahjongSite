@@ -8,7 +8,12 @@ table {
 	width:100%;
 	margin-top:1em;
 }
+.users td {
+  position:relative;
+}
 </style>
+<script src="{{ static_url("js/script.js") }}"></script>
+<script src="{{ static_url("js/users.js") }}"></script>
 {% end %}
 
 {% block content %}
@@ -19,9 +24,10 @@ table {
 				<th>Id</th>
 				<th>Email</th>
 				<th>Admin</th>
+				<th colspan="2">Player</th>
 			</tr>
 			{% for user in users %}
-				<tr>
+				<tr class="user" data-id="{{ user['Id'] }}">
 					<td>{{ user['Id'] }}</td>
 					<td>{{ user['Email'] }}</td>
 					<td>
@@ -31,6 +37,13 @@ table {
 							<a href="/admin/promote/{{ user['Id'] }}">Promote</a>
 						{% end %}
 					</td>
+					<td>
+            <input class="user-player playercomplete" type="text" placeholder="PLAYER"
+                   {% if user['PlayerId'] is not None %}value="{{ user['PlayerId'] }}"{% end %}></input>
+          </td>
+					<td>
+            <button class="user-player-update">Update</button>
+          </td>
 				</tr>
 
 			{% end %}

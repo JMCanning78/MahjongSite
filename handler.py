@@ -3,16 +3,13 @@ import tornado.web
 
 import db
 import settings
-
-def stringify(x):
-    if x is None or isinstance(x, str):
-        return x
-    elif isinstance(x, bytes):
-        return x.decode()
-    else:
-        return str(x)
+from util import stringify
 
 class BaseHandler(tornado.web.RequestHandler):
+    def get_current_player(self):
+        return stringify(self.get_secure_cookie("playerId"))
+    def get_current_player_name(self):
+        return stringify(self.get_secure_cookie("playerName"))
     def get_current_user(self):
         if settings.DEVELOPERMODE:
             return "1"
@@ -20,7 +17,7 @@ class BaseHandler(tornado.web.RequestHandler):
             return stringify(self.get_secure_cookie("user"))
 
     def get_current_user_name(self):
-        if (getattr(self, 'current_user_name', None) and 
+        if (getattr(self, 'current_user_name', None) and
             self.current_user == self.current_user_ID):
             return self.current_user_name
         self.current_user_ID = self.current_user
@@ -47,7 +44,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     self.current_user_name = acctname
                     return self.current_user_name
         return None
-    
+
     def get_is_admin(self):
         if settings.DEVELOPERMODE:
             return True

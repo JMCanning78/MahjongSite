@@ -1,5 +1,6 @@
 $(function() {
 	var statsTemplate, ranks = ["1st", "2nd", "3rd", "4th", "5th"];
+
 	$.get("/static/mustache/playerstats.mst", function(data) {
 		statsTemplate = data;
 		Mustache.parse(statsTemplate);
@@ -14,15 +15,55 @@ $(function() {
 			player = parts.slice(j + 1).join('/');
 			getData(player);
 		}
-		var name1 = $("#player-name").val(),
-			meetupname1 = $("#player-meetup-name").val();
-		$("#player-names input").keyup(function() {
-			$("#update-names").prop(
-				"disabled",
-				name1 == $("#player-name").val() &&
-				meetupname1 == $("#player-meetup-name").val());
-		});
 	});
+
+	function registerFormCallbacks() {
+		if ($("#player-update").length > 0) {
+			// Initializes and creates emoji set from sprite sheet
+			if (window.emojiPicker === undefined)
+				window.emojiPicker = new EmojiPicker({
+					emojiable_selector: '[data-emojiable=true]',
+					assetsPath: 'https://cdnjs.cloudflare.com/ajax/libs/emoji-picker/1.1.5/img/',
+					popupButtonClasses: 'fa fa-smile-o'
+				});
+			// Finds all elements with `emojiable_selector` and converts them to rich emoji input fields
+			// You may want to delay this step if you have dynamically created input fields that appear later in the loading process
+			// It can be called as many times as necessary; previously converted input fields will not be converted again
+			window.emojiPicker.discover();
+			$(".emoji-wysiwyg-editor").height("");
+			var name1 = $("#player-name").val(),
+				meetupname1 = $("#player-meetup-name").val(),
+				symbol1 = $("#player-symbol").val();
+			var changePlayer = function() {
+				$("#update-player").prop(
+					"disabled",
+					name1 === $("#player-name").val() &&
+					meetupname1 === $("#player-meetup-name").val() &&
+					symbol1 === $("#player-symbol").val()
+				);
+			};
+			$("#player-update input").keyup(changePlayer);
+			var observer = new MutationObserver(function(mutationsList) {
+				for (var mutation of mutationsList) {
+					if (mutation.type == 'childList') {
+						var text = $(mutation.target).text();
+						// Temporary disconnect observer so we can
+						// change the text without looping infinitely.
+						$("#player-symbol").val(text);
+						changePlayer();
+					}
+				}
+			});
+			$("#player-update .emoji-wysiwyg-editor").each(function(i, elem) {
+				var config = {
+					attributes: true,
+					childList: true,
+					subtree: true
+				};
+				observer.observe(elem, config);
+			});
+		}
+	}
 
 	function getData(player) {
 		$.getJSON("/playerstatsdata/" + player, function(data) {
@@ -31,6 +72,7 @@ $(function() {
 			}
 			else {
 				$("#playerstats").html(Mustache.render(statsTemplate, data));
+				registerFormCallbacks();
 				d3.selectAll(".playerstatperiod").each(function(d, i) {
 					drawData(d3.select(this).select('svg'),
 						d3.select(this).select('.rankpielegend'),

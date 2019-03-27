@@ -13,3 +13,19 @@
     width: 100%;
     height: 100;
 }
+
+#player-update td {
+  position:relative;
+}
+
+div.emoji-wysiwyg-editor {
+  border: none;
+	width:100%;
+	height:1em;
+  padding-top:0;
+  padding-bottom:0;
+  padding-right:0.5em;
+  padding-left:0.5em;
+  margin:0;
+  margin-bottom:0.5em;
+}

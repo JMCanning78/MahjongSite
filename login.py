@@ -156,11 +156,11 @@ class VerifyHandler(handler.BaseHandler):
                 passhash = pbkdf2_sha256.encrypt(password)
 
                 cur.execute("INSERT INTO Users (Email, Password) VALUES (LOWER(?), ?)", (email, passhash))
+                self.set_secure_cookie("user", str(cur.lastrowid))
                 cur.execute("SELECT COUNT(*) FROM Users")
                 if cur.fetchone()[0] == 1:
                     cur.execute("INSERT INTO Admins SELECT Id FROM Users")
                     self.set_secure_cookie("admin", "1")
-                self.set_secure_cookie("user", str(cur.lastrowid))
                 cur.execute("DELETE FROM VerifyLinks WHERE Id = ?", (q,))
 
             self.redirect("/")
@@ -264,18 +264,19 @@ class LoginHandler(handler.BaseHandler):
         uri = self.get_argument('next', '/')
 
         if not email or not password or email == "" or password == "":
-            self.render("login.html", 
+            self.render("login.html",
                         message = "Please enter an email and password",
                         uri = uri)
             return
 
         with db.getCur() as cur:
-            cur.execute("SELECT Id, Password FROM Users WHERE Email = LOWER(?)", (email,))
+            cur.execute("SELECT Id, Password, PlayerId FROM Users WHERE Email = LOWER(?)", (email,))
 
             row = cur.fetchone()
             if row is not None:
                 userID = row[0]
                 passhash = row[1]
+                playerId = row[2]
 
                 if pbkdf2_sha256.verify(password, passhash):
                     self.set_secure_cookie("user", str(userID))
@@ -287,9 +288,15 @@ class LoginHandler(handler.BaseHandler):
                             email))
                         self.set_secure_cookie("admin", "1")
                     cur.execute("SELECT Value FROM Settings WHERE UserId = ? AND Setting = 'stylesheet';", (userID,))
-                    res = cur.fetchone()
-                    if res != None:
-                        self.set_secure_cookie("stylesheet", res[0])
+                    stylesheet = cur.fetchone()
+                    if stylesheet is not None and len(stylesheet) > 0:
+                        self.set_secure_cookie("stylesheet", stylesheet[0])
+                    if playerId is not None:
+                        cur.execute("SELECT Id, Name FROM Players WHERE Id = ?;", (playerId,))
+                        player = cur.fetchone()
+                        if player is not None and len(player) > 0:
+                            self.set_secure_cookie("playerId", util.stringify(player[0]))
+                            self.set_secure_cookie("playerName", util.stringify(player[1]))
 
                     if userID != None:
                         self.redirect(uri)
@@ -311,12 +318,10 @@ class SettingsHandler(handler.BaseHandler):
     @tornado.web.authenticated
     def get(self):
         with db.getCur() as cur:
-            cur.execute("SELECT Email FROM Users WHERE Id = ?", 
+            cur.execute("SELECT Email, PlayerId FROM Users WHERE Id = ?",
                         (self.current_user,))
-            email = cur.fetchone()
-            if email is not None:
-                email = email[0]
-            self.render("settings.html", email = email,
+            email, playerId = cur.fetchone()
+            self.render("settings.html", email = email, playerId = playerId,
                         stylesheets=sorted(os.listdir("static/css/colors")))
     @tornado.web.authenticated
     def post(self):
