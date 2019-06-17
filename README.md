@@ -29,7 +29,7 @@ clone https://github.com/BlaiseRitchie/MahjongSite.git`.
 
 1. Ensure you have a Python 3 interpreter. You can get these from sites like:
     1. https://www.python.org/downloads/
-    1. https://www.continuum.io/downloads (anaconda)
+    1. https://www.anaconda.com/distribution/ (anaconda)
 
 1. One of the Python packages requires a C library, libgit2, which in turn
 requires Cmake to install.  See
