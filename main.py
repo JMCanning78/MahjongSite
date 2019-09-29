@@ -156,9 +156,9 @@ class PlayerHistory(handler.BaseHandler):
                         games[gID]['scores'].append(
                             (rank, name, rawScore, round(score, 2), chombos))
                 maxpage = math.ceil(gamecount * 1.0 / PERPAGE)
-                pages = range(max(1, page + 1 - 10), 
+                pages = range(max(1, page + 1 - 10),
                               int(min(maxpage, page + 1 + 10) + 1))
-                games = sorted(games.values(), 
+                games = sorted(games.values(),
                                key=lambda x: (x["date"], x["id"]), reverse=True)
                 if page != 0:
                     prev = page
@@ -219,6 +219,8 @@ class Application(tornado.web.Application):
                 (r"/seating/currenttables.json", seating.CurrentTables),
                 (r"/seating/players.json", seating.PlayersList),
                 (r"/seating/meetup", seating.AddMeetupPlayers),
+                (r"/seating/meetup/oauth_authorize", seating.MeetupOAuthAuthorize),
+                (r"/seating/meetup/oauth_redirect", seating.MeetupOAuthRedirect),
                 (r"/addgame", seating.AddGameHandler),
                 (r"/pointsettings", scores.PointSettings),
                 (r"/timers", timers.TimersHandler),

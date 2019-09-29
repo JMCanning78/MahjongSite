@@ -44,11 +44,41 @@
 				}, 'json').fail(xhrError);
 			}
 		});
-		$("#meetup").click(function() {
+
+		function GetOAuthToken(successCallback) {
+			var oauthWindow = window.open(
+				"/seating/meetup/oauth_redirect",
+				"Meetup OAuth2 Authorization",
+				"location=0,status=0,width=800,height=400"
+			);
+			const oauthAuthorizationSuccessCallback = function() {
+				$.post('/seating/meetup', function(data) {
+					if (data.status !== 'success') {
+						console.log(data.message);
+						$.notify(data.message);
+					}
+				}, 'json').fail(xhrError);
+			};
+			var oauthState = {};
+			oauthState._oauthInterval = window.setInterval(function() {
+				if (oauthWindow.closed) {
+					if (oauthState !== 'undefined' &&
+						oauthState._oauthInterval !== undefined)
+						window.clearInterval(oauthState._oauthInterval);
+					oauthAuthorizationSuccessCallback();
+				}
+			}, 1000);
+		}
+
+		function GetMeetupPlayers() {
 			var meetupbutton = $(this);
 			meetupbutton.prop("disabled", true);
+
 			$.post('/seating/meetup', function(data) {
-				if (data.status !== 'success') {
+				if (data.status === "error" && "type" in data &&
+					data.type === "not-authenticated")
+					GetOAuthToken(GetMeetupPlayers.bind(this));
+				else if (data.status !== 'success') {
 					console.log(data.message);
 					$.notify(data.message);
 				}
@@ -56,7 +86,10 @@
 				regenTables();
 				meetupbutton.prop("disabled", false);
 			}, 'json').fail(xhrError);
-		});
+		}
+
+		$("#meetup").click(GetMeetupPlayers);
+
 		$("#regentables").click(regenTables);
 
 		function removePlayer(player) {

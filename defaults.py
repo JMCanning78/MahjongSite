@@ -38,7 +38,7 @@ MAXDROPGAMES = 3
 DEFAULT_RATING = 1200
 #   SCOREPERPLAYER sets the value for each player's initial score at the
 #   beginning of hanchan (a series of hands where each player normally plays
-#   twice as the East player).  It is used to determine what the total raw 
+#   twice as the East player).  It is used to determine what the total raw
 #   score sum at the end of each round and how to calculate points from those
 #   sums.
 SCOREPERPLAYER = 25000
@@ -72,12 +72,15 @@ TIMELINEQUARTERS = 12
 #   If the club uses the meetup.com site for players to RSVP for games,
 #   filling in the values below will allow you to populate the seating based
 #   on who RSVP'd.  Leave these values blank if you don't use meetup.com
-#   MEETUP_APIKEY can be obtained from https://secure.meetup.com/meetup_api/key/
-MEETUP_APIKEY = ""
+#   MEETUP_CONSUMER_KEY/MEETUP_CONSUMER_SECRET can be obtained from https://secure.meetup.com/meetup_api/oauth_consumers/create
+MEETUP_CONSUMER_KEY = ""
+MEETUP_CONSUMER_SECRET = ""
 #   MEETUP_GROUPNAME can be obtained from the URL you use to view your group
 #   on meetup.com.  For example, the groupname from
 #   https://www.meetup.com/MyMahjongClub/ is MyMahjongClub
 MEETUP_GROUPNAME = ""
+#   The User-Agent to use for meetup API requests
+USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; Win64; x64)"
 
 # EMAIL
 #   These settings are for the outbound email server that sends invites

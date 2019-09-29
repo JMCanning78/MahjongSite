@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import meetup.api
+import urllib
+import urllib.request
 import json
 import tornado.web
 import random
@@ -9,6 +10,7 @@ import datetime
 import math
 from operator import itemgetter
 import logging
+import traceback
 
 import db
 import handler
@@ -18,41 +20,78 @@ import scores
 log = logging.getLogger("WebServer")
 
 def meetup_ready():
-    return (settings.MEETUP_APIKEY and settings.MEETUP_GROUPNAME and
-            len(settings.MEETUP_APIKEY) > 1 and
+    return (settings.MEETUP_CONSUMER_KEY and settings.MEETUP_GROUPNAME and
+            len(settings.MEETUP_CONSUMER_KEY) > 1 and
             len(settings.MEETUP_GROUPNAME) > 1)
 
 def target_meetup_date():
     debug = settings.DEVELOPERMODE;  # Set True to force a particular date when testing meetup
     return datetime.date(2018, 9, 3) if debug else datetime.date.today()
 
-
-def current_meetup_event(client):
-    if client is None:
-        return None
-    eventlist = []
-    event_params = {'group_urlname':settings.MEETUP_GROUPNAME}
-    if target_meetup_date() < datetime.date.today():
-        event_params['status'] = 'past'
-        event_params['desc'] = True
-    events = client.GetEvents(event_params)
-    eventlist = events.results
-    for result in eventlist:
-        if datetime.date.fromtimestamp(
-                result['time'] / 1000) == target_meetup_date():
-            return result
-    if len(eventlist) > 0:
-        return eventlist[0]
+def make_meetup_request(endpoint, accessToken, data):
+    url = "https://api.meetup.com"
+    if endpoint.startswith("/"):
+        url += endpoint
     else:
-        return None
+        url += "/" + endpoint
+    headers = {
+        'User-Agent': settings.USER_AGENT,
+        'Authorization': "Bearer {}".format(accessToken)
+    }
 
-class SeatingHandler(handler.BaseHandler):
+    data = urllib.parse.urlencode(data)
+    req = urllib.request.Request(
+            url + "?" + data,
+            headers=headers
+          )
+    with urllib.request.urlopen(req) as response:
+        responseText = response.read()
+        return json.loads(
+                   responseText
+                   .decode('utf-8')
+               )
+    return None
+
+
+class MeetupEventHandler(handler.BaseHandler):
+    def current_meetup_event(self):
+        eventlist = []
+        event_params = {
+            'page':20
+        }
+        if target_meetup_date() < datetime.date.today():
+            event_params['status'] = 'past'
+            event_params['desc'] = True
+
+        access_token = self.get_secure_cookie("access_token", None)
+        if access_token is not None:
+            access_token = access_token.decode('ascii')
+
+        # TODO: Refresh token if request fails due to expired access key
+        #refresh_token = self.get_secure_cookie("refresh_token").decode('ascii')
+
+        events = make_meetup_request(
+            "/{}/events".format(settings.MEETUP_GROUPNAME),
+            access_token,
+            event_params
+        )
+
+        for result in events:
+            if datetime.date.fromtimestamp(
+                    result['time'] / 1000) == target_meetup_date():
+                return result
+
+        if len(events) > 0:
+            return events[0]
+        else:
+            return None
+
+class SeatingHandler(MeetupEventHandler):
     def get(self):
         event = None
         if meetup_ready():
-            client = meetup.api.Client(settings.MEETUP_APIKEY)
             try:
-                event = current_meetup_event(client)
+                event = self.current_meetup_event()
             except Exception as e:
                 pass
         if event is None:
@@ -93,37 +132,160 @@ class CurrentPlayers(handler.BaseHandler):
                                      row))
                             for row in cur.fetchall()]}))
 
-class AddMeetupPlayers(handler.BaseHandler):
+
+class MeetupOAuthAuthorize(handler.BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        if meetup_ready():
+            params = {
+                "response_type":"code",
+                "client_id":settings.MEETUP_CONSUMER_KEY,
+                "redirect_uri":
+                    "https://{}/seating/meetup/oauth_redirect".format(
+                        self.request.host
+                    ),
+            }
+            params = urllib.parse.urlencode(params)
+            authorizeUrl = "https://secure.meetup.com/oauth2/authorize"
+            return self.redirect(authorizeUrl + "?" + params)
+        else:
+            self.render("message.html",
+                        message = "Meetup not configured",
+                        title="Meetup not configured")
+
+def FetchAccessToken(requestData, host):
+    data = {
+        "client_id":settings.MEETUP_CONSUMER_KEY,
+        "client_secret":settings.MEETUP_CONSUMER_SECRET,
+        "redirect_uri":
+            "https://{}/seating/meetup/oauth_redirect".format(host),
+    }
+    data.update(requestData)
+
+    url = "https://secure.meetup.com/oauth2/access"
+    headers = {'User-Agent': settings.USER_AGENT}
+
+    data = urllib.parse.urlencode(data).encode('utf-8')
+    req = urllib.request.Request(url, data, headers)
+    with urllib.request.urlopen(req) as response:
+        accessResponse = response.read().decode('utf-8')
+
+    # If our authorization response succeeded above
+    if accessResponse is not None:
+        try:
+            return json.loads(accessResponse)
+        except:
+            message = "Couldn't parse meetup authorization response."
+            if response is not None and 'error' in response:
+                message += " Error: " + response['error']
+            return {"message":message}
+    else:
+        return {"message":"No response received"}
+
+class MeetupOAuthRedirect(handler.BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        # Predefine responseData so the parsing code isn't nested so deeply
+        responseData = None
+        if meetup_ready():
+            authCode = self.get_argument("code", None)
+            if authCode is not None:
+                response = FetchAccessToken(
+                    {
+                        "grant_type":"authorization_code",
+                        "code":authCode,
+                    },
+                    self.request.host
+                )
+                if "access_token" in response:
+                    self.set_secure_cookie(
+                        "access_token",
+                        str(response['access_token'])
+                    )
+                    self.set_secure_cookie(
+                        "refresh_token",
+                        str(response['refresh_token'])
+                    )
+                    CLOSE_TIMEOUT_SECONDS = 2
+                    windowCloseScript = """
+                        <script type="text/javascript">
+                            $(function(){{ setTimeout(window.close, {}); }});
+                        </script>
+                    """.format(
+                       CLOSE_TIMEOUT_SECONDS * 1000
+                    )
+                    return self.render("message.html",
+                                message =
+                                    "Authorization Success. " +
+                                    "This window will close in {} seconds.".format(
+                                    CLOSE_TIMEOUT_SECONDS
+                                ),
+                                head_html = windowCloseScript,
+                                title="Meetup Authorization Success")
+                elif "message" in response:
+                    return self.render("message.html",
+                                message = message,
+                                title="Meetup Authorization Failure")
+                else:
+                    return self.render("message.html",
+                                message = "Unknown Meetup Authorization Failure",
+                                title="Meetup Authorization Failure")
+            else:
+                return self.redirect("/seating/meetup/oauth_authorize")
+        else:
+            return self.render("message.html",
+                        message = "Meetup not configured",
+                        title="Meetup not configured")
+
+
+class AddMeetupPlayers(MeetupEventHandler):
     @tornado.web.authenticated
     def post(self):
-        ret = {'status':'error','message':'Unknown error ocurred'}
+        ret = {'status':'error',
+                'type':'unknown',
+                'message':'Unknown error ocurred'}
         if meetup_ready():
-            client = meetup.api.Client(settings.MEETUP_APIKEY)
+            access_token = self.get_secure_cookie("access_token", None)
+
+            if access_token is None:
+                return self.write(json.dumps({'status':'error',
+                        'type':'not-authenticated',
+                        'message':'No OAuth access token yet.'}))
+            else:
+                access_token = access_token.decode('ascii')
+
             event = None
             try:
-                event = current_meetup_event(client)
+                event = self.current_meetup_event()
             except Exception as e:
-                ret = {'status':'error',
-                       'message':'Error ocurred querying meetup events, {}'
-                       .format(e)}
+                return self.write(json.dumps({'status':'error',
+                        'type':'query-exception',
+                        'message':'Error ocurred querying meetup events, {}'
+                       .format(e)}))
             if event is not None:
                 rsvps = None
                 try:
-                    rsvps = client.GetRsvps({
-                        'event_id':event['id'], 'rsvp': 'yes'})
-                    names = [rsvp['member']['name'] for rsvp in rsvps.results
+                    rsvps = make_meetup_request(
+                        "/{}/events/{}/rsvps".format(
+                            settings.MEETUP_GROUPNAME,
+                            event['id']
+                        ),
+                        access_token,
+                        {'response': 'yes'}
+                    )
+                    names = [rsvp['member']['name'] for rsvp in rsvps
                              if len(rsvp['member']['name']) > 1]
                 except Exception as e:
                     ret = {'status':'error',
                            'message':'Error ocurred querying meetup RSVPs, {}'
                        .format(e)}
                     names = []
-                if len(names) < (len(rsvps.results) if rsvps else 0):
+                if len(names) < (len(rsvps) if rsvps else 0):
                     log.info('In the Meetup on {}'
                              ' some RSVP names are too short: {}'.format(
                         datetime.date.fromtimestamp(event['time'] / 1000),
                         ', '.join("'{}'".format(rsvp['member']['name'])
-                                  for rsvp in rsvps.results
+                                  for rsvp in rsvps
                                   if len(rsvp['member']['name']) <= 1)))
                 if len(names) > 0:
                     with db.getCur() as cur:
@@ -136,10 +298,10 @@ class AddMeetupPlayers(handler.BaseHandler):
                                 (name,))
                             result = cur.fetchone()
                             if result is None or result[0] is None:
-                                newCurrentPlayer(cur, name, status=2, meetup=name)
+                                newCurrentPlayer(cur, name, status=2, meetupName=name)
                             elif result[1] is None:
                                 newCurrentPlayer(cur, name, status=1,
-                                                 meetup=result[2])
+                                                 meetupName=result[2])
                             else:
                                 log.debug('Ignoring request to re-add {}'
                                           .format(name))
@@ -150,19 +312,19 @@ class AddMeetupPlayers(handler.BaseHandler):
             ret['message'] = 'Meetup.com API not configured'
         self.write(json.dumps(ret))
 
-def newCurrentPlayer(cur, player, status=0, meetup=None):
+def newCurrentPlayer(cur, player, status=0, meetupName=None):
     sql = "SELECT Id FROM Players WHERE Id = ? OR Name = ?"
     bindings = (player, ) * 2
-    if meetup:
+    if meetupName:
         sql += " OR MeetupName = ?"
-        bindings += (meetup,)
+        bindings += (meetupName,)
     cur.execute(sql, bindings)
     row = cur.fetchone()
     if row is None or len(row) == 0:
-        if meetup == '':
-            meetup = None
+        if meetupName == '':
+            meetupName = None
         cur.execute("INSERT INTO Players(Name, MeetupName) VALUES (?, ?)",
-                    (player, meetup))
+                    (player, meetupName))
         cur.execute("SELECT Id FROM Players WHERE Name = ?", (player,))
         row = cur.fetchone()
     player = row[0]
