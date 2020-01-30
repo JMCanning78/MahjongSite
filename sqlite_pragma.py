@@ -64,24 +64,24 @@ def get_sqlite_db_schema(DBfile='sample_sqlite.db'):
     "Create a database schema dictionary from an existing sqlite database"
     db_schema = {}
     master_info = collections.defaultdict(
-       lambda: collections.defaultdict(lambda: list()))
+       lambda: collections.defaultdict(lambda: dict()))
     with sqliteCur(DBfile=DBfile) as cur:
         cur.execute(
-            "SELECT tbl_name, type, sql FROM SQLITE_MASTER"
+            "SELECT tbl_name, name, type, sql FROM SQLITE_MASTER"
             "  WHERE type in ('table', 'index') AND "
             "        tbl_name NOT LIKE 'sqlite_%' AND sql NOT NULL")
-        for row in cur.fetchall():
-            if row[1] == 'table':
-               master_info[row[0]][row[1]] = row[2]
+        for tbl_name, name, type_, sql in cur.fetchall():
+            if type_ == 'table':
+               master_info[tbl_name][type_] = sql
             else:
-               master_info[row[0]][row[1]].append(row[2])
+               master_info[tbl_name][type_][name] = sql
     for table in master_info:
         db_schema[table] = pragma_dict_from_pragma_records(
-            pragma_records_for_table(table, DBfile), 
+            pragma_records_for_table(table, master_info, DBfile), 
             master_info[table]['table'], master_info[table]['index'])
     return db_schema
 
-def pragma_records_for_table(tablename, DBfile='sample_sqlite.db'):
+def pragma_records_for_table(tablename, master_info, DBfile='sample_sqlite.db'):
     "Get pragma records for a particular table in a SQLite database"
     records = []
     with sqliteCur(DBfile=DBfile) as cur:
@@ -93,8 +93,12 @@ def pragma_records_for_table(tablename, DBfile='sample_sqlite.db'):
             records.extend(extend_record_with_defaults(sqlite_fkey_record, row)
                            for row in cur.fetchall())
             cur.execute("PRAGMA index_list('{0}')".format(tablename))
-            records.extend(extend_record_with_defaults(sqlite_index_record, row)
-                           for row in cur.fetchall())
+            records.extend(
+               extend_record_with_defaults(
+                  sqlite_index_record, row, 
+                  spec_line=(master_info[tablename]['index'][row[1]] 
+                             if row[3] == 'c' else ''))
+               for row in cur.fetchall())
             indices = [p.name for p in records 
                        if isinstance(p, sqlite_index_record) and
                        p.origin == 'c']
@@ -105,13 +109,11 @@ def pragma_records_for_table(tablename, DBfile='sample_sqlite.db'):
                                for row in cur.fetchall())
     return records
 
-def extend_record_with_defaults(record_type, data, default=None):
+def extend_record_with_defaults(record_type, data, default=None, **kwargs):
     record_fields = record_type._fields
-    record_len = len(record_fields)
-    data_len = len(data)
-    if data_len < record_len:
-        return record_type(*(data + (default,) * (record_len - data_len)))
-    return record_type(*data[:record_len])
+    return record_type(*(data[i] if i < len(data) else 
+                         kwargs.get(record_fields[i], default)
+                         for i in range(len(record_fields))))
 
 def pragma_dict_from_pragma_records(pragma_records, table_sql, index_sqls):
     return {
@@ -124,8 +126,16 @@ def pragma_dict_from_pragma_records(pragma_records, table_sql, index_sqls):
         'index_info': [p for p in pragma_records 
                        if isinstance(p, sqlite_index_info_record)],
         'table_sql': table_sql,  # 1 SQL string for CREATE TABLE
-        'index_sqls': index_sqls, # SQL strings for each CREATE INDEX
+        'index_sqls': index_sqls, # Map index names to CREATE INDEX strings
     }
+
+def dict_by_col_name(pragma_records, lower=True):
+    """Retun a dictionary of SQLite column pragma records keyed by their
+    column names.  Use the lowercase version of the name if lower is true.
+    """
+    return dict([(pragma.name.lower() if lower else pragma.name, pragma)
+                 for pragma in pragma_records
+                 if isinstance(pragma, sqlite_column_record)])
 
 def record_differences(record1, record2, include=None, exclude=None,
                        exactfields=False, rename={}):
@@ -182,8 +192,10 @@ def pprint_table_pragmas(pragma_dict, indent='', tablename=''):
                 else:
                     print('{}: {!r}, '.format(field, pragma[i]), end='')
     if pragma_dict['index_sqls']:
-       print('{}Index SQLs for {}: "{}"'.format(
-          indent, tablename, '; '.join(pragma_dict['index_sqls'])))
+       print('{}Index SQLs for {}:'.format(indent, tablename))
+       for index_name in pragma_dict['index_sqls']:
+          print('{}  {} -> {}'.format(indent, index_name,
+                                      pragma_dict['index_sqls'][index_name]))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

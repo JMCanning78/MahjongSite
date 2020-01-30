@@ -200,7 +200,7 @@ def compare_db_schema(new_schema, old_schema, verbose=0, ordermatters=False):
     with the following key: value pairs - 
     same: list of tables that are the same in both
     new_tables: list of tables in the new_schema that don't appear in the old
-    dropped_tables: list of tables in the old but not in the new_schema
+    drop_tables: list of tables in the old but not in the new_schema
     add_fields: list of tables where only new fields are added
     renamed_fields: dictionary of tables where old field names must be
       mapped to new field names (dictionary of dictionaries: outer dictionary
@@ -213,7 +213,7 @@ def compare_db_schema(new_schema, old_schema, verbose=0, ordermatters=False):
     result = {
         'same_tables': [],
         'new_tables': [],
-        'dropped_tables': [],
+        'drop_tables': [],
         'add_fields': [],
         'renamed_fields': {},
         'different_table': [],
@@ -229,10 +229,10 @@ def compare_db_schema(new_schema, old_schema, verbose=0, ordermatters=False):
             if verbose > 1:
                 print(sep, 'Comparing schemas for table', table, sep)
             kind = compare_table_schema(new_schema[table], old_schema[table],
-                                        ordermatters=ordermatters,
+                                        table, ordermatters=ordermatters,
                                         verbose=verbose)
             index_kind = compare_table_indices(
-                new_schema[table], old_schema[table], verbose=verbose)
+                new_schema[table], old_schema[table], table, verbose=verbose)
             categorized = False
             for k in [kind, index_kind]:
                 if k in ('add_fields', 'same', 'different_table', 
@@ -248,10 +248,11 @@ def compare_db_schema(new_schema, old_schema, verbose=0, ordermatters=False):
                         str(kind), str(index_kind), table))
     for table in old_schema:
         if table not in new_schema:
-            result['dropped_tables'].append(table)
+            result['drop_tables'].append(table)
     return result
 
-def compare_table_schema(new_table, old_table, ordermatters=False, verbose=0):
+def compare_table_schema(
+        new_table, old_table, tablename, ordermatters=False, verbose=0):
     """Compare 2 tables described by their pragma dictionaries.  Return
     'same' if they are same, 'add_fields' if the new table has just
     added some fields to the table, a dictionary mapping old field
@@ -263,15 +264,17 @@ def compare_table_schema(new_table, old_table, ordermatters=False, verbose=0):
         old = standardize_create_table_sql(old_table['table_sql']).lower()
         if new == old:
             if verbose > 1:
-                print('SQL for tables is equivalent')
+                print('SQL for creating table {} is equivalent'.format(
+                    tablename))
             return 'same'
         if verbose > 1:
-            print('SQL for tables differs')
+            print('SQL for creating table {} differs'.format(tablename))
             if verbose > 2:
                 print('  SQL for new:\n    ', new_table['table_sql'],
                       '\n  SQL for old:\n    ', old_table['table_sql'])
     elif verbose > 1:
-        print('SQL for one or both tables is missing')
+        print('SQL for one or both versions of table {} is missing'.format(
+            tablename))
         
     actual_cols =  dict_by_col_name(old_table['column'])
     fields_to_rename = renamed_fields(new_table['column'], old_table['column'],
@@ -308,12 +311,6 @@ def compare_table_schema(new_table, old_table, ordermatters=False, verbose=0):
         else fields_to_rename if len(fields_to_rename) > 0 and
         len(deleted + altered + constraints_to_add + constraints_deleted) == 0
         else 'different_table')
-
-def dict_by_col_name(pragmas):
-    """Dictionary keyed by lowercase version of column names defined in 
-    SQLite column pragmas"""
-    return dict([(pragma.name.lower(), pragma) for pragma in pragmas
-                 if isinstance(pragma, sqlite_column_record)])
 
 def renamed_fields(table_pragmas, actual_pragmas, actual_cols=None):
     """Return a mapping of columns in actual_pragmas whose name matches
@@ -382,7 +379,7 @@ def altered_fields(
                                      for d in diff]))
     return result
 
-def compare_table_indices(new_table, old_table, verbose=0):
+def compare_table_indices(new_table, old_table, tablename, verbose=0):
     """Compare the indices for 2 tables described by their pragma
     dictionaries.  This compares only the indices built from CREATE
     INDEX statements, not the ones automatically built by SQLite for
@@ -391,12 +388,22 @@ def compare_table_indices(new_table, old_table, verbose=0):
     'drop_index' if the new table drops an index, or 'different_index' when
     they differ in some other way.
     """
-
     indices_to_add = missing_indices(new_table, old_table)
     indices_to_drop = deleted_indices(new_table, old_table)
     indices_to_change = altered_indices(new_table, old_table, verbose=verbose)
     differ = len(indices_to_change) > 0 or (
         len(indices_to_add) > 0 and len(indices_to_drop) > 0)
+    if verbose > 1:
+        print('Indices for table {}'.format(tablename), 
+              'differ' if differ else
+              'have been added' if len(indices_to_add) > 0 else
+              'have been dropped' if len(indices_to_drop) > 0 else
+              'are the same')
+        if verbose > 2 and len(indices_to_add + indices_to_drop +
+                               indices_to_change) > 0:
+            print('  to add:', indices_to_add,
+                  '\n  to drop:', indices_to_drop,
+                  '\n  altered:', indices_to_change)
     return ('different_index' if differ else 
             'add_index' if len(indices_to_add) > 0 else
             'drop_index' if len(indices_to_drop) > 0 else
@@ -421,7 +428,7 @@ def altered_indices(new_table, old_table, verbose=0):
         if new_index.name.lower() in old_index_dict:
             diff = record_differences(
                 new_index, old_index_dict[new_index.name.lower()],
-                exclude = ['seq', 'spec_line'])
+                exclude = ['seq'])
             if diff:
                 result.append(
                     (new_index, ["{} for index '{}'".format(d, new_index.name)
@@ -475,8 +482,8 @@ def backup_db_and_migrate(
                     if pd['index_sqls']:
                         if verbose > 1:
                             print('Creating indices for {}'.format(table))
-                        for sql in pd['index_sqls']:
-                            cur.execute(sql)
+                        for index_name in pd['index_sqls']:
+                            cur.execute(pd['index_sqls'][index_name])
                 old_col_names = [c.name for c in
                     (common_fields(pd['column'], old_cols)
                      if in_new and in_old else pd['column'])]
@@ -654,15 +661,15 @@ def compare_and_prompt_to_upgrade_database(
             print('{}:'.format(k))
             for table in delta[k]:
                 print(' ', table)
-    simple_change_keys = ('new_tables', 'add_fields', 'renamed_fields',
-                          'add_index', 'drop_index')
-    if not preserve_unspecified:
-        simple_change_keys += ('dropped_tables',)
+    simple_change_keys = (key for key in delta if key.split('_')[0] in 
+                          ('new', 'add', 'renamed'))
+    # if not preserve_unspecified:
+    #     simple_change_keys += ('drop_tables', 'drop_index')
     simple_changes = sum(len(delta[k]) for k in simple_change_keys)
     migrate_only_changes = sum(len(delta[k]) for k in
-                               ['different_table'] + 
+                               ['different_table', 'different_index'] + 
                                ([] if preserve_unspecified else
-                                ['dropped_tables']))
+                                ['drop_tables', 'drop_index']))
 
     # If there are no changes or the forced response is no upgrade,
     # then no more work needs to be done
@@ -785,8 +792,9 @@ if __name__ == '__main__':
         "using Python's datetime.strftime on the current local time.  "
         "The prefix goes before the input database's filename")
     parser.add_argument(
-        '-d', '--drop-unused-tables', default=False, action='store_true',
-        help='Drop any tables not mentioned in the schema when upgrading.')
+        '-d', '--drop-unused', default=False, action='store_true',
+        help='Drop any tables and indices not mentioned in the schema '
+        'when upgrading.')
     parser.add_argument(
         '-v', '--verbose', action='count', default=0,
         help='Add verbose comments.')
@@ -860,7 +868,7 @@ if __name__ == '__main__':
             if not backup_db_and_migrate(
                     desired_db_schema, actual_db_schema, args.database,
                     args.backup_dir, args.backup_file_prefix,
-                    preserve_unspecified=not args.drop_unused_tables,
+                    preserve_unspecified=not args.drop_unused,
                     verbose=args.verbose):
                 sys.exit(-1)
         else:
@@ -873,6 +881,6 @@ if __name__ == '__main__':
                     force_response=args.force_response,
                     backup_dir=args.backup_dir, 
                     backup_prefix=args.backup_file_prefix,
-                    preserve_unspecified=not args.drop_unused_tables,
+                    preserve_unspecified=not args.drop_unused,
                     verbose=args.verbose):
                 sys.exit(-1)

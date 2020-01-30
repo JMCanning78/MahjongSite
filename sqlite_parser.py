@@ -277,18 +277,29 @@ def parse_database_schema(
                         if create_index_pattern.match(line) is None]),
             create_index_sqls_from_spec(
                 [line for line in database_spec[table]
-                 if create_index_pattern.match(line) is not None]))
+                 if create_index_pattern.match(line) is not None],
+                pragma_records))
     return db_schema
 
 def create_table_sql_from_spec(table, table_spec):
     return 'CREATE TABLE {}({})'.format(table, ', '.join(table_spec))
 
-def create_index_sqls_from_spec(index_specs):
-    return ['CREATE INDEX {} {} ON {}({}){}'.format(
-        m.group('exists') or '', m.group('name').strip(),
-        m.group('tname').strip(), 
-        m.group('cnames'), m.group('partial') or '')
-            for m in [create_index_pattern.match(s) for s in index_specs]]
+def create_index_sqls_from_spec(index_specs, table_pragma_records):
+    result = {}
+    col_dict = dict_by_col_name(table_pragma_records)
+    for s in index_specs:
+        m = create_index_pattern.match(s)
+        if m is None:
+            raise Exception('Invalid index spec "{}"'.format(s))
+        name = m.group('name').strip()
+        if any(w.strip().lower() not in col_dict 
+               for w in words(m.group('cnames'))):
+            raise Exception('Index spec "{}" refers to unknown columns'
+                            .format(s))
+        result[name] = 'CREATE INDEX{} {} ON {}({}){}'.format(
+            m.group('exists') or '', name, m.group('tname').strip(), 
+            m.group('cnames'), m.group('partial') or '')
+    return result
             
 multi_whitespace = re.compile(r'\s\s+')
 sql_delims = re.compile(r'\s*([,()])\s*')
@@ -588,7 +599,6 @@ def update_pragma_record_stack_with_match(
     if top_record:
         pragma_record_stack.append(top_record)
     return pragma_record_stack
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
