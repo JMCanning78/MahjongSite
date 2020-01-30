@@ -569,11 +569,10 @@ def upgrade_database(new_db_schema, old_db_schema, delta, dbfile, verbose=0):
                                        if kind == 'drop' else
                                        missing_indices(pd, old_db_schema[table]))
                             if indices and verbose > 1:
-                                print('{}{}ing {} table ind{} {}'
-                                      .format(
-                                          kind.capitalize(), kind[-1], table,
-                                          'ex' if len(indices) == 1 else 'ices',
-                                          indices))
+                                print('{} {} table ind{} {}'.format(
+                                    kind.capitalize(), table,
+                                    'ex' if len(indices) == 1 else 'ices',
+                                    indices))
                             for idx in indices:
                                 cur.execute(
                                     'DROP INDEX {}'.format(idx.name) 
@@ -661,10 +660,8 @@ def compare_and_prompt_to_upgrade_database(
             print('{}:'.format(k))
             for table in delta[k]:
                 print(' ', table)
-    simple_change_keys = (key for key in delta if key.split('_')[0] in 
-                          ('new', 'add', 'renamed'))
-    # if not preserve_unspecified:
-    #     simple_change_keys += ('drop_tables', 'drop_index')
+    simple_change_keys = [key for key in delta if key.split('_')[0] in 
+                          ('new', 'add', 'renamed')]
     simple_changes = sum(len(delta[k]) for k in simple_change_keys)
     migrate_only_changes = sum(len(delta[k]) for k in
                                ['different_table', 'different_index'] + 
@@ -677,12 +674,12 @@ def compare_and_prompt_to_upgrade_database(
         interpret_response(force_response, response_dict) is False):
         return True
     
-    # Here, there are some schema changes needed.  Try altering the existing
+    # Here, there are some desired schema changes.  Try altering the existing
     # database if conditions are right
     if migrate_only_changes == 0:
         description = ',\n'.join('{}: {}'.format(
-            kind.replace('_', ' ').capitalize(), delta[kind]) for kind in
-                                simple_change_keys if delta[kind])
+            kind.replace('_', ' ').capitalize(), delta[kind])
+                                 for kind in simple_change_keys if delta[kind])
         resp = interpret_response(force_response, response_dict)
         while resp is None:
             resp = interpret_response(
