@@ -408,7 +408,7 @@ def missing_indices(new_table, old_table):
             [oi.name.lower() for oi in old_table['index'] if oi.origin == 'c']]
 
 def deleted_indices(new_table, old_table):
-    return [oi for oi in new_table['index']
+    return [oi for oi in old_table['index']
             if oi.origin == 'c' and oi.name.lower() not in
             [ni.name.lower() for ni in new_table['index'] if ni.origin == 'c']]
 
@@ -450,25 +450,47 @@ def backup_db_and_migrate(
             done = []
             def copy_table(table, pd):
                 in_new = table in new_db_schema
+                new_cols = new_db_schema[table]['column'] if in_new else []
                 in_old = table in old_db_schema
+                old_cols = old_db_schema[table]['column'] if in_old else []
                 if table in done:
                     return
-                if verbose > 1:
-                    print('{} {} table ...'.format(
-                        'Creating new' if in_new else 'Preserving', table),
-                          end='')
-                cur.execute(pd['table_sql'])
-                if verbose > 1:
-                    print(' Done.')
-                fields = [c.name for c in (
-                    common_fields(pd['column'], old_db_schema[table]['column'])
-                    if in_new and in_old else pd['column'])]
-                if in_old:
+                rename = {}
+                if in_new and in_old:
+                    old_dict = dict_by_col_name(old_cols)
+                    rename = renamed_fields(new_cols, old_cols, old_dict)
+                    for name in [n for n in rename if n not in old_dict]:
+                            del rename[name]  # Remove case variations
+                if in_new:
                     if verbose > 1:
-                        print('Copying... ', end='')
+                        print('{} {} table ...'.format(
+                            'Creating new' if in_new else 'Preserving', table))
+                        if len(rename) > 0:
+                            print('Renaming fields as follows:')
+                            for name in rename:
+                                print(' ', name, '->', rename[name])
+                    cur.execute(pd['table_sql'])
+                    if verbose > 1:
+                        print(' {} Done.'.format(table))
+                    if pd['index_sqls']:
+                        if verbose > 1:
+                            print('Creating indices for {}'.format(table))
+                        for sql in pd['index_sqls']:
+                            cur.execute(sql)
+                old_col_names = [c.name for c in
+                    (common_fields(pd['column'], old_cols)
+                     if in_new and in_old else pd['column'])]
+                new_col_names = old_col_names + list() # copy of names
+                for name in rename:
+                    old_col_names.append(name)
+                    new_col_names.append(rename[name])
+                if in_old and in_new:
+                    if verbose > 1:
+                        print('Copying old data... ', end='')
                     cur.execute(
-                        'INSERT INTO main.{0} ({1}) SELECT {1} FROM {2}.{0}'
-                        .format(table, ','.join(fields), old_name))
+                        'INSERT INTO main.{0} ({1}) SELECT {2} FROM {3}.{0}'
+                        .format(table, ','.join(new_col_names), 
+                                ','.join(old_col_names), old_name))
                     if verbose > 1:
                         print('Copied {} row{} into {}'.format(
                             cur.rowcount, '' if cur.rowcount == 1 else 's',
@@ -543,7 +565,7 @@ def upgrade_database(new_db_schema, old_db_schema, delta, dbfile, verbose=0):
                                 print('{}{}ing {} table ind{} {}'
                                       .format(
                                           kind.capitalize(), kind[-1], table,
-                                          'ex' if len(old_cols) == 1 else 'ices',
+                                          'ex' if len(indices) == 1 else 'ices',
                                           indices))
                             for idx in indices:
                                 cur.execute(
@@ -557,8 +579,7 @@ def upgrade_database(new_db_schema, old_db_schema, delta, dbfile, verbose=0):
             walk_tables(new_db_schema, alter_table, verbose=verbose)
         return True
     except sqlite3.DatabaseError as e:
-        print('Error while trying to add column or create table in {}:'.format(
-            dbfile), e)
+        print('Error while trying to update {} in place:'.format(dbfile), e)
         return False
 
 def create_database(db_schema, dbfile, verbose=0):
